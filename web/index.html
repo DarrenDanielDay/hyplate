@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="../node_modules/es-modularize/dist/browser.bundle.min.js"></script>
+    <script src="./setup.js"></script>
+    <link rel="stylesheet" type="text/css" href="./index.css" />
+    <title>hyplate example</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <template #t1>
+      <style>
+        span {
+          color: var(--greet-color);
+        }
+      </style>
+      <p><span>Hello</span>, <slot name="world">fallback</slot>!</p>
+      <button class="add-btn"></button>
+      <p #double></p>
+      <button #odd-disabled>disabled when count is odd</button>
+    </template>
+    <template #t2>world</template>
+    <p>
+      <button id="reset">reset count</button>
+      <button id="unmount">unmount</button>
+    </p>
+    <script type="module" src="./index.js"></script>
+  </body>
+</html>

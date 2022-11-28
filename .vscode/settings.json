@@ -1,0 +1,4 @@
+{
+  "jestrunner.jestCommand": "node --experimental-vm-modules \"node_modules/jest/bin/jest.js\"",
+  "typescript.tsdk": "node_modules\\typescript\\lib"
+}

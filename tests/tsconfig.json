@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "../",
+    "jsx": "react-jsx",
+    "jsxImportSource": "hyplate",
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "exclude": [],
+  "include": ["."]
+}
