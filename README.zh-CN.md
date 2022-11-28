@@ -1,7 +1,7 @@
 # hyplate
 
 <div style="text-align: center">
-  <img src="./logo.png" width="192" height="192" />
+  <img src="./logo.svg" width="192" height="192" />
 </div>
 
 [English](./README.md) | 简体中文
