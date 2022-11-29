@@ -1,0 +1,3 @@
+{
+  "redirects": [{ "source": "/dist/jsx-runtime", "destination": "./dist/jsx-runtime.js" }]
+}

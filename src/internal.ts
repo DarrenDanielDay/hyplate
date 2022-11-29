@@ -1,20 +1,28 @@
-export const __DEV__ = process.env.NODE_ENV === "development";
-export const err = (error: unknown) => {
-  const msg =
-    error instanceof Error
-      ? `${
-          error.stack
-            ? `stack trace: ${error.stack}
-`
-            : ""
-        }`
-      : JSON.stringify(error);
-  console.error(`[ERROR]: ${msg}`);
-};
-
-export const warn = <T extends unknown>(msg: string, value: T) => {
-  if (__DEV__) {
-    console.warn(msg);
-  }
-  return value;
+import { remove } from "./core.js";
+import type { CleanUpFunc, Rendered } from "./types.js";
+import { __DEV__ } from "./util.js";
+export const comment = (message?: string) => new Comment(__DEV__ ? message : "");
+/**
+ * @internal
+ */
+export const withComments = (message: string): Rendered<[begin: Comment, end: Comment, clear: CleanUpFunc]> => {
+  const begin = comment(` ${message} begin `);
+  const end = comment(` ${message} end `);
+  return [
+    () => {
+      remove(begin);
+      remove(end);
+    },
+    [
+      begin,
+      end,
+      () => {
+        const range = new Range();
+        range.setStart(begin, begin.length);
+        range.setEnd(end, 0);
+        range.deleteContents();
+        range.detach();
+      },
+    ],
+  ];
 };

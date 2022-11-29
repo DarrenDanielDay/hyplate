@@ -1,4 +1,4 @@
-import { query, source, subscribe } from "hyplate/store";
+import { query, source, subscribe } from "../dist/store";
 
 describe("store.ts", () => {
   describe("source", () => {

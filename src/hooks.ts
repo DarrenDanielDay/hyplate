@@ -1,6 +1,13 @@
 import type { ParseSelector } from "typed-query-selector/parser.js";
 import { bindEvent, anchorRef, select } from "./core.js";
-import type { AttachFunc, CleanUpFunc, EventHost, ExposeBase, FunctionalComponent, Hooks, OptionsBase, SlotMap } from "./types.js";
+import type {
+  AttachFunc,
+  CleanUpFunc,
+  EventHost,
+  ExposeBase,
+  Hooks,
+  Mountable,
+} from "./types.js";
 import { once, scopes } from "./util.js";
 
 /**
@@ -53,10 +60,9 @@ export const useParent: Hooks["useParent"] = () => resolveHooks().useParent();
 export const useAnchor = (hid: string) => anchorRef(useHost(), hid);
 
 export const useChildView =
-  <O extends OptionsBase, S extends SlotMap, E extends ExposeBase>(component: FunctionalComponent<O, S, E>) =>
-  (options: O, slots: S) =>
+  <E extends ExposeBase>(mountable: Mountable<E>) =>
   (attach: AttachFunc) => {
-    const [cleanup, exposed] = component(options, slots)(attach);
+    const [cleanup, exposed] = mountable(attach);
     useCleanUp(cleanup);
     return exposed;
   };

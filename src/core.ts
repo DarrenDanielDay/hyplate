@@ -1,9 +1,10 @@
 // import { Source, TextInterpolation } from "./types";
 import type { ParseSelector } from "typed-query-selector/parser.js";
-import { err, __DEV__ } from "./internal.js";
+import { err, __DEV__ } from "./util.js";
 import { subscribe } from "./store.js";
 import type { AttachFunc, AttributeInterpolation, CleanUpFunc, EventHost, Query, TextInterpolation } from "./types.js";
-import { isObject, isString } from "./util.js";
+import { applyAll, isObject, isString, push } from "./util.js";
+import { comment } from "./internal.js";
 
 export const element = document.createElement.bind(document);
 
@@ -54,24 +55,20 @@ export const text =
       buf.length = 0;
     };
     for (let i = 0; i < bindingsLength; i++) {
-      buf.push(fragments[i]!);
+      push(buf, fragments[i]!);
       const expression = bindings[i]!;
       if (isObject(expression)) {
         flushBuf();
         const dynamicText = new Text();
-        effects.push(bindText(dynamicText, expression));
+        push(effects, bindText(dynamicText, expression));
         attach(dynamicText);
       } else {
-        buf.push(`${expression}`);
+        push(buf, `${expression}`);
       }
     }
-    buf.push(fragments.at(-1)!);
+    push(buf, fragments.at(-1)!);
     flushBuf();
-    return () => {
-      for (const effect of effects) {
-        effect();
-      }
-    };
+    return applyAll(effects);
   };
 
 export const bindAttr = (el: Element, name: string, query: Query<AttributeInterpolation>) =>
@@ -88,11 +85,23 @@ export const bindEvent =
     };
   };
 
-export const appendChild = (host: Element) => (node: Node) => (host.appendChild(node), host);
+export const appendChild =
+  <T>(host: Node) =>
+  (node: Node) => (host.appendChild(node), host as T);
 
 export const before = (element: ChildNode) => (node: Node) => (element.before(node), element.parentElement!);
 
 export const after = (element: ChildNode) => (node: Node) => (element.after(node), element.parentElement!);
+
+export const seqAfter = (element: ChildNode) => {
+  const begin = comment("sequence after begin");
+  const end = comment("sequence after end");
+  const append = after(element);
+  append(begin);
+  append(end);
+  const insert = before(end);
+  return (node: Node) => insert(node);
+};
 
 export const remove = (node: ChildNode) => node.remove();
 

@@ -1,8 +1,8 @@
 import { $$, appendChild, before, clone, element, insertSlot, remove } from "./core.js";
 import { createHooks, enterHooks, quitHooks } from "./hooks.js";
-import { __DEV__ } from "./internal.js";
-import type { FunctionalComponentTemplateFactory } from "./types.js";
+import type { FunctionalComponentTemplateFactory, SlotMap } from "./types.js";
 import { isFunction, once, patch } from "./util.js";
+import { withComments } from "./internal.js";
 
 export const template = (input: string | HTMLTemplateElement): HTMLTemplateElement =>
   input instanceof HTMLTemplateElement ? input : patch(element("template"), { innerHTML: input });
@@ -18,13 +18,14 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
     const slotTag = `${elementTag}-slot`;
     customElements.define(elementTag, anonymousElement());
     customElements.define(slotTag, anonymousElement());
-    return (options, slots) => (attach) => {
+    return (options) => (attach) => {
+      const slots = options.children;
       const owner = document.createElement(elementTag);
       const parent = attach(owner);
       const shadow = owner.attachShadow({ mode: "open" });
       shadow.appendChild(clone(t.content));
       if (slots) {
-        for (const [name, slotInput] of Object.entries(slots)) {
+        for (const [name, slotInput] of Object.entries<SlotMap[string]>(slots)) {
           const element = document.createElement(slotTag);
           if (isFunction(slotInput)) {
             slotInput(appendChild(element));
@@ -39,7 +40,7 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
         parent,
       });
       enterHooks(hooks);
-      const exposed = setup?.(options) as never;
+      const exposed = setup?.(options as never) as never;
       quitHooks();
       const cleanupView = () => {
         for (const child of Array.from(shadow.childNodes)) {
@@ -63,17 +64,17 @@ export const replaced: FunctionalComponentTemplateFactory = (input, name) => {
   const t = template(input);
   const componentName = templateName(name);
   return (setup) => {
-    return (options, slots) => (attach) => {
+    return (options) => (attach) => {
+      const slots = options.children;
+      const [cleanupComment, [begin, end, clearRange]] = withComments(componentName);
       const fragment = clone(t.content);
-      const begin = new Comment(__DEV__ ? ` ${componentName} begin ` : "");
       attach(begin);
       const host = attach(fragment);
-      const end = new Comment(__DEV__ ? ` ${componentName} end ` : "");
       attach(end);
       if (slots) {
         const fragmentSlots = $$(host, "slot");
         for (const slot of fragmentSlots) {
-          const slotInput = slots[slot.name];
+          const slotInput = slots[slot.name as keyof typeof slots];
           if (!slotInput) {
             continue;
           }
@@ -88,16 +89,11 @@ export const replaced: FunctionalComponentTemplateFactory = (input, name) => {
       }
       const [hooks, cleanupHooks] = createHooks({ host, parent: host });
       enterHooks(hooks);
-      const exposed = setup?.(options) as never;
+      const exposed = setup?.(options as never) as never;
       quitHooks();
       const cleanupView = () => {
-        const range = new Range();
-        range.setStart(begin, 0);
-        range.setEnd(end, end.length);
-        range.deleteContents();
-        range.detach();
-        remove(begin);
-        remove(end);
+        clearRange();
+        cleanupComment();
       };
       const unmount = once(() => {
         cleanupHooks();

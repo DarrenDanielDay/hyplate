@@ -2,9 +2,10 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "rootDir": "../",
+    "outDir": "../test-dist",
+    "moduleResolution": "Node",
     "jsx": "react-jsx",
-    "jsxImportSource": "hyplate",
+    "jsxImportSource": "../dist",
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },

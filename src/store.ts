@@ -24,7 +24,7 @@
  *
  */
 
-import { err, __DEV__ } from "./internal.js";
+import { err, __DEV__ } from "./util.js";
 import type { CleanUpFunc, Differ, Query, Source, Subscriber } from "./types.js";
 import { once, scopes } from "./util.js";
 

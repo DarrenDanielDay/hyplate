@@ -1,9 +1,12 @@
 {
   "compilerOptions": {
     "strictNullChecks": false,
-    "noEmit": true,
-    "checkJs": true,
-    "allowJs": true
+    "module": "ESNext",
+    "target": "ESNext",
+    "sourceMap": true,
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "jsxImportSource": "../dist"
   },
   "include": ["."]
 }
