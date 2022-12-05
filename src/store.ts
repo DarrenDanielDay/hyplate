@@ -24,16 +24,16 @@
  *
  */
 
-import { err, __DEV__ } from "./util.js";
+import { compare, err, __DEV__ } from "./util.js";
 import type { CleanUpFunc, Differ, Query, Source, Subscriber } from "./types.js";
 import { once, scopes } from "./util.js";
 
-let defaultDiffer = Object.is;
+let defaultDiffer: Differ = compare;
 export const setDiffer = (differ: Differ) => {
   defaultDiffer = differ;
 };
 
-const [enterScope, quitScope, currentScope] = scopes<Subscriber<Source<unknown>>>();
+const [enterScope, quitScope, currentScope] = scopes<(src: Source<unknown>) => void>();
 
 const useDepScope = (): [Set<Source<unknown>>, CleanUpFunc] => {
   const deps = new Set<Source<unknown>>();
@@ -66,7 +66,7 @@ export const source = <T extends unknown>(val: T, differ: Differ = defaultDiffer
   return src;
 };
 
-const subscriptions = new WeakMap<Query<any>, Set<Subscriber<any>>>();
+const subscriptions = new WeakMap<Query<unknown>, Set<Subscriber<unknown>>>();
 if (__DEV__) {
   Object.assign(globalThis, { __SUBSCRIPTIONS__: subscriptions });
 }
@@ -84,7 +84,7 @@ export const subscribe = <T extends unknown>(query: Query<T>, subscriber: Subscr
     }
     subscriber(newVal);
   };
-  let deps = new Set<Query<any>>();
+  let deps = new Set<Query<unknown>>();
   underlyingSubscriber();
   return once(() => {
     for (const dep of deps) {
@@ -93,12 +93,12 @@ export const subscribe = <T extends unknown>(query: Query<T>, subscriber: Subscr
   });
 };
 
-export const dispatch = <T extends unknown>(src: Query<any>, newVal: T) => {
+export const dispatch = <T extends unknown>(src: Query<unknown>, newVal: T) => {
   [...subscriptions.get(src)!].forEach((sub) => {
     try {
       sub(newVal);
     } catch (error) {
-      err(err);
+      err(error);
     }
   });
 };

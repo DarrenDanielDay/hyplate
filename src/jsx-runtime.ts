@@ -1,16 +1,19 @@
-import { appendChild, attr, bindAttr, element, remove, text } from "./core.js";
+import { appendChild, attr, bindAttr, bindEvent, docFragment, element, remove, text } from "./core.js";
 
 import type {
   JSXChildNode,
   FunctionalComponent,
-  WithChildren,
   JSXChild,
   AttachFunc,
   CleanUpFunc,
   Query,
   AttributeInterpolation,
+  Rendered,
+  Props,
+  PropsBase,
+  Later,
 } from "./types.js";
-import { applyAll, isFunction, isObject, push } from "./util.js";
+import { applyAll, isFunction, isObject, noop, push } from "./util.js";
 
 const addChild = (child: JSXChild, attach: AttachFunc) => {
   if (child instanceof Node) {
@@ -25,7 +28,16 @@ const addChild = (child: JSXChild, attach: AttachFunc) => {
   return text`${child}`(attach);
 };
 
-const renderChild = (children: JSXChildNode, attach: AttachFunc) => {
+const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
+  let begin: Node | null = null,
+    end: Node | null = null;
+  const attach: AttachFunc = (node) => {
+    if (!begin) {
+      begin = node;
+    }
+    end = node;
+    return _attach(node);
+  };
   const cleanups: CleanUpFunc[] = [];
   if (Array.isArray(children)) {
     for (const child of children) {
@@ -34,25 +46,36 @@ const renderChild = (children: JSXChildNode, attach: AttachFunc) => {
   } else {
     push(cleanups, addChild(children, attach));
   }
-  return cleanups;
+  return [cleanups, () => (begin && end ? ([begin, end] as const) : void 0)] as const;
 };
+const pattern = /^on[A-Z]/;
+const isEventAttribute = (name: string) => pattern.test(name);
 
-export const jsx = (type: FunctionalComponent | string, props: Partial<WithChildren<JSXChildNode>>): JSX.Element => {
+export const jsx = (
+  type: FunctionalComponent | string,
+  props: Partial<Props<PropsBase, JSXChildNode, HTMLElement>>
+): JSX.Element => {
   if (typeof type === "string") {
-    return (attach) => {
+    return (attach): Rendered<object> => {
       const el = element(type);
-      const { children, ...attributes } = props;
-      const cleanups = children ? renderChild(children, appendChild(el)) : [];
+      const { children, ref, ...attributes } = props;
+      if (ref) {
+        ref.el = el;
+      }
+      const [cleanups] = children ? renderChild(children, appendChild(el)) : [[]];
       for (const [key, value] of Object.entries(attributes)) {
         if (isObject(value)) {
           push(cleanups, bindAttr(el, key, value as Query<AttributeInterpolation>));
+        } else if (isFunction(value) && isEventAttribute(key)) {
+          const host = bindEvent(el);
+          push(cleanups, host(key.slice(2).toLowerCase() as never, value));
         } else {
           attr(el, key, `${value}`);
         }
       }
       push(cleanups, () => remove(el));
       attach(el);
-      return [applyAll(cleanups), el];
+      return [applyAll(cleanups), el, () => [el, el]];
     };
   }
   // @ts-expect-error Dynamic Implementation
@@ -60,11 +83,18 @@ export const jsx = (type: FunctionalComponent | string, props: Partial<WithChild
 };
 export const jsxs = jsx;
 
+/**
+ * Create a jsx ref object to fetch the DOM element when mounted.
+ */
+export const jsxRef = <E extends HTMLElement>(): Later<E> => ({
+  el: null,
+});
+
 export const Fragment: FunctionalComponent<{}, JSXChildNode | undefined> = ({ children }) => {
   return (attach) => {
-    const fragment = new DocumentFragment();
-    const cleanups = children ? renderChild(children, appendChild(fragment)) : [];
+    const fragment = docFragment();
+    const [cleanups, getRange] = children ? renderChild(children, appendChild(fragment)) : [[], noop];
     attach(fragment);
-    return [applyAll(cleanups), void 0];
+    return [applyAll(cleanups), void 0, getRange];
   };
 };

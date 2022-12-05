@@ -24,5 +24,6 @@ export const withComments = (message: string): Rendered<[begin: Comment, end: Co
         range.detach();
       },
     ],
+    () => [begin, end],
   ];
 };

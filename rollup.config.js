@@ -5,6 +5,7 @@ const config = {
   input: {
     "index.browser.esm.min": "./dist/index.js",
     "core.browser.esm.min": "./dist/core.js",
+    "directive.browser.esm.min": "./dist/directive.js",
     "hooks.browser.esm.min": "./dist/hooks.js",
     "jsx-runtime.browser.esm.min": "./dist/jsx-runtime.js",
     "store.browser.esm.min": "./dist/store.js",

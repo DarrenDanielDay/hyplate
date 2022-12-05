@@ -2,11 +2,20 @@
 import type { ParseSelector } from "typed-query-selector/parser.js";
 import { err, __DEV__ } from "./util.js";
 import { subscribe } from "./store.js";
-import type { AttachFunc, AttributeInterpolation, CleanUpFunc, EventHost, Query, TextInterpolation } from "./types.js";
+import type {
+  AttachFunc,
+  AttributeInterpolation,
+  CleanUpFunc,
+  EventHost,
+  Query,
+  TextInterpolation,
+} from "./types.js";
 import { applyAll, isObject, isString, push } from "./util.js";
 import { comment } from "./internal.js";
 
 export const element = document.createElement.bind(document);
+
+export const docFragment = document.createDocumentFragment.bind(document);
 
 export const clone = <N extends Node>(node: N): N => node.cloneNode(true) as N;
 
@@ -104,6 +113,19 @@ export const seqAfter = (element: ChildNode) => {
 };
 
 export const remove = (node: ChildNode) => node.remove();
+
+export const moveNode = (node: Node) => (attach: AttachFunc) => attach(node);
+
+export const moveRange =
+  (begin: Node | null, end: Node | null) =>
+  (attach: AttachFunc) => {
+    for (let node = begin; node && node !== end; node = node.nextSibling) {
+      attach(node);
+    }
+    if (end) {
+      attach(end);
+    }
+  };
 
 export const insertSlot = (host: Element, slotName: string, element: Element) => {
   attr(element, "slot", slotName);

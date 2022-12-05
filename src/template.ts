@@ -18,9 +18,9 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
     const slotTag = `${elementTag}-slot`;
     customElements.define(elementTag, anonymousElement());
     customElements.define(slotTag, anonymousElement());
-    return (options) => (attach) => {
-      const slots = options.children;
-      const owner = document.createElement(elementTag);
+    return (props) => (attach) => {
+      const slots = props.children;
+      const owner = element(elementTag);
       const parent = attach(owner);
       const shadow = owner.attachShadow({ mode: "open" });
       shadow.appendChild(clone(t.content));
@@ -40,7 +40,7 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
         parent,
       });
       enterHooks(hooks);
-      const exposed = setup?.(options as never) as never;
+      const exposed = setup?.(props as never) as never;
       quitHooks();
       const cleanupView = () => {
         for (const child of Array.from(shadow.childNodes)) {
@@ -55,7 +55,7 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
         cleanupHooks();
         cleanupView();
       });
-      return [unmount, exposed];
+      return [unmount, exposed, () => [owner, owner]];
     };
   };
 };
@@ -99,7 +99,7 @@ export const replaced: FunctionalComponentTemplateFactory = (input, name) => {
         cleanupHooks();
         cleanupView();
       });
-      return [unmount, exposed];
+      return [unmount, exposed, () => [begin, end]];
     };
   };
 };

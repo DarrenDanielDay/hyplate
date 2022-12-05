@@ -24,6 +24,8 @@
  *
  */
 
+export type AnyFunc = (...args: any[]) => any;
+
 export type CleanUpFunc = () => void;
 
 export interface Query<T extends unknown> {
@@ -35,6 +37,10 @@ export interface Source<T extends unknown> extends Query<T> {
 }
 
 export type Subscriber<T extends unknown> = (latest: T) => void;
+
+export interface Later<E extends HTMLElement> {
+  el: E | null;
+}
 
 /**
  * Should return true if the two value is treated as same.
@@ -96,8 +102,11 @@ export type Mountable<E extends ExposeBase> = (attach: AttachFunc) => Rendered<E
 
 export type WithChildren<C> = { children: C };
 
-export type Props<P extends PropsBase, C = undefined> = Omit<P, "children"> &
-  (C extends undefined ? Partial<WithChildren<C>> : WithChildren<C>);
+export type WithRef<E extends HTMLElement> = { ref: Later<E> };
+
+export type Props<P extends PropsBase, C = undefined, E = undefined> = Omit<P, "children" | "ref"> &
+  (C extends undefined ? Partial<WithChildren<C>> : WithChildren<C>) &
+  (E extends HTMLElement ? Partial<WithRef<E>> : {});
 
 export type FunctionalComponent<P extends PropsBase = PropsBase, C = undefined, E extends ExposeBase = void> = (
   props: Props<P, C>
@@ -106,14 +115,16 @@ export type FunctionalComponent<P extends PropsBase = PropsBase, C = undefined, 
 export type FunctionalComponentTemplateFactory = <S extends string = never>(
   input: string | HTMLTemplateElement,
   name?: string
-) => <O extends PropsBase, E extends ExposeBase>(setup?: (options: O) => E) => FunctionalComponent<O, SlotMap<S>, E>;
+) => <P extends PropsBase, E extends ExposeBase>(setup?: (props: P) => E) => FunctionalComponent<P, SlotMap<S>, E>;
 
 /**
  * Accept a node, attach it to the DOM tree and return its parentNode.
  */
 export type AttachFunc = (el: Node) => Element;
 
-export type Rendered<E extends ExposeBase> = [CleanUpFunc, E];
+export type GetRange = () => readonly [Node, Node] | undefined | void;
+
+export type Rendered<E extends ExposeBase> = [unmount: CleanUpFunc, exposed: E, range: GetRange];
 
 //#region JSX types
 type ArrayOr<T> = T | T[];
@@ -134,9 +145,23 @@ type BooleanAttributes<K extends string> = {
 
 type EnumeratedValues<E extends string> = E | (string & {});
 
-type Attributes<T extends {}> = {
-  [K in keyof T]?: T[K] | Query<T[K]>
-} & JSX.IntrinsicAttributes;
+type ElementAttributes<E extends HTMLElement> = {
+  ref?: Later<E>;
+};
+
+type Attributes<T extends {}, E extends HTMLElement> = {
+  [K in keyof T]?: T[K] | Query<T[K]>;
+} & ElementAttributes<E> &
+  JSX.IntrinsicAttributes;
+
+type _EventName<E extends string> = E extends `on${infer e}` ? e : never;
+
+type FunctionalGlobalEventHandler = {
+  [K in keyof GlobalEventHandlers as `on${Capitalize<_EventName<K>>}`]: (
+    event: Parameters<Extract<GlobalEventHandlers[K], (...args: any[]) => any>>[0]
+  ) => void;
+};
+
 /**
  * @see https://developer.mozilla.org/docs/Web/HTML/Global_attributes
  */
@@ -223,7 +248,8 @@ interface GlobalAttributes
       | "title"
     >,
     //#endregion
-    BooleanAttributes<"autofocus" | "contenteditable" | "draggable" | "inert" | "spellcheck"> {
+    BooleanAttributes<"autofocus" | "contenteditable" | "draggable" | "inert" | "spellcheck">,
+    FunctionalGlobalEventHandler {
   /** @deprecated */
   "xml:lang": string;
   /** @deprecated */
@@ -319,6 +345,10 @@ interface GlobalAttributes
   translate: EnumeratedValues<"yes" | "no">;
   [ariaAttributes: `aria-${string}`]: string;
   [dataAttributes: `data-${string}`]: string;
+  /**
+   * Allow any attributes.
+   */
+  [key: string]: unknown;
 }
 //#endregion
 
@@ -332,7 +362,10 @@ declare global {
       children: {};
     }
     interface IntrinsicElements {
-      div: Attributes<GlobalAttributes>;
+      button: Attributes<GlobalAttributes, HTMLButtonElement>;
+      div: Attributes<GlobalAttributes, HTMLDivElement>;
+      input: Attributes<GlobalAttributes, HTMLInputElement>;
+      span: Attributes<GlobalAttributes, HTMLSpanElement>;
     }
     interface IntrinsicAttributes {
       children?: unknown;

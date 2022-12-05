@@ -16,13 +16,26 @@
         span {
           color: var(--greet-color);
         }
+        .list-item {
+          border: 1px solid #cccccc;
+          padding: 4px;
+          margin: 2px;
+          width: min-content;
+        }
+        .row {
+          width: 360px;
+          display:flex;
+          justify-content: space-between;
+        }
       </style>
       <p><span>Hello</span>, <slot name="world">fallback</slot>!</p>
       <button class="add-btn"></button>
       <p #double></p>
       <button #odd-disabled>disabled when count is odd</button>
     </template>
-    <template #t2>world</template>
+    <template #t2>
+      <span>world</span>
+    </template>
     <p>
       <button id="reset">reset count</button>
       <button id="unmount">unmount</button>
