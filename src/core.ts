@@ -119,11 +119,15 @@ export const moveNode = (node: Node) => (attach: AttachFunc) => attach(node);
 export const moveRange =
   (begin: Node | null, end: Node | null) =>
   (attach: AttachFunc) => {
+    const targets: Node[] = [];
     for (let node = begin; node && node !== end; node = node.nextSibling) {
-      attach(node);
+      push(targets, node);
     }
     if (end) {
-      attach(end);
+      push(targets, end);
+    }
+    for (const node of targets) {
+      attach(node);
     }
   };
 

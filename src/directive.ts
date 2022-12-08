@@ -199,7 +199,7 @@ export const For = <T extends unknown>({
         for (i = toBePatched - 1; i >= 0; i--) {
           const nextIndex = s2 + i;
           const nextChild = newNodes[nextIndex]!;
-          const anchor = newNodes[nextIndex + 1]?.[1]![2]()?.[1] ?? end;
+          const anchor = newNodes[nextIndex + 1]?.[1]![2]()?.[0] ?? end;
           // @ts-expect-error skip before check
           const attach = before(anchor);
           if (newIndexToOldIndexMap[i] === 0) {

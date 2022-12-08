@@ -48,65 +48,71 @@ function main() {
             const renameInput = jsxRef<HTMLInputElement>();
             const moveIndexInput = jsxRef<HTMLInputElement>();
             return (
-              <div class="list-item">
-                <span>{item.text}</span>
-                <div class="row">
-                  <button
-                    onClick={() => {
-                      item.text.set(renameInput.el.value);
-                    }}
-                  >
-                    rename as:
-                  </button>
-                  <input ref={renameInput} type="text"></input>
+              <>
+                <div class="list-item">
+                  <span>{item.text}</span>
+                  <div class="row">
+                    <button
+                      onClick={() => {
+                        item.text.set(renameInput.el.value);
+                      }}
+                    >
+                      rename as:
+                    </button>
+                    <input ref={renameInput} type="text"></input>
+                  </div>
+                  <div class="row">
+                    <button
+                      onClick={() => {
+                        const originalList = list.val;
+                        const splitIndex = +moveIndexInput.el.value;
+                        if (!(0 <= splitIndex && splitIndex < originalList.length)) {
+                          return;
+                        }
+                        const newList = [
+                          ...originalList.slice(0, splitIndex).filter((it) => it !== item),
+                          item,
+                          ...originalList.slice(splitIndex).filter((it) => it !== item),
+                        ];
+                        console.log(
+                          `moved list:`,
+                          newList.map((it) => it.text.val)
+                        );
+                        list.set(newList);
+                      }}
+                    >
+                      move to index:
+                    </button>
+                    <input ref={moveIndexInput} type="text"></input>
+                  </div>
+                  <div class="row">
+                    <button
+                      onClick={() => {
+                        const originalList = list.val;
+                        const random = Math.floor(Math.random() * originalList.length);
+                        console.log(`Insert ${item.text} at index ${random}`);
+                        list.set([
+                          ...originalList.slice(0, random),
+                          {
+                            text: item.text,
+                          },
+                          ...originalList.slice(random),
+                        ]);
+                      }}
+                    >
+                      clone and insert randomly
+                    </button>
+                    <button
+                      onClick={() => {
+                        list.set(list.val.filter((it) => it !== item));
+                      }}
+                    >
+                      delete
+                    </button>
+                  </div>
                 </div>
-                <div class="row">
-                  <button
-                    onClick={() => {
-                      const originalList = list.val;
-                      const splitIndex = +moveIndexInput.el.value;
-                      if (!(0 <= splitIndex && splitIndex < originalList.length)) {
-                        return;
-                      }
-                      const newList = [
-                        ...originalList.slice(0, splitIndex).filter((it) => it !== item),
-                        item,
-                        ...originalList.slice(splitIndex).filter((it) => it !== item),
-                      ];
-                      console.log(`moved list:`, newList.map((it) => it.text.val));
-                      list.set(newList);
-                    }}
-                  >
-                    move to index:
-                  </button>
-                  <input ref={moveIndexInput} type="text"></input>
-                </div>
-                <div class="row">
-                  <button
-                    onClick={() => {
-                      const originalList = list.val;
-                      const random = Math.floor(Math.random() * originalList.length);
-                      console.log(`Insert ${item.text} at index ${random}`);
-                      list.set([
-                        ...originalList.slice(0, random),
-                        {
-                          text: item.text,
-                        },
-                        ...originalList.slice(random),
-                      ]);
-                    }}
-                  >
-                    clone and insert randomly
-                  </button>
-                  <button
-                    onClick={() => {
-                      list.set(list.val.filter((it) => it !== item));
-                    }}
-                  >
-                    delete
-                  </button>
-                </div>
-              </div>
+                <div>fragment part2: {item.text}</div>
+              </>
             );
           }}
         </For>
