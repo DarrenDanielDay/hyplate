@@ -2,14 +2,7 @@
 import type { ParseSelector } from "typed-query-selector/parser.js";
 import { err, __DEV__ } from "./util.js";
 import { subscribe } from "./store.js";
-import type {
-  AttachFunc,
-  AttributeInterpolation,
-  CleanUpFunc,
-  EventHost,
-  Query,
-  TextInterpolation,
-} from "./types.js";
+import type { AttachFunc, AttributeInterpolation, CleanUpFunc, EventHost, Query, TextInterpolation } from "./types.js";
 import { applyAll, isObject, isString, push } from "./util.js";
 import { comment } from "./internal.js";
 
@@ -45,18 +38,18 @@ export const $$ = <S extends string>(host: ParentNode, selector: S): ParseSelect
 export const bindText = (node: Node, query: Query<TextInterpolation>) =>
   subscribe(query, (text) => (node.textContent = `${text}`));
 
-export const text =
-  (fragments: TemplateStringsArray, ...bindings: (TextInterpolation | Query<TextInterpolation>)[]) =>
-  (attach: AttachFunc): CleanUpFunc => {
-    const fragmentsLength = fragments.length;
-    const bindingsLength = bindings.length;
-    if (__DEV__) {
-      if (fragmentsLength !== bindingsLength + 1) {
-        err(
-          `Invalid usage. Fragments length(${fragments.length}) and bindings length(${bindings.length}) do not match.`
-        );
-      }
+export const text = (
+  fragments: TemplateStringsArray,
+  ...bindings: (TextInterpolation | Query<TextInterpolation>)[]
+) => {
+  const fragmentsLength = fragments.length;
+  const bindingsLength = bindings.length;
+  if (__DEV__) {
+    if (fragmentsLength !== bindingsLength + 1) {
+      err(`Invalid usage. Fragments length(${fragments.length}) and bindings length(${bindings.length}) do not match.`);
     }
+  }
+  return (attach: AttachFunc): CleanUpFunc => {
     const effects: CleanUpFunc[] = [];
     const buf: string[] = [];
     const flushBuf = () => {
@@ -82,6 +75,7 @@ export const text =
     flushBuf();
     return applyAll(effects);
   };
+};
 
 export const bindAttr = (el: Element, name: string, query: Query<AttributeInterpolation>) =>
   subscribe(query, (attribute) => attr(el, name, attribute));
@@ -119,20 +113,18 @@ export const remove = (node: ChildNode) => node.remove();
 
 export const moveNode = (node: Node) => (attach: AttachFunc) => attach(node);
 
-export const moveRange =
-  (begin: Node | null, end: Node | null) =>
-  (attach: AttachFunc) => {
-    const targets: Node[] = [];
-    for (let node = begin; node && node !== end; node = node.nextSibling) {
-      push(targets, node);
-    }
-    if (end) {
-      push(targets, end);
-    }
-    for (const node of targets) {
-      attach(node);
-    }
-  };
+export const moveRange = (begin: Node | null, end: Node | null) => (attach: AttachFunc) => {
+  const targets: Node[] = [];
+  for (let node = begin; node && node !== end; node = node.nextSibling) {
+    push(targets, node);
+  }
+  if (end) {
+    push(targets, end);
+  }
+  for (const node of targets) {
+    attach(node);
+  }
+};
 
 export const insertSlot = (host: Element, slotName: string, element: Element) => {
   attr(element, "slot", slotName);

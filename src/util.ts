@@ -1,6 +1,6 @@
 import type { AnyFunc } from "./types.js";
 
-export const __DEV__ = process.env.NODE_ENV === "development";
+export const __DEV__ = process.env.NODE_ENV !== "production";
 
 /**
  * @internal
