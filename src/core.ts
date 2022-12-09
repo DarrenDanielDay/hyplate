@@ -1,4 +1,3 @@
-// import { Source, TextInterpolation } from "./types";
 import type { ParseSelector } from "typed-query-selector/parser.js";
 import { err, __DEV__ } from "./util.js";
 import { subscribe } from "./store.js";

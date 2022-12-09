@@ -83,6 +83,12 @@
       "browser": "./dist/template.browser.esm.min.js",
       "import": "./dist/template.js",
       "default": "./dist/template.js"
+    },
+    "./toolkit": {
+      "types": "./dist/toolkit.d.ts",
+      "browser": "./dist/toolkit.browser.esm.min.js",
+      "import": "./dist/toolkit.js",
+      "default": "./dist/toolkit.js"
     }
   },
   "devDependencies": {

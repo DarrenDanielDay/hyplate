@@ -10,6 +10,7 @@ const config = {
     "jsx-runtime.browser.esm.min": "./dist/jsx-runtime.js",
     "store.browser.esm.min": "./dist/store.js",
     "template.browser.esm.min": "./dist/template.js",
+    "toolkit.browser.esm.min": "./dist/toolkit.js",
   },
   external: [],
   plugins: [

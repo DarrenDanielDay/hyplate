@@ -1,6 +1,22 @@
-import { query, source, subscribe } from "../dist/store";
+import { alwaysDifferent } from "../dist/toolkit";
+import { query, setDiffer, source, subscribe } from "../dist/store";
 
 describe("store.ts", () => {
+  describe("setDiffer", () => {
+    it("should set differ as given", () => {
+      setDiffer(alwaysDifferent);
+      const s = source(0);
+      const subscriber = import.meta.jest.fn();
+      const cleanup = subscribe(s, subscriber);
+      expect(subscriber).toBeCalledTimes(1);
+      s.set(0);
+      expect(subscriber).toBeCalledTimes(2);
+      s.set(0);
+      expect(subscriber).toBeCalledTimes(3);
+      setDiffer(null);
+      cleanup();
+    });
+  });
   describe("source", () => {
     it("should notify change", () => {
       const src = source("1");
@@ -28,27 +44,71 @@ describe("store.ts", () => {
     it("should prevent unnecessary dispatch", () => {
       const src = source("1");
       const subscriber = import.meta.jest.fn<void, [string]>();
-      subscribe(src, subscriber);
+      const cleanup = subscribe(src, subscriber);
       expect(subscriber).toBeCalledWith("1");
       expect(subscriber).toBeCalledTimes(1);
       src.set("1");
       src.set("1");
       src.set("1");
       expect(subscriber).toBeCalledTimes(1);
+      cleanup();
     });
     it("should chain deps", () => {
       const src = source(1);
       const doubleSrc = query(() => src.val * 2);
       const doubleSrcAdd1 = query(() => doubleSrc.val + 1);
       const subscriber = import.meta.jest.fn<void, [number]>();
-      subscribe(doubleSrcAdd1, subscriber);
+      const cleanup = subscribe(doubleSrcAdd1, subscriber);
       expect(doubleSrcAdd1.val).toBe(3);
       expect(subscriber).toBeCalledWith(3);
       src.set(2);
       expect(doubleSrcAdd1.val).toBe(5);
       expect(subscriber).toBeCalledWith(5);
       expect(subscriber).toBeCalledTimes(2);
+      cleanup();
     });
-    it("should update subscription", () => {});
+    it("should update subscription", () => {
+      const num = source(0);
+      const bool = source(false);
+      const q = query(() => (bool.val ? num.val : -1));
+      const fn = import.meta.jest.fn();
+      const cleanup = subscribe(q, fn);
+      expect(fn).toBeCalledTimes(1);
+      num.set(1);
+      expect(fn).toBeCalledTimes(1);
+      bool.set(true);
+      expect(fn).toBeCalledTimes(2);
+      num.set(2);
+      expect(fn).toBeCalledTimes(3);
+      bool.set(false);
+      expect(fn).toBeCalledTimes(4);
+      num.set(3);
+      expect(fn).toBeCalledTimes(4);
+      cleanup();
+    });
+  });
+  describe("dispatch", () => {
+    it("should continue to dispatch when some subscribers emitted errors", () => {
+      const s = source(0);
+      const errorSpy = import.meta.jest.spyOn(console, "error");
+      errorSpy.mockImplementation(() => {});
+
+      const cleanup1 = subscribe(s, (latest) => {
+        if (latest === 1) {
+          throw new Error("fake error");
+        }
+      });
+
+      const subscriber = import.meta.jest.fn();
+      const cleanup2 = subscribe(s, subscriber);
+      expect(subscriber).toBeCalledTimes(1);
+      s.set(1);
+      expect(subscriber).toBeCalledTimes(2);
+      expect(errorSpy).toBeCalledTimes(1);
+      cleanup1();
+      cleanup2();
+      errorSpy.mockReset();
+      errorSpy.mockRestore();
+    });
   });
 });

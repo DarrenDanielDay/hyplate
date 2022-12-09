@@ -29,8 +29,8 @@ import type { CleanUpFunc, Differ, Query, Source, Subscriber } from "./types.js"
 import { once, scopes } from "./util.js";
 
 let defaultDiffer: Differ = compare;
-export const setDiffer = (differ: Differ) => {
-  defaultDiffer = differ;
+export const setDiffer = (differ: Differ | undefined | null) => {
+  defaultDiffer = differ ?? compare;
 };
 
 const [enterScope, quitScope, currentScope] = scopes<(src: Source<unknown>) => void>();
