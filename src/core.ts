@@ -60,7 +60,10 @@ export const text =
     const effects: CleanUpFunc[] = [];
     const buf: string[] = [];
     const flushBuf = () => {
-      attach(new Text(buf.join("")));
+      const textContent = buf.join("");
+      if (textContent) {
+        attach(new Text(textContent));
+      }
       buf.length = 0;
     };
     for (let i = 0; i < bindingsLength; i++) {
