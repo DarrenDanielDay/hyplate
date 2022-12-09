@@ -2,13 +2,8 @@ import type { AnyFunc } from "./types.js";
 
 export const __DEV__ = process.env.NODE_ENV !== "production";
 
-/**
- * @internal
- */
 export const patch: <T extends unknown>(a: T, b: Partial<T>) => T = Object.assign;
-/**
- * @internal
- */
+
 export const once = <T extends unknown>(evaluate: () => T) => {
   let evaluated = false;
   let value: T;
@@ -21,9 +16,6 @@ export const once = <T extends unknown>(evaluate: () => T) => {
   };
 };
 
-/**
- * @internal
- */
 export const scopes = <T extends {}>() => {
   const stack: T[] = [];
   const resolve = () => stack.at(-1);
@@ -57,12 +49,8 @@ export const compare = Object.is;
 export const err = (error: unknown) => {
   const msg =
     error instanceof Error
-      ? `${
-          error.stack
-            ? `stack trace: ${error.stack}
-`
-            : ""
-        }`
+      ? `stack trace: 
+${error.stack}`
       : JSON.stringify(error);
   console.error(`[ERROR]: ${msg}`);
 };
