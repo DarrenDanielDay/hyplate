@@ -5,7 +5,7 @@ export const comment = (message?: string) => new Comment(__DEV__ ? message : "")
 /**
  * @internal
  */
-export const withComments = (message: string): Rendered<[begin: Comment, end: Comment, clear: CleanUpFunc]> => {
+export const withCommentRange = (message: string): Rendered<[begin: Comment, end: Comment, clear: CleanUpFunc]> => {
   const begin = comment(` ${message} begin `);
   const end = comment(` ${message} end `);
   return [

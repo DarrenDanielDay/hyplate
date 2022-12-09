@@ -2,7 +2,7 @@ import { $$, appendChild, before, clone, element, insertSlot, remove } from "./c
 import { createHooks, enterHooks, quitHooks } from "./hooks.js";
 import type { FunctionalComponentTemplateFactory, SlotMap } from "./types.js";
 import { isFunction, once, patch } from "./util.js";
-import { withComments } from "./internal.js";
+import { withCommentRange } from "./internal.js";
 
 export const template = (input: string | HTMLTemplateElement): HTMLTemplateElement =>
   input instanceof HTMLTemplateElement ? input : patch(element("template"), { innerHTML: input });
@@ -66,7 +66,7 @@ export const replaced: FunctionalComponentTemplateFactory = (input, name) => {
   return (setup) => {
     return (options) => (attach) => {
       const slots = options.children;
-      const [cleanupComment, [begin, end, clearRange]] = withComments(componentName);
+      const [cleanupComment, [begin, end, clearRange]] = withCommentRange(componentName);
       const fragment = clone(t.content);
       attach(begin);
       const host = attach(fragment);

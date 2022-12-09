@@ -10,7 +10,7 @@ import type {
   Rendered,
 } from "./types.js";
 import { noop } from "./util.js";
-import { withComments } from "./internal.js";
+import { withCommentRange } from "./internal.js";
 import { before, moveRange } from "./core.js";
 
 const createIfDirective = (
@@ -19,7 +19,7 @@ const createIfDirective = (
   falseResult?: Mountable<any>
 ): Mountable<void> => {
   return (attach) => {
-    const [clearCommentRange, [begin, end, clear], move] = withComments("if/show directive");
+    const [clearCommentRange, [begin, end, clear], move] = withCommentRange("if/show directive");
     attach(begin);
     attach(end);
     const attachContent: AttachFunc = (node) => before(end)(node);
@@ -110,7 +110,7 @@ export const For = <T extends unknown>({
   return (attach): Rendered<void> => {
     type HNode = [item: T, rendered: Rendered<any> | undefined];
     let nodes: HNode[] = [];
-    const [unmount, [begin, end, removeRange], move] = withComments("for directive");
+    const [unmount, [begin, end, removeRange], move] = withCommentRange("for directive");
     attach(begin);
     attach(end);
     const cleanup = subscribe(of, (newOf) => {
