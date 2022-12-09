@@ -106,12 +106,10 @@ export const seqAfter = (element: ChildNode) => {
   append(begin);
   append(end);
   const insert = before(end);
-  return (node: Node) => insert(node);
+  return insert;
 };
 
 export const remove = (node: ChildNode) => node.remove();
-
-export const moveNode = (node: Node) => (attach: AttachFunc) => attach(node);
 
 export const moveRange = (begin: Node | null, end: Node | null) => (attach: AttachFunc) => {
   const targets: Node[] = [];

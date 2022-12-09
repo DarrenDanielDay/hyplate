@@ -1,6 +1,8 @@
+import { doc } from "prettier";
 import {
   $,
   $$,
+  after,
   anchorRef,
   appendChild,
   attr,
@@ -18,26 +20,24 @@ import {
   seqAfter,
   text,
 } from "../dist/core";
-import { useRef } from "../dist/hooks";
 import { source } from "../dist/store";
-import { template } from "../dist/template.js";
 
 describe("core.ts", () => {
   describe("element", () => {
-    it("", () => {
+    it("should create HTML element", () => {
       const node = element("div");
       expect(node).toBeInstanceOf(HTMLDivElement);
     });
   });
 
   describe("docFragment", () => {
-    it("", () => {
+    it("should create document fragment", () => {
       expect(docFragment()).toBeInstanceOf(DocumentFragment);
     });
   });
 
   describe("clone", () => {
-    it("", () => {
+    it("should clone DOM node deeply", () => {
       const node = element("div");
       node.innerHTML = `<p>test1</p><p>test2</p>`;
       const cloneNode = clone(node);
@@ -46,27 +46,30 @@ describe("core.ts", () => {
   });
 
   describe("attr", () => {
-    it("setting attributes", () => {
+    it("should set element attribute", () => {
       const node = document.createElement("div");
       attr(node, "id", "test");
       expect(node.id).toBe("test");
       attr(node, "id", null);
       expect(node.id).toBeFalsy();
+      attr(node, "id", "test");
+      expect(node.id).toBe("test");
       attr(node, "id", false);
       expect(node.id).toBeFalsy();
     });
   });
 
   describe("select", () => {
-    it("select DOM element", () => {
+    it("should select element in DOM subtree by CSS selector", () => {
       const container = document.createElement("div");
       const button = document.createElement("button");
+      button.id = "foo";
       appendChild(container)(button);
-      const currentElement = select(container, "button");
+      const currentElement = select(container, "button#foo");
       expect(currentElement).toBe(button);
     });
 
-    it("select DOM element from documnet", () => {
+    it("should select DOM element from documnet", () => {
       const node = document.createElement("div");
       document.body.appendChild(node);
       const currentElement = select("div");
@@ -80,32 +83,32 @@ describe("core.ts", () => {
             <div #t></div>
           </template>
           <div id="parent">
-            <div #child></div>
+            <div id="child" #child></div>
           </div>`;
     });
 
-    it("it should return HTMLTemplateElement", () => {
-      const t1Anchor = anchorRef("t1");
-      const t1Element = document.querySelector(`template[\\#t1]`);
-      expect(t1Anchor).toBe(t1Element);
+    it("it should get HTMLTemplateElement with a single string argument", () => {
+      const anchorReferenced = anchorRef("t1");
+      const template1 = document.querySelector(`template[\\#t1]`);
+      expect(anchorReferenced).toBe(template1);
     });
 
-    it("it should return Child Element", () => {
-      const parentNode = document.getElementById("parent") as ParentNode;
-      const childAnchor = anchorRef(parentNode, "child");
-      const childElement = parentNode.querySelector(`[\\#child]`);
-      expect(childAnchor).toBe(childElement);
+    it("it should get child element", () => {
+      const parentNode = document.getElementById("parent")!;
+      const childAnchorReferenced = anchorRef(parentNode, "child");
+      const childElement = document.getElementById("child");
+      expect(childAnchorReferenced).toBe(childElement);
     });
   });
 
   describe("$", () => {
-    it("", () => {
+    it("should be alias of `anchorRef`", () => {
       expect($).toBe(anchorRef);
     });
   });
 
   describe("$$", () => {
-    it("equal if $$ search sucessful", () => {
+    it("should perform `querySelectorAll`", () => {
       const node = element("div");
       const list = [];
       for (let i = 0; i < 10; i++) {
@@ -118,21 +121,18 @@ describe("core.ts", () => {
   });
 
   describe("bindText", () => {
-    const data = source("1");
-    const p = element("p");
-    it("initial data bind text", () => {
+    it("should bind textContent", () => {
+      const data = source("1");
+      const p = element("p");
       bindText(p, data);
       expect(p.textContent).toBe("1");
-    });
-
-    it("changed if data has changed", () => {
       data.set("2");
       expect(p.textContent).toBe("2");
     });
   });
 
   describe("text", () => {
-    it("bind text", () => {
+    it("should bind textContent with reactive store", () => {
       const p = document.createElement("p");
       const a1 = source(1);
       const fn = text`print: ${a1}`(appendChild(p));
@@ -144,18 +144,18 @@ describe("core.ts", () => {
       expect(p.textContent).toBe("print: 2");
     });
 
-    it("", () => {
+    it("should insert text with primitive values", () => {
       const p = document.createElement("p");
-      const a1 = "1";
-      const fn = text`print: ${a1}`(appendChild(p));
+      const content = "1";
+      const fn = text`print: ${content}`(appendChild(p));
       expect(p.textContent).toBe("print: 1");
       fn();
     });
 
-    it("bind text error", () => {
+    it("should emit error when called with invalid arguments", () => {
       const fn = import.meta.jest.spyOn(console, "error");
       fn.mockImplementation(() => {});
-      // @ts-expect-error
+      // @ts-expect-error invalid usage
       text(["111", "222", "333"], "");
       expect(fn).toBeCalled();
       fn.mockReset();
@@ -164,7 +164,7 @@ describe("core.ts", () => {
   });
 
   describe("bindAttr", () => {
-    it("bind attribute", () => {
+    it("should bind attribute", () => {
       const disabled = source(false);
       const button = document.createElement("button");
       const cleanup = bindAttr(button, "disabled", disabled);
@@ -178,45 +178,53 @@ describe("core.ts", () => {
   });
 
   describe("bindEvent", () => {
-    it("", () => {
+    it("should bind event", () => {
       const fn = import.meta.jest.fn();
       const buttonElement = document.createElement("button");
       const cleanup = bindEvent(buttonElement)("click", fn);
       buttonElement.click();
-      expect(fn).toBeCalled();
+      expect(fn).toBeCalledTimes(1);
+      buttonElement.click();
+      expect(fn).toBeCalledTimes(2);
       cleanup();
       buttonElement.click();
-      expect(fn).toBeCalledTimes(1);
+      expect(fn).toBeCalledTimes(2);
     });
   });
 
   describe("appendChild", () => {
-    it("it should append child to current element", () => {
+    it("it should append child to given element", () => {
       const node = document.createElement("div");
       const p = document.createElement("p");
       appendChild(node)(p);
-      const searchElement = node.querySelector("p");
-      expect(searchElement).toStrictEqual(p);
+      expect(p.parentElement).toBe(node);
     });
   });
 
   describe("before", () => {
-    it("it should append element to current element before", () => {
+    it("it should insert element before given element", () => {
       const container = document.createElement("div");
       const node = document.createElement("div");
       appendChild(container)(node);
       const p = document.createElement("p");
       before(node)(p);
-      const beforeElement = node.previousElementSibling;
-      expect(beforeElement).toStrictEqual(p);
+      expect(p).toBe(node.previousElementSibling);
     });
   });
 
-  // describe("after", () => {
-  // });
+  describe("after", () => {
+    it("should insert element after given element", () => {
+      const container = document.createElement("div");
+      const node = document.createElement("div");
+      appendChild(container)(node);
+      const p = document.createElement("p");
+      after(node)(p);
+      expect(p).toBe(node.nextElementSibling);
+    });
+  });
 
   describe("seqAfter", () => {
-    it("", () => {
+    it("should insert sequence after given element", () => {
       const container = document.createElement("div");
       const childNode = document.createElement("button");
       appendChild(container)(childNode);
@@ -230,15 +238,18 @@ describe("core.ts", () => {
   });
 
   describe("remove", () => {
-    it("remove node", () => {
+    it("should remove node", () => {
+      const container = document.createElement("div");
       const node = document.createElement("div");
+      container.appendChild(node);
+      expect(container.children.length).toBe(1);
       remove(node);
-      expect(document.getElementById("test")).toBe(null);
+      expect(container.children.length).toBe(0);
     });
   });
 
   describe("moveRange", () => {
-    it("", () => {
+    it("should move nodes in given range", () => {
       const container = document.createElement("div");
       const box = document.createElement("div");
       const list = ["111", "222", "333", "444"];
@@ -259,12 +270,12 @@ describe("core.ts", () => {
   });
 
   describe("insertSlot", () => {
-    it("", () => {
+    it("should insert element as slot", () => {
       const container = document.createElement("div");
       const slotElement = document.createElement("div");
       insertSlot(container, "test", slotElement);
       expect(slotElement.parentElement).toBe(container);
-      expect(slotElement.getAttribute("slot")).toBe("test");
+      expect(slotElement.slot).toBe("test");
     });
   });
 });
