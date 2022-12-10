@@ -98,14 +98,21 @@ export const dispatch = <T extends unknown>(src: Query<unknown>, newVal: T) => {
 export const query = <T extends unknown>(selector: () => T, differ: Differ = defaultDiffer): Query<T> => {
   const q: Query<T> = {
     get val() {
-      return evaluate();
+      lazyEvaluate();
+      return current!;
     },
   };
+  let dirty = true;
+  let current: T | null = null;
   let teardowns: CleanUpFunc[] = [];
-  const evaluate = () => {
+  const lazyEvaluate = () => {
+    if (!dirty) {
+      return;
+    }
+    dirty = false;
     currentScope()?.(q);
     const [newDeps, cleanupDepScope] = useDepScope();
-    const result = selector();
+    current = selector();
     cleanupDepScope();
     for (const unsubscribe of teardowns) {
       unsubscribe();
@@ -117,17 +124,16 @@ export const query = <T extends unknown>(selector: () => T, differ: Differ = def
         subscribers.delete(queryDispatch);
       };
     });
-    return result;
   };
   const queryDispatch = () => {
-    const latest = evaluate();
-    if (differ(current, latest)) {
+    dirty = true;
+    const last = current;
+    lazyEvaluate();
+    if (differ(last, current)) {
       return;
     }
-    current = latest;
-    dispatch(q, current);
+    dispatch(q, current!);
   };
   subscriptions.set(q, new Set());
-  let current = evaluate();
   return q;
 };

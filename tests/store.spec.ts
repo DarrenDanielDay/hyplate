@@ -58,16 +58,17 @@ describe("store.ts", () => {
       const subscriber = import.meta.jest.fn<void, [number]>();
       const selector = import.meta.jest.fn(() => src.val % 2);
       const computed = query(selector);
-      expect(selector).toBeCalledTimes(1);
       const cleanup = subscribe(computed, subscriber);
-      expect(selector).toBeCalledTimes(2);
+      expect(selector).toBeCalledTimes(1);
       expect(subscriber).toBeCalledWith(0);
       expect(subscriber).toBeCalledTimes(1);
       src.set(2);
+      expect(subscriber).toBeCalledTimes(1);
       src.set(4);
+      expect(subscriber).toBeCalledTimes(1);
       src.set(6);
       expect(subscriber).toBeCalledTimes(1);
-      expect(selector).toBeCalledTimes(5);
+      expect(selector).toBeCalledTimes(4);
       cleanup();
     });
     it("should chain deps", () => {
