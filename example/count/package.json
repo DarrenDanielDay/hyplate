@@ -1,0 +1,27 @@
+{
+  "name": "@hyplate/example-count",
+  "version": "0.1.0",
+  "description": "basic counter example for hyplate",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "concurrently npm:start:*",
+    "start:compile": "esbuild ./index.tsx --bundle --format=esm --tsconfig=./tsconfig.json --watch --outfile=index.js --sourcemap",
+    "start:serve": "serve ."
+  },
+  "author": {
+    "email": "Darren_Daniel_Day@hotmail.com",
+    "name": "Darren Daniel Day",
+    "url": "https://github.com/DarrenDanielDay"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "hyplate": "^0.1.1"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "esbuild": "^0.16.4",
+    "serve": "^14.1.2",
+    "typescript": "^4.9.4"
+  }
+}
