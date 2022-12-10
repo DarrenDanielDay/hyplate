@@ -1,7 +1,7 @@
 import { $$, appendChild, before, clone, element, insertSlot, remove } from "./core.js";
 import { createHooks, enterHooks, quitHooks } from "./hooks.js";
-import type { FunctionalComponentTemplateFactory, SlotMap } from "./types.js";
-import { isFunction, once, patch } from "./util.js";
+import type { CleanUpFunc, FunctionalComponentTemplateFactory, SlotMap } from "./types.js";
+import { applyAll, isFunction, once, patch, push } from "./util.js";
 import { withCommentRange } from "./internal.js";
 
 export const template = (input: string | HTMLTemplateElement): HTMLTemplateElement =>
@@ -19,6 +19,7 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
     customElements.define(elementTag, anonymousElement());
     customElements.define(slotTag, anonymousElement());
     return (props) => (attach) => {
+      const localCleanups: CleanUpFunc[] = [];
       const slots = props.children;
       const owner = element(elementTag);
       const parent = attach(owner);
@@ -26,9 +27,13 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
       shadow.appendChild(clone(t.content));
       if (slots) {
         for (const [name, slotInput] of Object.entries<SlotMap[string]>(slots)) {
+          if (slotInput == null) {
+            continue;
+          }
           const element = document.createElement(slotTag);
           if (isFunction(slotInput)) {
-            slotInput(appendChild(element));
+            const [cleanupSlot] = slotInput(appendChild(element));
+            push(localCleanups, cleanupSlot);
           } else {
             appendChild(element)(slotInput);
           }
@@ -53,6 +58,7 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
       };
       const unmount = once(() => {
         cleanupHooks();
+        applyAll(localCleanups)();
         cleanupView();
       });
       return [unmount, exposed, () => [owner, owner]];
@@ -65,6 +71,7 @@ export const replaced: FunctionalComponentTemplateFactory = (input, name) => {
   const componentName = templateName(name);
   return (setup) => {
     return (options) => (attach) => {
+      const localCleanups: CleanUpFunc[] = [];
       const slots = options.children;
       const [cleanupComment, [begin, end, clearRange]] = withCommentRange(componentName);
       const fragment = clone(t.content);
@@ -75,12 +82,13 @@ export const replaced: FunctionalComponentTemplateFactory = (input, name) => {
         const fragmentSlots = $$(host, "slot");
         for (const slot of fragmentSlots) {
           const slotInput = slots[slot.name as keyof typeof slots];
-          if (!slotInput) {
+          if (slotInput == null) {
             continue;
           }
           const attach = before(slot);
           if (isFunction(slotInput)) {
-            slotInput(attach);
+            const [cleanupSlot] = slotInput(attach);
+            push(localCleanups, cleanupSlot);
           } else {
             attach(slotInput);
           }
@@ -97,6 +105,7 @@ export const replaced: FunctionalComponentTemplateFactory = (input, name) => {
       };
       const unmount = once(() => {
         cleanupHooks();
+        applyAll(localCleanups)();
         cleanupView();
       });
       return [unmount, exposed, () => [begin, end]];

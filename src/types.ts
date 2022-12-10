@@ -92,7 +92,7 @@ export interface Hooks {
  */
 export type SlotMap<S extends string = string> = [S] extends [never]
   ? undefined
-  : Record<S, Element | DocumentFragment | Mountable<any>>;
+  : Partial<Record<S, Element | DocumentFragment | Mountable<any>>>;
 
 export type ExposeBase = {} | void;
 
@@ -115,7 +115,7 @@ export type FunctionalComponent<P extends PropsBase = PropsBase, C = undefined, 
 export type FunctionalComponentTemplateFactory = <S extends string = never>(
   input: string | HTMLTemplateElement,
   name?: string
-) => <P extends PropsBase, E extends ExposeBase>(setup?: (props: P) => E) => FunctionalComponent<P, SlotMap<S>, E>;
+) => <P extends PropsBase, E extends ExposeBase>(setup?: (props: P) => E) => FunctionalComponent<P, undefined | SlotMap<S>, E>;
 
 /**
  * Accept a node, attach it to the DOM tree and return its parentNode.
