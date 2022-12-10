@@ -97,7 +97,9 @@ export type FunctionalComponent<P extends PropsBase = PropsBase, C = undefined, 
 export type FunctionalComponentTemplateFactory = <S extends string = never>(
   input: string | HTMLTemplateElement,
   name?: string
-) => <P extends PropsBase, E extends ExposeBase>(setup?: (props: P) => E) => FunctionalComponent<P, undefined | SlotMap<S>, E>;
+) => <P extends PropsBase, E extends ExposeBase>(
+  setup?: (props: P) => E
+) => FunctionalComponent<P, undefined | SlotMap<S>, E>;
 
 /**
  * Accept a node, attach it to the DOM tree and return its parentNode.
@@ -122,7 +124,7 @@ type GeneralAttributes<K extends string> = {
 };
 
 type BooleanAttributes<K extends string> = {
-  [P in K]: boolean | `${boolean}` | "";
+  [P in K]: BooleanAttributeValue;
 };
 
 type EnumeratedValues<E extends string> = E | (string & {});
@@ -143,6 +145,211 @@ type FunctionalGlobalEventHandler = {
     event: Parameters<Extract<GlobalEventHandlers[K], (...args: any[]) => any>>[0]
   ) => void;
 };
+
+//#region shared attribute enum values
+type BooleanAttributeValue = boolean | `${boolean}` | "";
+type NumericAttributeValue = string | number;
+type TargetOptions = EnumeratedValues<"_self" | "_blank" | "_parent" | "_top">;
+type EncryptionTypes = EnumeratedValues<"application/x-www-form-urlencoded" | "multipart/form-data" | "text/plain">;
+type ExperimentalImportance = {
+  /**
+   * @experimental
+   */
+  importance: EnumeratedValues<"auto" | "high" | "low">;
+  /**
+   * @experimental
+   */
+  fetchpriority: EnumeratedValues<"auto" | "high" | "low">;
+};
+type FormMethods = EnumeratedValues<"post" | "get" | "dialog">;
+type FormElementAttributes = {
+  autofocus: BooleanAttributeValue;
+  disabled: BooleanAttributeValue;
+  form: string;
+  formaction: string;
+  formenctype: EncryptionTypes;
+  formmethod: FormMethods;
+  formnovalidate: BooleanAttributeValue;
+  formtarget: TargetOptions;
+  name: string;
+  value: string;
+};
+type SizeOptions = {
+  height: NumericAttributeValue;
+  width: NumericAttributeValue;
+};
+type CORSOptions = EnumeratedValues<"anonymous" | "use-credentials" | "">;
+type ReferrerPolicyOptions = EnumeratedValues<
+  | "no-referrer"
+  | "no-referrer-when-downgrade"
+  | "origin"
+  | "origin-when-cross-origin"
+  | "same-origin"
+  | "strict-origin"
+  | "strict-origin-when-cross-origin"
+  | "unsafe-url"
+>;
+//#endregion
+
+//#region input attributes
+type InputTypes =
+  | "button"
+  | "checkbox"
+  | "color"
+  | "date"
+  | "datetime-local"
+  | "email"
+  | "file"
+  | "hidden"
+  | "image"
+  | "month"
+  | "number"
+  | "password"
+  | "radio"
+  | "range"
+  | "reset"
+  | "search"
+  | "submit"
+  | "tel"
+  | "text"
+  | "time"
+  | "url"
+  | "week";
+type Except<K extends InputTypes> = Exclude<InputTypes, K>;
+type AttributeInfo<T, V extends InputTypes> = [type: T, valid: V];
+type TextLikeInputTypes = "text" | "search" | "url" | "tel" | "email" | "password";
+
+type NumericInputTypes = "date" | "month" | "week" | "time" | "datetime-local" | "number" | "range";
+type ModElementAttributes = {
+  cite: string;
+  datatime: string;
+};
+//#region autocomplete
+type AutoCompleteSwitch = EnumeratedValues<"on" | "off">;
+type AutoCompleteHints =
+  | "off"
+  | "on"
+  | "name"
+  | "honorific-prefix"
+  | "given-name"
+  | "additional-name"
+  | "family-name"
+  | "honorific-suffix"
+  | "nickname"
+  | "email"
+  | "username"
+  | "new-password"
+  | "current-password"
+  | "one-time-code"
+  | "organization-title"
+  | "organization"
+  | "street-address"
+  | `address-line${1 | 2 | 3}`
+  | `address-level${1 | 2 | 3 | 4}`
+  | "country"
+  | "country-name"
+  | "postal-code"
+  | "cc-name"
+  | "cc-given-name"
+  | "cc-additional-name"
+  | "cc-family-name"
+  | "cc-number"
+  | "cc-exp"
+  | "cc-exp-month"
+  | "cc-exp-year"
+  | "cc-csc"
+  | "cc-type"
+  | "transaction-currency"
+  | "transaction-amount"
+  | "language"
+  | "bday"
+  | "bday-day"
+  | "bday-month"
+  | "bday-year"
+  | "sex"
+  | "tel"
+  | "tel-country-code"
+  | "tel-national"
+  | "tel-area-code"
+  | "tel-local"
+  | "tel-local-prefix"
+  | "tel-extension"
+  | "impp"
+  | "url"
+  | "photo";
+//#endregion
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input
+ */
+interface MapAttributeToValueAndKeys {
+  accept: AttributeInfo<string, "file">;
+  alt: AttributeInfo<string, "image">;
+  autocomplete: AttributeInfo<AutoCompleteHints, Except<"checkbox" | "radio" | "button">>;
+  capture: AttributeInfo<EnumeratedValues<"user" | "environment">, "file">;
+  checked: AttributeInfo<BooleanAttributeValue, "checkbox" | "radio">;
+  dirname: AttributeInfo<string, "search" | "text">;
+  disabled: AttributeInfo<BooleanAttributeValue, InputTypes>;
+  form: AttributeInfo<BooleanAttributeValue, InputTypes>;
+  formaction: AttributeInfo<string, "image" | "submit">;
+  formenctype: AttributeInfo<EncryptionTypes, "image" | "submit">;
+  formmethod: AttributeInfo<BooleanAttributeValue, "image" | "submit">;
+  formnovalidate: AttributeInfo<BooleanAttributeValue, "image" | "submit">;
+  formtarget: AttributeInfo<string, "image" | "submit">;
+  height: AttributeInfo<NumericAttributeValue, "image">;
+  list: AttributeInfo<string, Except<"hidden" | "password" | "checkbox" | "radio" | "button">>;
+  max: AttributeInfo<NumericAttributeValue, NumericInputTypes>;
+  maxlength: AttributeInfo<NumericAttributeValue, TextLikeInputTypes>;
+  min: AttributeInfo<NumericAttributeValue, NumericInputTypes>;
+  minlength: AttributeInfo<NumericAttributeValue, TextLikeInputTypes>;
+  multiple: AttributeInfo<BooleanAttributeValue, "email" | "file">;
+  name: AttributeInfo<string, InputTypes>;
+  pattern: AttributeInfo<string, TextLikeInputTypes>;
+  placeholder: AttributeInfo<string, TextLikeInputTypes | "number">;
+  readonly: AttributeInfo<
+    BooleanAttributeValue,
+    Except<"hidden" | "range" | "color" | "checkbox" | "radio" | "button">
+  >;
+  required: AttributeInfo<BooleanAttributeValue, Except<"hidden" | "range" | "color" | "button">>;
+  size: AttributeInfo<NumericAttributeValue, TextLikeInputTypes>;
+  src: AttributeInfo<string, "image">;
+  step: AttributeInfo<NumericAttributeValue, NumericInputTypes>;
+  value: AttributeInfo<string, InputTypes>;
+  width: AttributeInfo<NumericAttributeValue, "image">;
+}
+
+type ExtractType<
+  K extends InputTypes,
+  A extends keyof MapAttributeToValueAndKeys
+> = MapAttributeToValueAndKeys[A] extends AttributeInfo<unknown, infer V> ? (K extends V ? A : never) : never;
+
+type InputAttributes = {
+  [K in InputTypes]: {
+    type: K;
+  } & {
+    [A in keyof MapAttributeToValueAndKeys as ExtractType<K, A>]: MapAttributeToValueAndKeys[A] extends AttributeInfo<
+      infer T,
+      any
+    >
+      ? T
+      : never;
+  };
+}[InputTypes];
+type ListStyleType = EnumeratedValues<"a" | "A" | "i" | "I" | "1">;
+type PlayerAttributes = {
+  autoplay: BooleanAttributeValue;
+  controls: BooleanAttributeValue;
+  /**
+   * @experimental
+   */
+  controlslist: string;
+  crossorigin: CORSOptions;
+  loop: BooleanAttributeValue;
+  muted: BooleanAttributeValue;
+  preload: EnumeratedValues<"none" | "metadata" | "auto">;
+  src: string;
+};
+//#endregion
 
 /**
  * @see https://developer.mozilla.org/docs/Web/HTML/Global_attributes
@@ -343,11 +550,497 @@ declare global {
     interface ElementChildrenAttribute {
       children: {};
     }
+
     interface IntrinsicElements {
-      button: Attributes<GlobalAttributes, HTMLButtonElement>;
+      a: Attributes<
+        GlobalAttributes & {
+          download: string;
+          href: string;
+          hreflang: string;
+          ping: string;
+          referrerpolicy: ReferrerPolicyOptions;
+          rel: string;
+          target: TargetOptions;
+          type: string;
+        },
+        HTMLAnchorElement
+      >;
+      abbr: Attributes<GlobalAttributes, HTMLElement>;
+      address: Attributes<GlobalAttributes, HTMLElement>;
+      area: Attributes<
+        GlobalAttributes & {
+          alt: string;
+          coords: string;
+          download: string;
+          href: string;
+          /**
+           * @deprecated
+           */
+          hreflang: string;
+          referrerpolicy: ReferrerPolicyOptions;
+          rel: string;
+          shape: string;
+          target: TargetOptions;
+        },
+        HTMLAreaElement
+      >;
+      article: Attributes<GlobalAttributes, HTMLElement>;
+      aside: Attributes<GlobalAttributes, HTMLElement>;
+      audio: Attributes<
+        GlobalAttributes &
+          PlayerAttributes & {
+            /**
+             * @experimental
+             */
+            disableremoteplayback: BooleanAttributeValue;
+          },
+        HTMLAudioElement
+      >;
+      b: Attributes<GlobalAttributes, HTMLElement>;
+      bdi: Attributes<GlobalAttributes, HTMLElement>;
+      bdo: Attributes<GlobalAttributes, HTMLElement>;
+      blockquote: Attributes<GlobalAttributes, HTMLQuoteElement>;
+      br: Attributes<GlobalAttributes, HTMLBRElement>;
+      button: Attributes<
+        GlobalAttributes &
+          FormElementAttributes & {
+            type: EnumeratedValues<"submit" | "reset" | "button" | "menu">;
+          },
+        HTMLButtonElement
+      >;
+      canvas: Attributes<GlobalAttributes & SizeOptions, HTMLCanvasElement>;
+      caption: Attributes<GlobalAttributes, HTMLTableCaptionElement>;
+      cite: Attributes<GlobalAttributes, HTMLElement>;
+      code: Attributes<GlobalAttributes, HTMLElement>;
+      col: Attributes<
+        GlobalAttributes & {
+          span: NumericAttributeValue;
+        },
+        HTMLTableColElement
+      >;
+      colgroup: Attributes<
+        GlobalAttributes & {
+          span: NumericAttributeValue;
+        },
+        HTMLTableColElement
+      >;
+      data: Attributes<
+        GlobalAttributes & {
+          value: string;
+        },
+        HTMLDataElement
+      >;
+      datalist: Attributes<GlobalAttributes, HTMLDataListElement>;
+      dd: Attributes<GlobalAttributes, HTMLElement>;
+      del: Attributes<GlobalAttributes & ModElementAttributes, HTMLModElement>;
+      details: Attributes<
+        GlobalAttributes & {
+          open: BooleanAttributeValue;
+        },
+        HTMLDetailsElement
+      >;
+      dfn: Attributes<GlobalAttributes, HTMLElement>;
+      dialog: Attributes<
+        Omit<GlobalAttributes, "tabindex"> & {
+          open: BooleanAttributeValue;
+        },
+        HTMLDialogElement
+      >;
       div: Attributes<GlobalAttributes, HTMLDivElement>;
-      input: Attributes<GlobalAttributes, HTMLInputElement>;
+      dl: Attributes<GlobalAttributes, HTMLDListElement>;
+      dt: Attributes<GlobalAttributes, HTMLElement>;
+      em: Attributes<GlobalAttributes, HTMLElement>;
+      embed: Attributes<
+        GlobalAttributes &
+          SizeOptions & {
+            src: string;
+            type: string;
+          },
+        HTMLEmbedElement
+      >;
+      fieldset: Attributes<
+        GlobalAttributes & {
+          disabled: BooleanAttributeValue;
+          form: string;
+          name: string;
+        },
+        HTMLFieldSetElement
+      >;
+      figcaption: Attributes<GlobalAttributes, HTMLElement>;
+      figure: Attributes<GlobalAttributes, HTMLElement>;
+      footer: Attributes<GlobalAttributes, HTMLElement>;
+      form: Attributes<
+        GlobalAttributes & {
+          "accept-charset": string;
+          action: string;
+          autocomplete: AutoCompleteSwitch;
+          enctype: EncryptionTypes;
+          method: FormMethods;
+          name: string;
+          novalidate: BooleanAttributeValue;
+          rel: string;
+          target: TargetOptions;
+        },
+        HTMLFormElement
+      >;
+      h1: Attributes<GlobalAttributes, HTMLHeadingElement>;
+      h2: Attributes<GlobalAttributes, HTMLHeadingElement>;
+      h3: Attributes<GlobalAttributes, HTMLHeadingElement>;
+      h4: Attributes<GlobalAttributes, HTMLHeadingElement>;
+      h5: Attributes<GlobalAttributes, HTMLHeadingElement>;
+      h6: Attributes<GlobalAttributes, HTMLHeadingElement>;
+      head: Attributes<GlobalAttributes, HTMLHeadElement>;
+      header: Attributes<GlobalAttributes, HTMLElement>;
+      hgroup: Attributes<GlobalAttributes, HTMLElement>;
+      hr: Attributes<GlobalAttributes, HTMLElement>;
+      i: Attributes<GlobalAttributes, HTMLElement>;
+      iframe: Attributes<
+        GlobalAttributes &
+          ExperimentalImportance &
+          SizeOptions & {
+            allow: string;
+            /**
+             * @deprecated
+             * Use allow="fullscreen" instead.
+             */
+            allowfullscreen: BooleanAttributeValue;
+            /**
+             * @deprecated
+             * Use allow="payment" instead.
+             */
+            allowpaymentrequest: BooleanAttributeValue;
+            /**
+             * @experimental
+             */
+            csp: string;
+
+            name: string;
+            referrerpolicy: ReferrerPolicyOptions;
+            sandbox: EnumeratedValues<
+              | "allow-downloads-without-user-activation"
+              | "allow-forms"
+              | "allow-modals"
+              | "allow-orientation-lock"
+              | "allow-pointer-lock"
+              | "allow-popups"
+              | "allow-popups-to-escape-sandbox"
+              | "allow-presentation"
+              | "allow-same-origin"
+              | "allow-scripts"
+              | "allow-storage-access-by-user-activation"
+              | "allow-top-navigation"
+              | "allow-top-navigation-by-user-activation"
+            >;
+            src: string;
+            srcdoc: string;
+          },
+        HTMLIFrameElement
+      >;
+      img: Attributes<
+        GlobalAttributes &
+          ExperimentalImportance &
+          SizeOptions & {
+            alt: string;
+            crossorigin: CORSOptions;
+            decoding: EnumeratedValues<"sync" | "async" | "auto">;
+            ismap: BooleanAttributeValue;
+            loading: EnumeratedValues<"eager" | "lazy">;
+            referrerpolicy: ReferrerPolicyOptions;
+            sizes: string;
+            src: string;
+            srcset: string;
+            usemap: string;
+          },
+        HTMLImageElement
+      >;
+      input: Attributes<GlobalAttributes & InputAttributes, HTMLInputElement>;
+      ins: Attributes<GlobalAttributes & ModElementAttributes, HTMLModElement>;
+      kbd: Attributes<GlobalAttributes, HTMLElement>;
+      label: Attributes<GlobalAttributes & { for: string }, HTMLLabelElement>;
+      legend: Attributes<GlobalAttributes, HTMLElement>;
+      li: Attributes<
+        GlobalAttributes & {
+          value: NumericAttributeValue;
+          /**
+           * @deprecated
+           */
+          type: ListStyleType;
+        },
+        HTMLLIElement
+      >;
+
+      link: Attributes<
+        GlobalAttributes &
+          ExperimentalImportance & {
+            as: EnumeratedValues<
+              | "audio"
+              | "document"
+              | "embed"
+              | "fetch"
+              | "font"
+              | "image"
+              | "object"
+              | "script"
+              | "style"
+              | "track"
+              | "video"
+              | "worker"
+            >;
+            crossorigin: CORSOptions;
+            href: string;
+            hreflang: string;
+            imagesizes: string;
+            imagesrcset: string;
+            integrity: string;
+            media: string;
+            /**
+             * @experimental
+             */
+            prefetch: BooleanAttributeValue;
+            referrerpolicy: ReferrerPolicyOptions;
+            rel: string;
+            /**
+             * @experimental
+             */
+            sizes: string;
+            title: string;
+            type: string;
+            blocking: string;
+          },
+        HTMLLinkElement
+      >;
+      main: Attributes<GlobalAttributes, HTMLElement>;
+      map: Attributes<
+        GlobalAttributes & {
+          name: string;
+        },
+        HTMLMapElement
+      >;
+      mark: Attributes<GlobalAttributes, HTMLElement>;
+      menu: Attributes<GlobalAttributes, HTMLMenuElement>;
+      meter: Attributes<
+        GlobalAttributes & {
+          value: NumericAttributeValue;
+          min: NumericAttributeValue;
+          max: NumericAttributeValue;
+          low: NumericAttributeValue;
+          high: NumericAttributeValue;
+          optimum: NumericAttributeValue;
+        },
+        HTMLMeterElement
+      >;
+      nav: Attributes<GlobalAttributes, HTMLElement>;
+      noscript: Attributes<GlobalAttributes, HTMLElement>;
+      object: Attributes<
+        GlobalAttributes &
+          SizeOptions & {
+            data: string;
+            form: string;
+            type: string;
+            usemap: string;
+          },
+        HTMLObjectElement
+      >;
+      ol: Attributes<
+        GlobalAttributes & {
+          reversed: BooleanAttributeValue;
+          start: NumericAttributeValue;
+          type: ListStyleType;
+        },
+        HTMLOListElement
+      >;
+      optgroup: Attributes<
+        GlobalAttributes & {
+          disabled: BooleanAttributeValue;
+          label: string;
+        },
+        HTMLOptGroupElement
+      >;
+      option: Attributes<
+        GlobalAttributes & {
+          disabled: BooleanAttributeValue;
+          label: string;
+          selected: BooleanAttributeValue;
+          value: string;
+        },
+        HTMLOptionElement
+      >;
+      output: Attributes<
+        GlobalAttributes & {
+          for: string;
+          form: string;
+          name: string;
+        },
+        HTMLOutputElement
+      >;
+      p: Attributes<GlobalAttributes, HTMLParagraphElement>;
+      picture: Attributes<GlobalAttributes, HTMLPictureElement>;
+      pre: Attributes<GlobalAttributes, HTMLPreElement>;
+      progress: Attributes<
+        GlobalAttributes & {
+          max: NumericAttributeValue;
+          value: NumericAttributeValue;
+        },
+        HTMLProgressElement
+      >;
+      q: Attributes<
+        GlobalAttributes & {
+          cite: string;
+        },
+        HTMLQuoteElement
+      >;
+      rp: Attributes<GlobalAttributes, HTMLElement>;
+      rt: Attributes<GlobalAttributes, HTMLElement>;
+      ruby: Attributes<GlobalAttributes, HTMLElement>;
+      s: Attributes<GlobalAttributes, HTMLElement>;
+      samp: Attributes<GlobalAttributes, HTMLElement>;
+      script: Attributes<
+        GlobalAttributes &
+          ExperimentalImportance & {
+            async: BooleanAttributeValue;
+            crossorigin: CORSOptions;
+            defer: BooleanAttributeValue;
+            integrity: string;
+            nomodule: BooleanAttributeValue;
+            nonce: string;
+            referrerpolicy: ReferrerPolicyOptions;
+            src: string;
+            type: string;
+            blocking: string;
+          },
+        HTMLScriptElement
+      >;
+      section: Attributes<GlobalAttributes, HTMLElement>;
+      select: Attributes<
+        GlobalAttributes & {
+          autocomplete: AutoCompleteHints;
+          autofocus: BooleanAttributeValue;
+          disabled: BooleanAttributeValue;
+          form: string;
+          multiple: BooleanAttributeValue;
+          name: string;
+          required: BooleanAttributeValue;
+          size: NumericAttributeValue;
+        },
+        HTMLSelectElement
+      >;
+      slot: Attributes<
+        GlobalAttributes & {
+          name: string;
+        },
+        HTMLSlotElement
+      >;
+      small: Attributes<GlobalAttributes, HTMLElement>;
+      source: Attributes<
+        GlobalAttributes &
+          SizeOptions & {
+            type: string;
+            src: string;
+            srcset: string;
+            sizes: string;
+            media: string;
+          },
+        HTMLSourceElement
+      >;
       span: Attributes<GlobalAttributes, HTMLSpanElement>;
+      strong: Attributes<GlobalAttributes, HTMLElement>;
+      style: Attributes<
+        GlobalAttributes & {
+          media: string;
+          nonce: string;
+          title: string;
+          blocking: string;
+        },
+        HTMLStyleElement
+      >;
+      sub: Attributes<GlobalAttributes, HTMLElement>;
+      summary: Attributes<GlobalAttributes, HTMLElement>;
+      sup: Attributes<GlobalAttributes, HTMLElement>;
+      table: Attributes<GlobalAttributes, HTMLTableElement>;
+      tbody: Attributes<GlobalAttributes, HTMLTableSectionElement>;
+      td: Attributes<
+        GlobalAttributes & {
+          colspan: NumericAttributeValue;
+          headers: string;
+          rowspan: NumericAttributeValue;
+        },
+        HTMLTableCellElement
+      >;
+      template: Attributes<GlobalAttributes, HTMLTemplateElement>;
+      textarea: Attributes<
+        GlobalAttributes & {
+          autocomplete: AutoCompleteSwitch;
+          autofocus: BooleanAttributeValue;
+          cols: NumericAttributeValue;
+          disabled: BooleanAttributeValue;
+          form: string;
+          maxlength: NumericAttributeValue;
+          minlength: NumericAttributeValue;
+          name: string;
+          placeholder: string;
+          readonly: BooleanAttributeValue;
+          required: BooleanAttributeValue;
+          rows: NumericAttributeValue;
+          spellcheck: BooleanAttributeValue | "default";
+          wrap: EnumeratedValues<"hard" | "soft">;
+        },
+        HTMLTextAreaElement
+      >;
+      tfoot: Attributes<GlobalAttributes, HTMLTableSectionElement>;
+      th: Attributes<
+        GlobalAttributes & {
+          abbr: string;
+          colspan: NumericAttributeValue;
+          headers: string;
+          rowspan: NumericAttributeValue;
+          scope: EnumeratedValues<"row" | "col" | "rowgroup" | "colgroup">;
+        },
+        HTMLTableCellElement
+      >;
+      thead: Attributes<GlobalAttributes, HTMLTableSectionElement>;
+      time: Attributes<
+        GlobalAttributes & {
+          datetime: string;
+        },
+        HTMLTimeElement
+      >;
+      tr: Attributes<GlobalAttributes, HTMLTableRowElement>;
+      track: Attributes<
+        GlobalAttributes & {
+          default: BooleanAttributeValue;
+          kind: EnumeratedValues<"subtitles" | "captions" | "descriptions" | "chapters" | "metadata">;
+          label: string;
+          src: string;
+          srclang: string;
+        },
+        HTMLTrackElement
+      >;
+      u: Attributes<GlobalAttributes, HTMLElement>;
+      ul: Attributes<GlobalAttributes, HTMLUListElement>;
+      var: Attributes<GlobalAttributes, HTMLElement>;
+      video: Attributes<
+        GlobalAttributes &
+          SizeOptions &
+          PlayerAttributes & {
+            /**
+             * @experimental
+             */
+            autopictureinpicture: BooleanAttributeValue;
+
+            /**
+             * @experimental
+             */
+            disablepictureinpicture: BooleanAttributeValue;
+            /**
+             * @experimental
+             */
+            disableremoteplayback: BooleanAttributeValue;
+            playsinline: BooleanAttributeValue;
+            poster: string;
+          },
+        HTMLVideoElement
+      >;
+      wbr: Attributes<GlobalAttributes, HTMLElement>;
     }
     interface IntrinsicAttributes {
       children?: unknown;
