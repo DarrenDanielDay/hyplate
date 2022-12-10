@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "concurrently npm:start:*",
+    "start": "concurrently \"npm run start:compile\" \"npm run start:serve\"",
     "start:compile": "esbuild ./index.tsx --bundle --format=esm --tsconfig=./tsconfig.json --watch --outfile=index.js --sourcemap",
     "start:serve": "serve ."
   },
