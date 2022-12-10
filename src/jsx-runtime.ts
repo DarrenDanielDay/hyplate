@@ -62,7 +62,7 @@ export const jsx = (
       if (ref) {
         ref.el = el;
       }
-      const [cleanups] = children ? renderChild(children, appendChild(el)) : [[]];
+      const [cleanups] = children != null ? renderChild(children, appendChild(el)) : [[]];
       for (const [key, value] of Object.entries(attributes)) {
         if (isObject(value)) {
           push(cleanups, bindAttr(el, key, value as Query<AttributeInterpolation>));

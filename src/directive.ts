@@ -1,14 +1,6 @@
 import { compare, isFunction, warn, __DEV__ } from "./util.js";
 import { subscribe } from "./store.js";
-import type {
-  AttachFunc,
-  CleanUpFunc,
-  FunctionalComponent,
-  Mountable,
-  Props,
-  Query,
-  Rendered,
-} from "./types.js";
+import type { AttachFunc, CleanUpFunc, FunctionalComponent, Mountable, Props, Query, Rendered } from "./types.js";
 import { noop } from "./util.js";
 import { withCommentRange } from "./internal.js";
 import { before, moveRange } from "./core.js";
@@ -19,7 +11,7 @@ const createIfDirective = (
   falseResult?: Mountable<any>
 ): Mountable<void> => {
   return (attach) => {
-    const [clearCommentRange, [begin, end, clear], move] = withCommentRange("if/show directive");
+    const [clearCommentRange, [begin, end, clear], getRange] = withCommentRange("if/show directive");
     attach(begin);
     attach(end);
     const attachContent: AttachFunc = (node) => before(end)(node);
@@ -27,16 +19,17 @@ const createIfDirective = (
     let lastValue = condition.val;
     let lastAttached: CleanUpFunc | null = null;
     const unsubscribe = subscribe(condition, (show) => {
-      if (firstRendered && lastValue === show) {
+      const newValue = !!show;
+      if (firstRendered && lastValue === newValue) {
         return;
       }
       if (!firstRendered) {
         firstRendered = true;
       }
-      lastValue = show;
+      lastValue = newValue;
       lastAttached?.();
       clear();
-      if (show) {
+      if (newValue) {
         [lastAttached] = trueResult(attachContent);
       } else {
         [lastAttached] = falseResult?.(attachContent) ?? [null];
@@ -49,7 +42,7 @@ const createIfDirective = (
         clearCommentRange();
       },
       undefined,
-      move,
+      getRange,
     ];
   };
 };
@@ -71,7 +64,7 @@ export const If: FunctionalComponent<
 
 /**
  * The `Show` directive for conditional rendering.
- * 
+ *
  * Same underlying logic with the {@link If} directive but with different styles of API.
  */
 export const Show: FunctionalComponent<{ when: Query<boolean>; fallback?: Mountable<any> }, Mountable<any>> = ({
@@ -93,9 +86,9 @@ interface ForProps<T extends unknown> {
 
 /**
  * The `for` directive for list rendering.
- * 
+ *
  * The `children` must be a render function.
- * 
+ *
  * `Vue.JS` reference: {@link https://github.com/vuejs/core/blob/main/packages/runtime-core/src/renderer.ts#L1747}
  */
 export const For = <T extends unknown>({
@@ -132,8 +125,8 @@ export const For = <T extends unknown>({
         }
       }
       for (; i <= e1 && i <= e2; e1--, e2--) {
-        const n1 = nodes[i];
-        const n2 = newNodes[i];
+        const n1 = nodes[e1];
+        const n2 = newNodes[e2];
         if (compare(n1[0], n2[0])) {
           n2[1] = n1[1];
         } else {
@@ -163,8 +156,13 @@ export const For = <T extends unknown>({
           const node = newNodes[i]!;
           const key = node[0];
           mapItemToNewIndex.set(
-            __DEV__ && mapItemToNewIndex.has(key) ? warn(`Duplicated item found: ${key}. It's always an error in hyplate,\
- since hyplate use the item itself as list key.`, key) : key,
+            __DEV__ && mapItemToNewIndex.has(key)
+              ? warn(
+                  `Duplicated item found: ${key}. It's always an error in hyplate,\
+ since hyplate use the item itself as list key.`,
+                  key
+                )
+              : key,
             i
           );
         }

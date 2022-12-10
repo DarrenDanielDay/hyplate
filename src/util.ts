@@ -1,6 +1,8 @@
 import type { AnyFunc } from "./types.js";
 
-export const __DEV__ = process.env.NODE_ENV !== "production";
+export let __DEV__ = process.env.NODE_ENV !== "production";
+
+export const setMode = (isDev: boolean) => (__DEV__ = isDev);
 
 export const patch: <T extends unknown>(a: T, b: Partial<T>) => T = Object.assign;
 

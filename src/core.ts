@@ -99,8 +99,8 @@ export const before = (element: ChildNode) => (node: Node) => (element.before(no
 export const after = (element: ChildNode) => (node: Node) => (element.after(node), element.parentElement!);
 
 export const seqAfter = (element: ChildNode) => {
-  const begin = comment("sequence after begin");
-  const end = comment("sequence after end");
+  const begin = comment(" sequence after begin ");
+  const end = comment(" sequence after end ");
   const append = after(element);
   append(begin);
   append(end);
