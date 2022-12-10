@@ -1,6 +1,6 @@
 import type { ParseSelector } from "typed-query-selector/parser.js";
 import { err, __DEV__ } from "./util.js";
-import { subscribe } from "./store.js";
+import { isReactive, subscribe } from "./store.js";
 import type { AttachFunc, AttributeInterpolation, CleanUpFunc, EventHost, Query, TextInterpolation } from "./types.js";
 import { applyAll, isObject, isString, push } from "./util.js";
 import { comment } from "./internal.js";
@@ -45,7 +45,10 @@ export const text = (
   const bindingsLength = bindings.length;
   if (__DEV__) {
     if (fragmentsLength !== bindingsLength + 1) {
-      err(`Invalid usage. Fragments length(${fragments.length}) and bindings length(${bindings.length}) do not match.`);
+      err(`Invalid usage of "text". Fragments length(${fragments.length}) and bindings length(${bindings.length}) do not match.`);
+    }
+    if (bindings.some(binding => isObject(binding) && !isReactive(binding))) {
+      err(`Invalid usage of "text". Object text child must be reactive source/query.`);
     }
   }
   return (attach: AttachFunc): CleanUpFunc => {

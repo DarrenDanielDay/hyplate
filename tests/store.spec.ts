@@ -27,6 +27,18 @@ describe("store.ts", () => {
       expect(subscriber).toBeCalledWith("2");
       cleanup();
     });
+    it("should prevent unnecessary dispatch", () => {
+      const src = source("1");
+      const subscriber = import.meta.jest.fn<void, [string]>();
+      const cleanup = subscribe(src, subscriber);
+      expect(subscriber).toBeCalledWith("1");
+      expect(subscriber).toBeCalledTimes(1);
+      src.set("1");
+      src.set("1");
+      src.set("1");
+      expect(subscriber).toBeCalledTimes(1);
+      cleanup();
+    });
   });
   describe("query", () => {
     it("should notify change", () => {
@@ -42,15 +54,20 @@ describe("store.ts", () => {
       cleanup();
     });
     it("should prevent unnecessary dispatch", () => {
-      const src = source("1");
-      const subscriber = import.meta.jest.fn<void, [string]>();
-      const cleanup = subscribe(src, subscriber);
-      expect(subscriber).toBeCalledWith("1");
+      const src = source(0);
+      const subscriber = import.meta.jest.fn<void, [number]>();
+      const selector = import.meta.jest.fn(() => src.val % 2);
+      const computed = query(selector);
+      expect(selector).toBeCalledTimes(1);
+      const cleanup = subscribe(computed, subscriber);
+      expect(selector).toBeCalledTimes(2);
+      expect(subscriber).toBeCalledWith(0);
       expect(subscriber).toBeCalledTimes(1);
-      src.set("1");
-      src.set("1");
-      src.set("1");
+      src.set(2);
+      src.set(4);
+      src.set(6);
       expect(subscriber).toBeCalledTimes(1);
+      expect(selector).toBeCalledTimes(5);
       cleanup();
     });
     it("should chain deps", () => {

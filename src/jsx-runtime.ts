@@ -1,4 +1,5 @@
 import { appendChild, attr, bindAttr, bindEvent, docFragment, element, remove, text } from "./core.js";
+import { isReactive } from "./store.js";
 
 import type {
   JSXChildNode,
@@ -13,7 +14,7 @@ import type {
   PropsBase,
   Later,
 } from "./types.js";
-import { applyAll, isFunction, isObject, noop, push } from "./util.js";
+import { applyAll, err, isFunction, isObject, noop, push, __DEV__ } from "./util.js";
 
 const addChild = (child: JSXChild, attach: AttachFunc) => {
   if (child instanceof Node) {
@@ -65,6 +66,9 @@ export const jsx = (
       const [cleanups] = children != null ? renderChild(children, appendChild(el)) : [[]];
       for (const [key, value] of Object.entries(attributes)) {
         if (isObject(value)) {
+          if (__DEV__ && !isReactive(value)) {
+            err(`The given value '${JSON.stringify(value)}' for attribute ${key} is not a reactive source/query.`);
+          }
           push(cleanups, bindAttr(el, key, value as Query<AttributeInterpolation>));
         } else if (isFunction(value) && isEventAttribute(key)) {
           const host = bindEvent(el);

@@ -1,4 +1,4 @@
-import { compare, isFunction, warn, __DEV__ } from "./util.js";
+import { compare, err, isFunction, warn, __DEV__ } from "./util.js";
 import { subscribe } from "./store.js";
 import type { AttachFunc, CleanUpFunc, FunctionalComponent, Mountable, Props, Query, Rendered } from "./types.js";
 import { noop } from "./util.js";
@@ -97,7 +97,7 @@ export const For = <T extends unknown>({
 }: Props<ForProps<T>, (item: T, index: number) => JSX.Element>): Mountable<void> => {
   if (__DEV__) {
     if (!isFunction(children)) {
-      warn("Invalid `children` of `For` directive. Expected to be a function.", 0);
+      err("Invalid `children` of `For` directive. Expected to be a function.");
     }
   }
   return (attach): Rendered<void> => {

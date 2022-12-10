@@ -2,8 +2,7 @@ import { appendChild } from "../dist/core";
 import { If, Show, For } from "../dist/directive";
 import { jsxRef } from "../dist/jsx-runtime";
 import { query, source } from "../dist/store";
-import type { AttachFunc, Mountable, Source } from "../dist/types";
-import { noop } from "../dist/util";
+import type { AttachFunc, Query, Source } from "../dist/types";
 describe("directive.ts", () => {
   describe("if", () => {
     let container: HTMLDivElement;
@@ -63,7 +62,8 @@ describe("directive.ts", () => {
     });
     it("should not create view with unchanged condition", () => {
       const src = source({});
-      const condition = query(() => !!src.val);
+      // @ts-expect-error
+      const condition: Query<boolean> = query(() => src.val);
       const ref = jsxRef<HTMLButtonElement>();
       const mountable = (
         <If condition={condition}>
@@ -135,8 +135,8 @@ describe("directive.ts", () => {
     afterEach(() => {
       container.remove();
     });
-    it("should emit warning when children is not a function", () => {
-      const warnSpy = import.meta.jest.spyOn(console, "warn");
+    it("should emit error when children is not a function", () => {
+      const warnSpy = import.meta.jest.spyOn(console, "error");
       warnSpy.mockImplementation(() => {});
       // @ts-expect-error invalid usage
       <For of={list}></For>;
@@ -155,7 +155,7 @@ describe("directive.ts", () => {
       warnSpy.mockRestore();
     });
     it("should render list", () => {
-      const [cleanup] = (<For of={list}>{(item) => <span>{item}</span>}</For>)(attach);
+      const [cleanup] = (<For of={list}>{(item) => <span>{item.val}</span>}</For>)(attach);
       expect(container.children.length).toBe(10);
       expect(container.textContent).toBe("0123456789");
       cleanup();

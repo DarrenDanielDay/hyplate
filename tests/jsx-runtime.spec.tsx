@@ -107,6 +107,17 @@ describe("jsx-runtime.ts", () => {
       disabled.set(true);
       expect(button.disabled).toBeFalsy();
     });
+    it("should emit warning when object attribute is not a reactive source/query", () => {
+      const warnSpy = import.meta.jest.spyOn(console, "error");
+      warnSpy.mockImplementation(() => {});
+      const item = { val: "item-id" };
+      expect(() => {
+        (<span id={item}></span>)(attach);
+      }).toThrow();
+      expect(warnSpy).toBeCalledTimes(1);
+      warnSpy.mockReset();
+      warnSpy.mockRestore();
+    });
     it("should bind inline event handler", () => {
       const handler = import.meta.jest.fn();
       const mountable: Mountable<HTMLButtonElement> = <button onClick={handler}></button>;

@@ -33,10 +33,10 @@ export const setDiffer = (differ: Differ | undefined | null) => {
   defaultDiffer = differ ?? compare;
 };
 
-const [enterScope, quitScope, currentScope] = scopes<(src: Source<unknown>) => void>();
+const [enterScope, quitScope, currentScope] = scopes<(src: Query<unknown>) => void>();
 
-const useDepScope = (): [Set<Source<unknown>>, CleanUpFunc] => {
-  const deps = new Set<Source<unknown>>();
+const useDepScope = (): [Set<Query<unknown>>, CleanUpFunc] => {
+  const deps = new Set<Query<unknown>>();
   enterScope((src) => {
     deps.add(src);
   });
@@ -66,30 +66,22 @@ export const source = <T extends unknown>(val: T, differ: Differ = defaultDiffer
   return src;
 };
 
-const subscriptions = new WeakMap<Query<unknown>, Set<Subscriber<unknown>>>();
+const subscriptions = new WeakMap<Query<unknown>, Set<Subscriber<any>>>();
 if (__DEV__) {
   Object.assign(globalThis, { __SUBSCRIPTIONS__: subscriptions });
 }
+/**
+ * @internal
+ */
+export const isReactive = (obj: object): obj is Query<unknown> =>
+  // @ts-expect-error contravariance
+  subscriptions.has(obj);
+
 export const subscribe = <T extends unknown>(query: Query<T>, subscriber: Subscriber<T>): CleanUpFunc => {
-  const underlyingSubscriber = () => {
-    const [newDeps, cleanup] = useDepScope();
-    const newVal = query.val;
-    cleanup();
-    for (const dep of deps) {
-      subscriptions.get(dep)!.delete(underlyingSubscriber);
-    }
-    deps = newDeps;
-    for (const dep of deps) {
-      subscriptions.get(dep)!.add(underlyingSubscriber);
-    }
-    subscriber(newVal);
-  };
-  let deps = new Set<Query<unknown>>();
-  underlyingSubscriber();
+  subscriptions.get(query)!.add(subscriber);
+  subscriber(query.val);
   return once(() => {
-    for (const dep of deps) {
-      subscriptions.get(dep)!.delete(underlyingSubscriber);
-    }
+    subscriptions.get(query)!.delete(subscriber);
   });
 };
 
@@ -103,12 +95,39 @@ export const dispatch = <T extends unknown>(src: Query<unknown>, newVal: T) => {
   });
 };
 
-export const query = <T extends unknown>(selector: () => T): Query<T> => {
+export const query = <T extends unknown>(selector: () => T, differ: Differ = defaultDiffer): Query<T> => {
   const q: Query<T> = {
     get val() {
-      return selector();
+      return evaluate();
     },
   };
+  let teardowns: CleanUpFunc[] = [];
+  const evaluate = () => {
+    currentScope()?.(q);
+    const [newDeps, cleanupDepScope] = useDepScope();
+    const result = selector();
+    cleanupDepScope();
+    for (const unsubscribe of teardowns) {
+      unsubscribe();
+    }
+    teardowns = [...newDeps].map((dep) => {
+      const subscribers = subscriptions.get(dep)!;
+      subscribers.add(queryDispatch);
+      return () => {
+        subscribers.delete(queryDispatch);
+      };
+    });
+    return result;
+  };
+  const queryDispatch = () => {
+    const latest = evaluate();
+    if (differ(current, latest)) {
+      return;
+    }
+    current = latest;
+    dispatch(q, current);
+  };
   subscriptions.set(q, new Set());
+  let current = evaluate();
   return q;
 };

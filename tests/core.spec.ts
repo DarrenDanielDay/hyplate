@@ -151,11 +151,21 @@ describe("core.ts", () => {
       fn();
     });
 
-    it("should emit error when called with invalid arguments", () => {
+    it("should emit error when called with invalid templates arguments", () => {
       const fn = import.meta.jest.spyOn(console, "error");
       fn.mockImplementation(() => {});
       // @ts-expect-error invalid usage
       text(["111", "222", "333"], "");
+      expect(fn).toBeCalled();
+      fn.mockReset();
+      fn.mockRestore();
+    });
+
+    it("should emit error when called with non-reactive object child expression", () => {
+      const fn = import.meta.jest.spyOn(console, "error");
+      fn.mockImplementation(() => {});
+      // @ts-expect-error invalid usage
+      text(["111", "222"], {});
       expect(fn).toBeCalled();
       fn.mockReset();
       fn.mockRestore();
