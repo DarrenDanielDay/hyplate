@@ -139,8 +139,6 @@ describe("core.ts", () => {
       a1.set(2);
       expect(p.textContent).toBe("print: 2");
       fn();
-      a1.set(3);
-      expect(p.textContent).toBe("print: 2");
     });
 
     it("should insert text with primitive values", () => {
