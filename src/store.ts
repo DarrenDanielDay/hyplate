@@ -88,11 +88,11 @@ export const query = <T extends unknown>(selector: () => T, differ: Differ = def
   let current: T | null = null;
   let teardowns: CleanUpFunc[] = [];
   const lazyEvaluate = () => {
+    currentScope()?.(q);
     if (!dirty) {
       return;
     }
     dirty = false;
-    currentScope()?.(q);
     const [newDeps, cleanupDepScope] = useDepScope();
     current = selector();
     cleanupDepScope();
