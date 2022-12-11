@@ -52,9 +52,11 @@ export const text = (
   const bindingsLength = bindings.length;
   if (__DEV__) {
     if (fragmentsLength !== bindingsLength + 1) {
-      err(`Invalid usage of "text". Fragments length(${fragments.length}) and bindings length(${bindings.length}) do not match.`);
+      err(
+        `Invalid usage of "text". Fragments length(${fragments.length}) and bindings length(${bindings.length}) do not match.`
+      );
     }
-    if (bindings.some(binding => isObject(binding) && !isReactive(binding))) {
+    if (bindings.some((binding) => isObject(binding) && !isReactive(binding))) {
       err(`Invalid usage of "text". Object text child must be reactive source/query.`);
     }
   }
@@ -64,7 +66,9 @@ export const text = (
     const flushBuf = () => {
       const textContent = buf.join("");
       if (textContent) {
-        attach(new Text(textContent));
+        const textNode = new Text(textContent);
+        push(effects, () => remove(textNode));
+        attach(textNode);
       }
       buf.length = 0;
     };
@@ -75,6 +79,7 @@ export const text = (
         flushBuf();
         const dynamicText = new Text();
         push(effects, bindText(dynamicText, expression));
+        push(effects, () => remove(dynamicText));
         attach(dynamicText);
       } else {
         push(buf, `${expression}`);
