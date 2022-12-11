@@ -40,10 +40,19 @@ const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
   let begin: Node | null = null,
     end: Node | null = null;
   const attach: AttachFunc = (node) => {
+    const isFragment = node instanceof DocumentFragment;
     if (!begin) {
-      begin = node;
+      if (isFragment) {
+        begin = node.firstChild;
+      } else {
+        begin = node;
+      }
     }
-    end = node;
+    if (isFragment) {
+      end = node.lastChild;
+    } else {
+      end = node;
+    }
     return _attach(node);
   };
   const cleanups: CleanUpFunc[] = [];
