@@ -144,7 +144,13 @@ describe("jsx-runtime.ts", () => {
       expect(container.textContent).toBe("");
     });
     it("should render empty fragment", () => {
-      const [cleanup, , getRange] = (<></>)(attach);
+      const [cleanup, , getRange] = (<>
+        <>
+          <>
+            <></>
+          </>
+        </>
+      </>)(attach);
       expect(container.textContent).toBe("");
       expect(getRange()).toBeUndefined();
       cleanup();
