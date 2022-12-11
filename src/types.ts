@@ -314,7 +314,7 @@ interface MapAttributeToValueAndKeys {
   size: AttributeInfo<NumericAttributeValue, TextLikeInputTypes>;
   src: AttributeInfo<string, "image">;
   step: AttributeInfo<NumericAttributeValue, NumericInputTypes>;
-  value: AttributeInfo<string, InputTypes>;
+  value: AttributeInfo<TextInterpolation, InputTypes>;
   width: AttributeInfo<NumericAttributeValue, "image">;
 }
 
