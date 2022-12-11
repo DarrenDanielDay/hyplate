@@ -81,7 +81,7 @@ export const jsx = (
           const host = bindEvent(el);
           push(cleanups, host(key.slice(2).toLowerCase() as never, value));
         } else {
-          attr(el, key, `${value}`);
+          attr(el, key, value as AttributeInterpolation);
         }
       }
       push(cleanups, () => remove(el));
