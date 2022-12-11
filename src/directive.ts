@@ -101,7 +101,7 @@ interface ForProps<T extends unknown> {
 export const For = <T extends unknown>({
   of,
   children,
-}: Props<ForProps<T>, (item: T, index: number) => JSX.Element>): Mountable<void> => {
+}: Props<ForProps<T>, (item: T) => JSX.Element>): Mountable<void> => {
   if (__DEV__) {
     if (!isFunction(children)) {
       err("Invalid `children` of `For` directive. Expected to be a function.");
@@ -148,7 +148,7 @@ export const For = <T extends unknown>({
             // @ts-expect-error skip before check
             const attach = before(anchor);
             const node = newNodes[i]!;
-            node[1] = children(node[0], i)(attach);
+            node[1] = children(node[0])(attach);
           }
         }
       } else if (i > e2) {
@@ -208,7 +208,7 @@ export const For = <T extends unknown>({
           // @ts-expect-error skip before check
           const attach = before(anchor);
           if (newIndexToOldIndexMap[i] === 0) {
-            nextChild[1] = children(nextChild[0], nextIndex)(attach);
+            nextChild[1] = children(nextChild[0])(attach);
           } else if (moved) {
             if (j < 0 || i !== increasingNewIndexSequence[j]!) {
               const range = nextChild[1]![2]();
