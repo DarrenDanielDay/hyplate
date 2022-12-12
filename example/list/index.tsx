@@ -40,7 +40,7 @@ const App = () => {
             // Feel free to get the DOM by `jsxRef`.
             const inputRef = jsxRef<HTMLInputElement>();
             const changeLabel = () => {
-              item.label.set(inputRef.el.value);
+              item.label.set(inputRef.el!.value);
             };
             const remove = () => {
               const newList = list.val.filter((it) => it !== item);

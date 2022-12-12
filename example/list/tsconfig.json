@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "module": "ESNext",
     "target": "ESNext",
     "sourceMap": true,
