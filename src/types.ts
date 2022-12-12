@@ -44,7 +44,7 @@ export type EventMap<T extends EventTarget> = T extends HTMLElement
 export type Handler<T extends EventTarget, E extends Extract<keyof EventMap<T>, string>> = (
   this: T,
   e: EventMap<T>[E]
-) => void;
+) => any;
 
 export type Events<T extends EventTarget> = Extract<keyof EventMap<T>, string>;
 
