@@ -4,7 +4,7 @@ import { source, query } from "hyplate/store";
 const App = ({ msg }: { msg: string }) => {
   const count = source(0);
   const doubleCount = query(() => count.val * 2);
-  console.log("This function will only execute once.");
+  console.log("This function will only be executed once on `App` attach.");
   return (
     <div class="app">
       <link rel="stylesheet" href="./index.css"></link>

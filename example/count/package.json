@@ -16,7 +16,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "hyplate": "^0.1.1"
+    "hyplate": "^0.1.4"
   },
   "devDependencies": {
     "concurrently": "^7.6.0",
