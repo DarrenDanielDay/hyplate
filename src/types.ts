@@ -6,6 +6,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+/**
+ * `NaN` cannot represented in TypeScript types.
+ * @see https://developer.mozilla.org/en-US/docs/Glossary/Falsy
+ */
+export type Falsy = false | undefined | void | null | "" | 0 | -0 | 0n;
+
 export type AnyFunc = (...args: any[]) => any;
 
 export type CleanUpFunc = () => void;
@@ -81,6 +87,11 @@ export type ExposeBase = {} | void;
 export type PropsBase = {};
 
 export type Mountable<E extends ExposeBase> = (attach: AttachFunc) => Rendered<E>;
+
+export type ConditionalMountable<Test, E extends ExposeBase> = (
+  attach: AttachFunc,
+  value: Exclude<Test, Falsy>
+) => Rendered<E>;
 
 export type WithChildren<C> = { children: C };
 

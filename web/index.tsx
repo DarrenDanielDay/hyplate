@@ -34,14 +34,17 @@ function main() {
         <Show when={computed(() => count.val % 2 === 0)}>
           <div>mod 2 = 0</div>
         </Show>
-        <Show when={computed(() => count.val % 3 === 1 || count.val % 3 === 2)} fallback={<div>mod 3 = 0</div>}>
-          <div>
-            mod 3 = 1 or 2
-            <>
-              <div style={computed(() => (count.val % 3 === 1 ? `color: red` : `color: blue`))}>fragment</div>
-              <div>supported</div>
-            </>
-          </div>
+        <Show when={computed(() => count.val % 3)} fallback={<div>mod 3 = 0</div>}>
+          {(attach, mod) => {
+            console.log(`mod changed: ${mod}`);
+            return (<div>
+              mod 3 = 1 or 2
+              <>
+                <div style={computed(() => (count.val % 3 === 1 ? `color: red` : `color: blue`))}>fragment</div>
+                <div>supported</div>
+              </>
+            </div>)(attach);
+          }}
         </Show>
         <For of={list}>
           {(item) => {

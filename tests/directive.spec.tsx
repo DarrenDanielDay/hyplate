@@ -60,7 +60,7 @@ describe("directive.ts", () => {
       expect(container.textContent).toBe("else");
       cleanup();
     });
-    it("should not create view with unchanged condition", () => {
+    it("should re-create view with changed condition", () => {
       const src = source({});
       // @ts-expect-error
       const condition: Query<boolean> = query(() => src.val);
@@ -75,6 +75,27 @@ describe("directive.ts", () => {
       const [cleanup] = mountable(attach);
       const button1 = ref.el;
       src.set({});
+      const button2 = ref.el;
+      expect(button2).not.toBe(button1);
+      expect(button1).toBeInstanceOf(HTMLButtonElement);
+      cleanup();
+    });
+    it("should not create view with unchanged condition", () => {
+      const obj = {};
+      const src = source(obj);
+      // @ts-expect-error
+      const condition: Query<boolean> = query(() => src.val);
+      const ref = jsxRef<HTMLButtonElement>();
+      const mountable = (
+        <If condition={condition}>
+          {{
+            then: <button ref={ref}>then</button>,
+          }}
+        </If>
+      );
+      const [cleanup] = mountable(attach);
+      const button1 = ref.el;
+      src.set(obj);
       const button2 = ref.el;
       expect(button2).toBe(button1);
       expect(button1).toBeInstanceOf(HTMLButtonElement);

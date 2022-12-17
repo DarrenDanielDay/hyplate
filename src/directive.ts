@@ -6,40 +6,46 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { compare, err, isFunction, warn, __DEV__ } from "./util.js";
-import { subscribe } from "./store.js";
-import type { AttachFunc, CleanUpFunc, FunctionalComponent, Mountable, Props, Query, Rendered } from "./types.js";
+import { source, subscribe } from "./store.js";
+import type {
+  AttachFunc,
+  CleanUpFunc,
+  ConditionalMountable,
+  ExposeBase,
+  Mountable,
+  Props,
+  Query,
+  Rendered,
+} from "./types.js";
 import { noop } from "./util.js";
 import { withCommentRange } from "./internal.js";
 import { before, moveRange } from "./core.js";
 
-const createIfDirective = (
-  condition: Query<boolean>,
-  trueResult: Mountable<any>,
-  falseResult?: Mountable<any>
-): Mountable<void> => {
+const createIfDirective = <Test, T extends ExposeBase, F extends ExposeBase = void>(
+  condition: Query<Test>,
+  trueResult: ConditionalMountable<Test, T>,
+  falseResult?: Mountable<F>
+): Mountable<Query<T | F | void>> => {
   return (attach) => {
     const [clearCommentRange, [begin, end, clear], getRange] = withCommentRange("if/show directive");
     attach(begin);
     attach(end);
-    const attachContent: AttachFunc = (node) => before(end)(node);
-    let firstRendered = false;
-    let lastValue = condition.val;
+    const attachContent: AttachFunc = before(end);
+    const exposed = source<T | F | void>(void 0);
     let lastAttached: CleanUpFunc | null = null;
-    const unsubscribe = subscribe(condition, (show) => {
-      const newValue = !!show;
-      if (firstRendered && lastValue === newValue) {
-        return;
-      }
-      if (!firstRendered) {
-        firstRendered = true;
-      }
-      lastValue = newValue;
+    const unsubscribe = subscribe(condition, (newValue) => {
+      const shouldReRender = !!newValue;
       lastAttached?.();
       clear();
-      if (newValue) {
-        [lastAttached] = trueResult(attachContent);
+      if (shouldReRender) {
+        let trueRendered: T;
+        // @ts-expect-error truty check
+        [lastAttached, trueRendered] = trueResult(attachContent, newValue);
+        exposed.set(trueRendered);
       } else {
-        [lastAttached] = falseResult?.(attachContent) ?? [null];
+        let falseRendered: F | void;
+        [lastAttached, falseRendered] = falseResult?.(attachContent) ?? [null, void 0];
+        exposed.set(falseRendered);
       }
     });
     return [
@@ -48,7 +54,7 @@ const createIfDirective = (
         lastAttached?.();
         clearCommentRange();
       },
-      undefined,
+      exposed,
       getRange,
     ];
   };
@@ -59,10 +65,10 @@ const nil: Mountable<void> = () => nilRendered;
 /**
  * The `If` directive for conditional rendering.
  */
-export const If: FunctionalComponent<
-  { condition: Query<boolean> },
-  { then: Mountable<any>; else?: Mountable<any> }
-> = ({ condition, children }) => {
+export const If = <Test, T extends ExposeBase, F extends ExposeBase = void>({
+  condition,
+  children,
+}: Props<{ condition: Query<Test> }, { then: ConditionalMountable<Test, T>; else?: Mountable<F> }>) => {
   if (!children) {
     return warn("Invalid usage of 'If'. Must provide children.", nil);
   }
@@ -74,11 +80,11 @@ export const If: FunctionalComponent<
  *
  * Same underlying logic with the {@link If} directive but with different styles of API.
  */
-export const Show: FunctionalComponent<{ when: Query<boolean>; fallback?: Mountable<any> }, Mountable<any>> = ({
+export const Show = <Test, T extends ExposeBase, F extends ExposeBase = void>({
   when,
   children,
   fallback,
-}) => {
+}: Props<{ when: Query<Test>; fallback?: Mountable<F> }, ConditionalMountable<Test, T>>) => {
   if (!children) {
     return warn("Invalid usage of 'Show'. Must provide children.", nil);
   }
