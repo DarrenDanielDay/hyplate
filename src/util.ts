@@ -64,9 +64,13 @@ ${error.stack}`
   console.error(`[ERROR]: ${msg}`);
 };
 
-export const warn = <T extends unknown>(msg: string, value: T) => {
+export const warn = (msg: unknown) => {
   if (__DEV__) {
     console.warn(msg);
   }
+};
+
+export const warned = <T extends unknown>(msg: string, value: T) => {
+  warn(msg);
   return value;
 };

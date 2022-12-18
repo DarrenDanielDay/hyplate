@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { compare, err, isFunction, warn, __DEV__ } from "./util.js";
+import { compare, err, isFunction, warned, __DEV__ } from "./util.js";
 import { source, subscribe } from "./store.js";
 import type {
   AttachFunc,
@@ -74,7 +74,7 @@ export const If = <Test, T extends ExposeBase, F extends ExposeBase = void>({
   Query<T | F | void>
 >) => {
   if (!children) {
-    return warn("Invalid usage of 'If'. Must provide children.", nil);
+    return warned("Invalid usage of 'If'. Must provide children.", nil);
   }
   return createIfDirective(condition, children.then, children.else);
 };
@@ -90,7 +90,7 @@ export const Show = <Test, T extends ExposeBase, F extends ExposeBase = void>({
   fallback,
 }: Props<{ when: Query<Test>; fallback?: Mountable<F> }, ConditionalMountable<Test, T>, Query<T | F | void>>) => {
   if (!children) {
-    return warn("Invalid usage of 'Show'. Must provide children.", nil);
+    return warned("Invalid usage of 'Show'. Must provide children.", nil);
   }
   return createIfDirective(when, children, fallback);
 };
@@ -174,7 +174,7 @@ export const For = <T extends unknown>({
           const key = node[0];
           mapItemToNewIndex.set(
             __DEV__ && mapItemToNewIndex.has(key)
-              ? warn(
+              ? warned(
                   `Duplicated item found: ${key}. It's always an error in hyplate,\
  since hyplate use the item itself as list key.`,
                   key

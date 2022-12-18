@@ -1,5 +1,5 @@
 import { source } from "../dist/store";
-import { applyAll, err, isFunction, isObject, isString, noop, once, patch, scopes, warn } from "../dist/util";
+import { applyAll, err, isFunction, isObject, isString, noop, once, patch, scopes, warned } from "../dist/util";
 describe("util.ts", () => {
   describe("patch", () => {
     it("should be alias of `Object.assign`", () => {
@@ -94,8 +94,8 @@ describe("util.ts", () => {
       const warnSpy = import.meta.jest.spyOn(console, "warn");
       warnSpy.mockImplementation(() => {});
       const obj = {};
-      const warned = warn("The message", obj);
-      expect(warned).toBe(obj);
+      const returned = warned("The message", obj);
+      expect(returned).toBe(obj);
       expect(warnSpy).toBeCalledWith("The message");
       warnSpy.mockReset();
       warnSpy.mockRestore();
