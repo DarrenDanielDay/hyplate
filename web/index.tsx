@@ -57,7 +57,7 @@ function main() {
                   <div class="row">
                     <button
                       onClick={() => {
-                        item.text.set(renameInput.el.value);
+                        item.text.set(renameInput.current.value);
                       }}
                     >
                       rename as:
@@ -68,7 +68,7 @@ function main() {
                     <button
                       onClick={() => {
                         const originalList = list.val;
-                        const splitIndex = +moveIndexInput.el.value;
+                        const splitIndex = +moveIndexInput.current.value;
                         if (!(0 <= splitIndex && splitIndex < originalList.length)) {
                           return;
                         }

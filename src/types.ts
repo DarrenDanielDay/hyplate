@@ -26,8 +26,8 @@ export interface Source<T extends unknown> extends Query<T> {
 
 export type Subscriber<T extends unknown> = (latest: T) => void;
 
-export interface Later<E extends HTMLElement> {
-  el: E | null;
+export interface Later<E extends {}> {
+  current: E | null;
 }
 
 /**
@@ -95,14 +95,14 @@ export type ConditionalMountable<Test, E extends ExposeBase> = (
 
 export type WithChildren<C> = { children: C };
 
-export type WithRef<E extends HTMLElement> = { ref: Later<E> };
+export type WithRef<E extends {}> = { ref: Later<E> };
 
 export type Props<P extends PropsBase, C = undefined, E = undefined> = Omit<P, "children" | "ref"> &
   (C extends undefined ? Partial<WithChildren<C>> : WithChildren<C>) &
-  (E extends HTMLElement ? Partial<WithRef<E>> : {});
+  (E extends {} ? Partial<WithRef<E>> : {});
 
 export type FunctionalComponent<P extends PropsBase = PropsBase, C = undefined, E extends ExposeBase = void> = (
-  props: Props<P, C>
+  props: Props<P, C, E>
 ) => Mountable<E>;
 
 export type FunctionalComponentTemplateFactory = <S extends string = never>(

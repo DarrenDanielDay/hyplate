@@ -73,9 +73,9 @@ describe("directive.ts", () => {
         </If>
       );
       const [cleanup] = mountable(attach);
-      const button1 = ref.el;
+      const button1 = ref.current;
       src.set({});
-      const button2 = ref.el;
+      const button2 = ref.current;
       expect(button2).not.toBe(button1);
       expect(button1).toBeInstanceOf(HTMLButtonElement);
       cleanup();
@@ -94,9 +94,9 @@ describe("directive.ts", () => {
         </If>
       );
       const [cleanup] = mountable(attach);
-      const button1 = ref.el;
+      const button1 = ref.current;
       src.set(obj);
-      const button2 = ref.el;
+      const button2 = ref.current;
       expect(button2).toBe(button1);
       expect(button1).toBeInstanceOf(HTMLButtonElement);
       cleanup();

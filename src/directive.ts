@@ -68,7 +68,11 @@ const nil: Mountable<void> = () => nilRendered;
 export const If = <Test, T extends ExposeBase, F extends ExposeBase = void>({
   condition,
   children,
-}: Props<{ condition: Query<Test> }, { then: ConditionalMountable<Test, T>; else?: Mountable<F> }>) => {
+}: Props<
+  { condition: Query<Test> },
+  { then: ConditionalMountable<Test, T>; else?: Mountable<F> },
+  Query<T | F | void>
+>) => {
   if (!children) {
     return warn("Invalid usage of 'If'. Must provide children.", nil);
   }
@@ -84,7 +88,7 @@ export const Show = <Test, T extends ExposeBase, F extends ExposeBase = void>({
   when,
   children,
   fallback,
-}: Props<{ when: Query<Test>; fallback?: Mountable<F> }, ConditionalMountable<Test, T>>) => {
+}: Props<{ when: Query<Test>; fallback?: Mountable<F> }, ConditionalMountable<Test, T>, Query<T | F | void>>) => {
   if (!children) {
     return warn("Invalid usage of 'Show'. Must provide children.", nil);
   }

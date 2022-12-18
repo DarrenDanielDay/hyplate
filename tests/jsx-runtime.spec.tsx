@@ -2,7 +2,8 @@ import { appendChild, element } from "../dist/core";
 import { If, Show } from "../dist/directive";
 import { Fragment, jsx, jsxRef, jsxs } from "../dist/jsx-runtime";
 import { source } from "../dist/store";
-import type { AttachFunc, Mountable } from "../dist/types";
+import type { AttachFunc, FunctionalComponent, Mountable } from "../dist/types";
+import { noop } from "../dist/util";
 describe("jsx-runtime.ts", () => {
   describe("JSX syntax", () => {
     it("should work with intrinsic element tags and fragment", () => {
@@ -79,12 +80,28 @@ describe("jsx-runtime.ts", () => {
       expect(container.textContent).toBe("span 1span 2");
       cleanup();
     });
-    it("should assign jsxRef", () => {
+    it("should assign element jsxRef", () => {
       const inputRef = jsxRef<HTMLInputElement>();
       const mountable = <input ref={inputRef}></input>;
-      expect(inputRef.el).toBeNull();
+      expect(inputRef.current).toBeNull();
       const [cleanup, el] = mountable(attach);
-      expect(inputRef.el).toBe(el);
+      expect(inputRef.current).toBe(el);
+      cleanup();
+    });
+    it("should assign component exposed jsxRef", () => {
+      interface AppExposed {
+        foo: string;
+      }
+
+      const App: FunctionalComponent<{}, undefined, AppExposed> = (props) => (attach) => {
+        return [noop, { foo: "bar" }, noop];
+      };
+      const appRef = jsxRef<AppExposed>();
+      const mountable = <App ref={appRef}></App>;
+      expect(appRef.current).toBeNull();
+      const [cleanup, app] = mountable(attach);
+      expect(appRef.current).toBe(app);
+      expect(app).toStrictEqual({ foo: "bar" });
       cleanup();
     });
     it("should assign static attributes", () => {
@@ -186,9 +203,9 @@ describe("jsx-runtime.ts", () => {
     });
   });
   describe("jsxRef", () => {
-    it("should return an object with `el` property", () => {
+    it("should return an object with `current` property", () => {
       const ref = jsxRef();
-      expect(ref).toStrictEqual({ el: null });
+      expect(ref).toStrictEqual({ current: null });
     });
   });
 });

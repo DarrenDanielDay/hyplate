@@ -70,14 +70,14 @@ const isEventAttribute = (name: string) => pattern.test(name);
 
 export const jsx = (
   type: FunctionalComponent | string,
-  props: Partial<Props<PropsBase, JSXChildNode, HTMLElement>>
+  props: Partial<Props<PropsBase, JSXChildNode, {}>>
 ): JSX.Element => {
   if (typeof type === "string") {
     return (attach): Rendered<object> => {
       const el = element(type);
       const { children, ref, ...attributes } = props;
       if (ref) {
-        ref.el = el;
+        ref.current = el;
       }
       const [cleanups] = children != null ? renderChild(children, appendChild(el)) : [[]];
       for (const [key, value] of Object.entries(attributes)) {
@@ -98,16 +98,26 @@ export const jsx = (
       return [applyAll(cleanups), el, () => [el, el]];
     };
   }
+  const { ref, ...otherProps } = props;
   // @ts-expect-error Dynamic Implementation
-  return type(props);
+  const mountable = type(otherProps);
+  if (!ref) {
+    return mountable;
+  }
+  return (attach) => {
+    const rendered = mountable(attach);
+    // @ts-expect-error Dynamic Implementation
+    ref.current = rendered[1];
+    return rendered;
+  }
 };
 export const jsxs = jsx;
 
 /**
  * Create a jsx ref object to fetch the DOM element when mounted.
  */
-export const jsxRef = <E extends HTMLElement>(): Later<E> => ({
-  el: null,
+export const jsxRef = <E extends {}>(): Later<E> => ({
+  current: null,
 });
 
 export const Fragment: FunctionalComponent<{}, JSXChildNode | undefined> = ({ children }) => {
