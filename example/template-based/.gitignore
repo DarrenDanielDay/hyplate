@@ -1,0 +1,5 @@
+node_modules/
+**/*.template.js
+**/*.template.js.map
+**/*.template.d.ts
+**/*.template.d.ts.map

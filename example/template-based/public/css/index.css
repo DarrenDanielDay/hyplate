@@ -1,0 +1,17 @@
+/* Global Stylesheet */
+:root {
+  font-family: ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace;
+}
+
+code {
+  color: #24292f;
+  line-height: 1.5;
+  word-wrap: break-word;
+  border: none;
+  box-sizing: border-box;
+  padding: .2em .4em;
+  margin: 0;
+  font-size: 85%;
+  background-color: #afb8c133;
+  border-radius: 6px;
+}
