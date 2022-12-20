@@ -6,9 +6,10 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "build": "npm run build:typescript && npm run build:browser && npm run build:test",
+    "build": "npm run build:typescript && npm run build:browser && npm run build:test && npm run build:test-examples",
     "build:browser": "npx rollup --config rollup.config.js",
     "build:test": "tsc -p ./tests/tsconfig.json",
+    "build:test-examples": "node ./scripts/build-examples.js",
     "build:typescript": "ts-esmbuilder",
     "format": "prettier --write .",
     "start": "concurrently npm:start:*",
@@ -46,6 +47,12 @@
       "node": "./dist/index.js",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./compiler": {
+      "types": "./dist/compiler/index.d.ts",
+      "node": "./dist/compiler/index.js",
+      "import": "./dist/compiler/index.js",
+      "default": "./dist/compiler/index.js"
     },
     "./core": {
       "types": "./dist/core.d.ts",

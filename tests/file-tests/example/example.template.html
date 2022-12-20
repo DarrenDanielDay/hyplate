@@ -1,0 +1,36 @@
+<template #foo>
+  <header>
+    <slot name="header"></slot>
+  </header>
+  <main>
+    <custom-element #custom-el>
+      `refs` type for custom element will be "Element".
+    </custom-element>
+    <ul #list>
+      <template #list-item>
+        <li>
+          <span>list template</span>
+          <template #label>
+            <span>the label</span>
+          </template>
+        </li>
+      </template>
+      <template #list-item-else>
+        <li>
+          <span>list template</span>
+          <template #label>
+            <span>the label</span>
+          </template>
+        </li>
+      </template>
+    </ul>
+  </main>
+  <footer>
+    <slot name="footer"></slot>
+  </footer>
+</template>
+
+<template #bar>
+  bar<br />
+  <template #baz> baz<br /> </template>
+</template>

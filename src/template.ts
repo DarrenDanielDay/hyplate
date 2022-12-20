@@ -5,10 +5,17 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { $$, appendChild, before, clone, element, insertSlot, remove } from "./core.js";
+import { $$, access, appendChild, before, clone, element, insertSlot, remove } from "./core.js";
 import { createHooks, enterHooks, quitHooks } from "./hooks.js";
-import type { CleanUpFunc, FunctionalComponentTemplateFactory, SlotMap } from "./types.js";
-import { applyAll, isFunction, once, patch, push } from "./util.js";
+import type {
+  CleanUpFunc,
+  ContextFactory,
+  ContextSetupFactory,
+  FunctionalComponentTemplateFactory,
+  SlotMap,
+  TemplateContext,
+} from "./types.js";
+import { applyAll, isFunction, objectEntriesMap, once, patch, push } from "./util.js";
 import { withCommentRange } from "./internal.js";
 
 export const template = (input: string | HTMLTemplateElement): HTMLTemplateElement =>
@@ -18,9 +25,10 @@ const anonymousElement = () => class HyplateAnonymousElement extends HTMLElement
 
 let templateId = 0;
 const templateName = (name: string | undefined) => name ?? `hype-${templateId++}`;
-export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
+// @ts-expect-error generic overload
+export const shadowed: FunctionalComponentTemplateFactory = (input, contextFactory) => {
   const t = template(input);
-  return (setup) => {
+  return (setup, name) => {
     const elementTag = templateName(name);
     const slotTag = `${elementTag}-slot`;
     customElements.define(elementTag, anonymousElement());
@@ -31,7 +39,9 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
       const owner = element(elementTag);
       const parent = attach(owner);
       const shadow = owner.attachShadow({ mode: "open" });
-      shadow.appendChild(clone(t.content));
+      const fragment = clone(t.content);
+      const context = contextFactory?.(fragment)!;
+      shadow.appendChild(fragment);
       if (slots) {
         for (const [name, slotInput] of Object.entries<SlotMap[string]>(slots)) {
           if (slotInput == null) {
@@ -52,7 +62,7 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
         parent,
       });
       enterHooks(hooks);
-      const exposed = setup?.(props as never) as never;
+      const exposed = setup?.(props as never, context) as never;
       quitHooks();
       const cleanupView = () => {
         for (const child of Array.from(shadow.childNodes)) {
@@ -72,16 +82,17 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, name) => {
     };
   };
 };
-
-export const replaced: FunctionalComponentTemplateFactory = (input, name) => {
+// @ts-expect-error generic overload
+export const replaced: FunctionalComponentTemplateFactory = (input, contextFactory) => {
   const t = template(input);
-  const componentName = templateName(name);
-  return (setup) => {
+  return (setup, name) => {
+    const componentName = templateName(name);
     return (options) => (attach) => {
       const localCleanups: CleanUpFunc[] = [];
       const slots = options.children;
       const [cleanupComment, [begin, end, clearRange]] = withCommentRange(componentName);
       const fragment = clone(t.content);
+      const context = contextFactory?.(fragment)!;
       attach(begin);
       const host = attach(fragment);
       attach(end);
@@ -104,7 +115,7 @@ export const replaced: FunctionalComponentTemplateFactory = (input, name) => {
       }
       const [hooks, cleanupHooks] = createHooks({ host, parent: host });
       enterHooks(hooks);
-      const exposed = setup?.(options as never) as never;
+      const exposed = setup?.(options as never, context) as never;
       quitHooks();
       const cleanupView = () => {
         clearRange();
@@ -118,4 +129,14 @@ export const replaced: FunctionalComponentTemplateFactory = (input, name) => {
       return [unmount, exposed, () => [begin, end]];
     };
   };
+};
+
+export const contextFactory = <C extends Record<string, ContextSetupFactory<{}, string>>>(
+  children: C,
+  paths: Record<string, number[]>
+): ContextFactory<TemplateContext<C, Record<string, ParentNode | undefined>>> => {
+  return (fragment) => ({
+    refs: objectEntriesMap(paths, ([, value]) => access(fragment, value)),
+    templates: children,
+  });
 };

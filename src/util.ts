@@ -74,3 +74,6 @@ export const warned = <T extends unknown>(msg: string, value: T) => {
   warn(msg);
   return value;
 };
+
+export const objectEntriesMap = <T, R>(obj: Record<string, T>, mapper: ([k, v]: [string, T]) => R) =>
+  Object.fromEntries(Object.entries(obj).map(([key, value]) => [key, mapper([key, value])]));

@@ -1,5 +1,17 @@
 import { source } from "../dist/store";
-import { applyAll, err, isFunction, isObject, isString, noop, once, patch, scopes, warned } from "../dist/util";
+import {
+  applyAll,
+  err,
+  isFunction,
+  isObject,
+  isString,
+  noop,
+  objectEntriesMap,
+  once,
+  patch,
+  scopes,
+  warned,
+} from "../dist/util";
 describe("util.ts", () => {
   describe("patch", () => {
     it("should be alias of `Object.assign`", () => {
@@ -99,6 +111,19 @@ describe("util.ts", () => {
       expect(warnSpy).toBeCalledWith("The message");
       warnSpy.mockReset();
       warnSpy.mockRestore();
+    });
+  });
+
+  describe("object entries map", () => {
+    it("should map object entries", () => {
+      expect(
+        objectEntriesMap({ a: 1, b: 2 }, ([key, value]) => {
+          return `${key}${value * 2}`;
+        })
+      ).toStrictEqual({
+        a: "a2",
+        b: "b4",
+      });
     });
   });
 });

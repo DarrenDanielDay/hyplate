@@ -138,6 +138,16 @@ export const moveRange = (begin: Node | null, end: Node | null) => (attach: Atta
   }
 };
 
+export const access = (node: ParentNode, path: number[]): ParentNode | undefined => {
+  for (const i of path) {
+    node = node.children[i];
+    if (!node) {
+      break;
+    }
+  }
+  return node;
+};
+
 export const insertSlot = (host: Element, slotName: string, element: Element) => {
   attr(element, "slot", slotName);
   appendChild(host)(element);

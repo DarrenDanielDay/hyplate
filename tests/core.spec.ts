@@ -1,6 +1,7 @@
 import {
   $,
   $$,
+  access,
   after,
   anchorRef,
   appendChild,
@@ -20,6 +21,7 @@ import {
   text,
 } from "../dist/core";
 import { source } from "../dist/store";
+import { template } from "../dist/template";
 
 describe("core.ts", () => {
   describe("element", () => {
@@ -273,6 +275,36 @@ describe("core.ts", () => {
       render(appendChild(box));
       expect(Array.from(container.children)).toEqual([fragment[0], fragment[3]]);
       expect(Array.from(box.children)).toEqual([fragment[1], fragment[2]]);
+    });
+  });
+
+  describe("access", () => {
+    let fragment: DocumentFragment;
+    beforeAll(() => {
+      fragment = template(`\
+ <div id="div0">
+  <span id="span0">span0</span>
+  <span id="span1">span1</span>
+ </div>
+ <div id="div1">
+  <span id="span2">span2</span>
+ </div>
+ `).content;
+    });
+    it("should access the node by index path", () => {
+      expect(access(fragment, [0])).toBe(fragment.getElementById("div0"));
+      expect(access(fragment, [0, 0])).toBe(fragment.getElementById("span0"));
+      expect(access(fragment, [0, 1])).toBe(fragment.getElementById("span1"));
+      expect(access(fragment, [1])).toBe(fragment.getElementById("div1"));
+      expect(access(fragment, [1, 0])).toBe(fragment.getElementById("span2"));
+    });
+
+    it("should return null if cannot access more", () => {
+      expect(access(fragment, [2])).toBeUndefined();
+      expect(access(fragment, [1, 2])).toBeUndefined();
+      expect(access(fragment, [0, 2])).toBeUndefined();
+      expect(access(fragment, [0, 3])).toBeUndefined();
+      expect(access(fragment, [0, 3, 8])).toBeUndefined();
     });
   });
 

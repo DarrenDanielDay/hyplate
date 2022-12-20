@@ -1,7 +1,8 @@
 import { appendChild } from "../dist/core";
 import { useHost, useParent } from "../dist/hooks";
-import { replaced, shadowed, template } from "../dist/template";
-import type { Mountable } from "../dist/types";
+import { contextFactory, replaced, shadowed, template } from "../dist/template";
+import type { ContextSetupFactory, Mountable, TemplateContext } from "../dist/types";
+import { noop } from "../dist/util";
 describe("template.ts", () => {
   describe("template", () => {
     it("should create template element with text", () => {
@@ -20,7 +21,7 @@ describe("template.ts", () => {
       document.body.innerHTML = "";
     });
     it("should create shadow root", () => {
-      const App = shadowed(`<div>1</div><div>2</div><div>3</div>`, "shadow-element-1")();
+      const App = shadowed(`<div>1</div><div>2</div><div>3</div>`)(noop, "shadow-element-1");
       const [cleanup, , getRange] = App({})(appendChild(document.body));
       const el = document.body.children[0];
       expect(el.tagName.toLowerCase()).toBe("shadow-element-1");
@@ -121,6 +122,17 @@ describe("template.ts", () => {
       const [cleanup] = App({ children: {} })(appendChild(document.body));
       expect(document.body.textContent).toBe("12fallback");
       cleanup();
+    });
+  });
+  describe("context factory", () => {
+    it("should return factory function", () => {
+      const cf = contextFactory({}, { list: [0] });
+      const fragment = template(`<ul></ul>`).content;
+      const list = fragment.firstElementChild;
+      expect(cf(fragment)).toStrictEqual({
+        refs: { list },
+        templates: {},
+      });
     });
   });
 });

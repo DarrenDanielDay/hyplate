@@ -105,12 +105,30 @@ export type FunctionalComponent<P extends PropsBase = PropsBase, C = undefined, 
   props: Props<P, C, E>
 ) => Mountable<E>;
 
-export type FunctionalComponentTemplateFactory = <S extends string = never>(
-  input: string | HTMLTemplateElement,
+export type ContextFactory<Context extends {}> = (fragment: DocumentFragment) => Context;
+
+export type ContextSetupFactory<Context extends {}, S extends string> = <P extends PropsBase, E extends ExposeBase>(
+  setup?: (props: P, context: Context) => E,
   name?: string
-) => <P extends PropsBase, E extends ExposeBase>(
-  setup?: (props: P) => E
 ) => FunctionalComponent<P, undefined | SlotMap<S>, E>;
+
+export interface TemplateContext<T, R> {
+  templates: T;
+  refs: R;
+}
+
+export interface FunctionalComponentTemplateFactory {
+  <S extends string = never>(input: string | HTMLTemplateElement): <P extends PropsBase, E extends ExposeBase>(
+    setup?: (props: P) => E,
+    name?: string
+  ) => FunctionalComponent<P, undefined | SlotMap<S>, E>;
+  <S extends string, Context extends {}>(
+    input: string | HTMLTemplateElement,
+    contextFactory?: ContextFactory<Context>
+  ): ContextSetupFactory<Context, S>;
+}
+
+export { type FunctionalComponent as FC };
 
 /**
  * Accept a node, attach it to the DOM tree and return its parentNode.

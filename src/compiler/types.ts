@@ -1,4 +1,7 @@
 import type { Position } from "source-map";
+
+export type TemplateFactory = "shadowed" | "replaced";
+
 export interface TemplateOptions {
   /**
    * Whether to preserve anchor attributes.
@@ -85,3 +88,13 @@ export interface Template {
 }
 
 export type ChildTemplates = Record<string, Template>;
+
+export interface EmitFile {
+  path: string;
+  content: string;
+}
+
+export interface OutputWithSourceMap {
+  code: EmitFile;
+  map: EmitFile;
+}
