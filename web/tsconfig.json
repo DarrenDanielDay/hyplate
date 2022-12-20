@@ -5,6 +5,11 @@
     "target": "ESNext",
     "sourceMap": true,
     "moduleResolution": "Node",
+    "paths": {
+      "hyplate/*": [
+        "../dist/*"
+      ]
+    },
     "jsx": "react-jsx",
     "jsxImportSource": "../dist"
   },

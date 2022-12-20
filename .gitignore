@@ -1,9 +1,9 @@
 # For this project
 test-dist
-tests/file-tests/**/*.js
-tests/file-tests/**/*.js.map
-tests/file-tests/**/*.d.ts
-tests/file-tests/**/*.d.ts.map
+**/*.template.js
+**/*.template.js.map
+**/*.template.d.ts
+**/*.template.d.ts.map
 web/*.js
 web/*.js.map
 

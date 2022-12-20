@@ -1,18 +1,26 @@
-import { replaced, shadowed } from "../dist/template.js";
+import { replaced } from "../dist/template.js";
+import count from "./components/count/count.template";
 import { useCleanUp, useEvent, useRef, useAnchor, useChildView } from "../dist/hooks.js";
 import { query as computed, source as ref } from "../dist/store.js";
 import { For, Show } from "../dist/directive.js";
 import { text, bindEvent, appendChild, select, anchorRef, bindAttr, after, seqAfter } from "../dist/core.js";
-import { jsxRef } from "../dist/jsx-runtime";
-
+import { jsxRef } from "../dist/jsx-runtime.js";
 function main() {
   const t1 = anchorRef("t1");
   const t2 = anchorRef("t2");
   const app = select("div#app");
   const resetBtn = select("button#reset");
   const unmountBtn = select("button#unmount");
-  const World = shadowed(t2)();
-  const App = shadowed<"world">(t1)(({ user }: { user: string }) => {
+  const World = replaced(t2)();
+  const Count = count(({}, ctx) => {
+    const counter = ref(0);
+    bindEvent(ctx.refs.addCountBtn)("click", () => {
+      counter.set(counter.val + 1);
+    });
+    ctx.refs.msg.textContent = "";
+    useCleanUp(text`you clicked ${counter} times.`(appendChild(ctx.refs.msg)));
+  });
+  const App = replaced<"world">(t1)(({ user }: { user: string }) => {
     const count = ref(0);
     const double = computed(() => count.val * 2);
     const addButton = useRef("button.add-btn");
@@ -46,6 +54,7 @@ function main() {
             </div>)(attach);
           }}
         </Show>
+        <Count>{{ "the-slot": <div>I'm the slot!</div> }}</Count>
         <For of={list}>
           {(item) => {
             const renameInput = jsxRef<HTMLInputElement>();
@@ -121,6 +130,7 @@ function main() {
         </For>
       </>
     )(seqAfter(oddDisabledBtn));
+
     // Return the APIs you want to expose.
     return {
       setCount(cnt: number) {
