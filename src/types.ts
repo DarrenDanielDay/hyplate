@@ -580,7 +580,7 @@ declare global {
       children: {};
     }
 
-    interface IntrinsicElements {
+    interface JSXHTMLElements {
       a: Attributes<
         GlobalAttributes & {
           download: string;
@@ -1071,6 +1071,10 @@ declare global {
       >;
       wbr: Attributes<GlobalAttributes, HTMLElement>;
     }
+    interface JSXSVGElements {
+      
+    }
+    interface IntrinsicElements extends JSXHTMLElements, JSXSVGElements {}
     interface IntrinsicAttributes {
       children?: unknown;
     }
