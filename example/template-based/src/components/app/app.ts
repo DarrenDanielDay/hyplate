@@ -1,7 +1,7 @@
 import { appendChild, before, bindText, text } from "hyplate/core";
 import { useChildView, useCleanUp, useEvent } from "hyplate/hooks";
 import { source as atom, query as selector } from "hyplate/store";
-import { app, counter } from "./app.template";
+import { app, counter } from "./app.template.js";
 interface CounterProps {
   name: string;
 }
@@ -11,7 +11,7 @@ const Counter = counter(({ name }: CounterProps, ctx) => {
   const count = atom(0);
   // Define query/selector/computed data.
   const doubleCount = selector(() => count.val * 2);
-  // Try to use `go to definition` here (magic)
+  // Try to use `go to definition` here in vscode (with magic)
   //                👇
   useEvent(ctx.refs.btn)("click", () => {
     // Use `.set(newValue)` to update it.
