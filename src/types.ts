@@ -1706,7 +1706,7 @@ declare global {
             width: string;
             height: string;
             maskContentUnits: EnumeratedValues<"userSpaceOnUse" | "userSpaceOnUse">;
-            maskUnits?: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
+            maskUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
             x: string;
             y: string;
           },
@@ -1832,14 +1832,14 @@ declare global {
           StylingAttributes &
           ConditionalProcessingAttributes &
           PresentationAttributes & {
-            viewBox?: string;
-            xmlns?: string;
-            width?: string;
-            heigth?: string;
-            preserveAspectRatio?: string;
-            "xmlns:xlink"?: string;
-            x?: string;
-            y?: string;
+            viewBox: string;
+            xmlns: string;
+            width: string;
+            heigth: string;
+            preserveAspectRatio: string;
+            "xmlns:xlink": string;
+            x: string;
+            y: string;
           } & GlobalEventAttributes &
           GraphicalEventAttributes &
           DocumentEventAttributes &
