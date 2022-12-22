@@ -60,6 +60,31 @@ describe("jsx-runtime.ts", () => {
       expect(el2).toBeInstanceOf(HTMLSpanElement);
       expect(el1).not.toBe(el2);
     });
+    it("should create nested svg element and have valid type", () => {
+      const svgTitleRef = jsxRef<SVGTitleElement>();
+      const documentTitleRef = jsxRef<SVGTitleElement>();
+      const [, nestedSvg] = (<svg version="1.1" width="300" height="200">
+        <rect width="100%" height="100%" fill="red" />
+        <circle cx="150" cy="100" r="80" fill="green" />
+        <text x="150" y="125" font-size="60" text-anchor="middle" fill="white">
+          SVG
+        </text>
+        <svg viewBox="0 0 20 10">
+          <circle cx="5" cy="5" r="4">
+            <title ref={svgTitleRef}>I'm a circle</title>
+          </circle>
+          <rect x="11" y="1" width="8" height="8">
+            <title>I'm a square</title>
+          </rect>
+        </svg>
+      </svg>)(attach);
+      (<title ref={documentTitleRef}></title>)(attach);
+      expect(nestedSvg).toBeInstanceOf(window.SVGSVGElement);
+      expect(svgTitleRef.current).toBeInstanceOf(window.SVGTitleElement);
+      expect(svgTitleRef.current).not.toBeInstanceOf(window.HTMLTitleElement);
+      expect(documentTitleRef.current).toBeInstanceOf(window.HTMLTitleElement);
+      expect(documentTitleRef.current).not.toBeInstanceOf(window.SVGSVGElement);
+    });
     it("should insert child node directly", () => {
       const el = element("span");
       el.textContent = "I'm here.";

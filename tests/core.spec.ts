@@ -18,6 +18,7 @@ import {
   remove,
   select,
   seqAfter,
+  svg,
   text,
 } from "../dist/core";
 import { source } from "../dist/store";
@@ -28,6 +29,15 @@ describe("core.ts", () => {
     it("should create HTML element", () => {
       const node = element("div");
       expect(node).toBeInstanceOf(HTMLDivElement);
+    });
+  });
+
+  describe("svg", () => {
+    it("should create SVG element", () => {
+      const node = svg("a");
+      expect(node).toBeInstanceOf(window.SVGElement);
+      // TODO: Switch to this when jsdom supports SVGAElement:
+      // expect(node).toBeInstanceOf(window.SVGAElement);
     });
   });
 

@@ -1914,6 +1914,13 @@ declare global {
           GraphicalEventAttributes,
         SVGTextPathElement
       >;
+      /**
+       * `<title>` is only considered to be used in SVG.
+       */
+      title: Attributes<
+        SVGCoreAttributes & StylingAttributes & GlobalEventAttributes & DocumentElementEventAttributes,
+        SVGTitleElement
+      >;
       tspan: Attributes<
         SVGCoreAttributes &
           StylingAttributes &

@@ -14,6 +14,9 @@ import { comment } from "./internal.js";
 
 export const element = document.createElement.bind(document);
 
+export const svg: <K extends keyof SVGElementTagNameMap>(name: K) => SVGElementTagNameMap[K] = (name) =>
+  document.createElementNS("http://www.w3.org/2000/svg", name);
+
 export const docFragment = document.createDocumentFragment.bind(document);
 
 export const clone = <N extends Node>(node: N): N => node.cloneNode(true) as N;

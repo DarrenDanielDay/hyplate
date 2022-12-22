@@ -5,9 +5,8 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { appendChild, attr, bindAttr, bindEvent, docFragment, element, remove, text } from "./core.js";
+import { appendChild, attr, bindAttr, bindEvent, docFragment, element, remove, svg, text } from "./core.js";
 import { isReactive } from "./store.js";
-
 import type {
   JSXChildNode,
   FunctionalComponent,
@@ -68,13 +67,23 @@ const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
 const pattern = /^on[A-Z]/;
 const isEventAttribute = (name: string) => pattern.test(name);
 
+let currentElementFactory: (name: string) => Element = element;
+
 export const jsx = (
   type: FunctionalComponent | string,
   props: Partial<Props<PropsBase, JSXChildNode, {}>>
-): JSX.Element => {
-  if (typeof type === "string") {
-    return (attach): Rendered<object> => {
-      const el = element(type);
+  ): JSX.Element => {
+    if (typeof type === "string") {
+      return (attach): Rendered<object> => {
+      let lastElementFactory = currentElementFactory;
+      const isSvg = type === "svg";
+      //#region enter svg creating scope
+      if (isSvg) {
+        // @ts-expect-error Skipped type check for svg children.
+        currentElementFactory = svg;
+      }
+      //#endregion
+      const el = currentElementFactory(type);
       const { children, ref, ...attributes } = props;
       if (ref) {
         ref.current = el;
@@ -95,6 +104,9 @@ export const jsx = (
       }
       push(cleanups, () => remove(el));
       attach(el);
+      if (isSvg) {
+        currentElementFactory = lastElementFactory;
+      }
       return [applyAll(cleanups), el, () => [el, el]];
     };
   }
@@ -109,7 +121,7 @@ export const jsx = (
     // @ts-expect-error Dynamic Implementation
     ref.current = rendered[1];
     return rendered;
-  }
+  };
 };
 export const jsxs = jsx;
 
