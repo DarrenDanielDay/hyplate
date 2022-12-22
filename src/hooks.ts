@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import type { ParseSelector } from "typed-query-selector/parser.js";
-import { bindEvent, anchorRef, select } from "./core.js";
+import { bindEvent, anchor, select } from "./core.js";
 import type {
   AttachFunc,
   CleanUpFunc,
@@ -64,7 +64,7 @@ export const useHost: Hooks["useHost"] = () => resolveHooks().useHost();
 
 export const useParent: Hooks["useParent"] = () => resolveHooks().useParent();
 
-export const useAnchor = (hid: string) => anchorRef(useHost(), hid);
+export const useAnchor = (hid: string) => anchor(useHost(), hid);
 
 export const useChildView =
   <E extends ExposeBase>(mountable: Mountable<E>) =>

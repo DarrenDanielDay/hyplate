@@ -29,7 +29,8 @@ export const select: {
   <S extends string>(selecor: S): ParseSelector<S> | null;
 } = <S extends string>(host: ParentNode | S, selecor?: S): ParseSelector<S> | null =>
   isString(host) ? document.querySelector(host) : host.querySelector(selecor!);
-export const anchorRef: {
+
+export const anchor: {
   (hid: string): HTMLTemplateElement | null;
   (owner: ParentNode, hid: string): Element | null;
 } = (p1, p2?) => {
@@ -39,7 +40,7 @@ export const anchorRef: {
   return p1.querySelector(`[\\#${p2}]`);
 };
 
-export const $ = anchorRef;
+export const $ = anchor;
 
 export const $$ = <S extends string>(host: ParentNode, selector: S): ParseSelector<S>[] =>
   Array.from(host.querySelectorAll(selector));

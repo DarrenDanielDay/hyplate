@@ -3,7 +3,7 @@ import {
   $$,
   access,
   after,
-  anchorRef,
+  anchor,
   appendChild,
   attr,
   before,
@@ -88,7 +88,7 @@ describe("core.ts", () => {
     });
   });
 
-  describe("anchorRef", () => {
+  describe("anchor", () => {
     beforeAll(() => {
       document.body.innerHTML = `<template #t1>
             <div #t></div>
@@ -99,14 +99,14 @@ describe("core.ts", () => {
     });
 
     it("it should get HTMLTemplateElement with a single string argument", () => {
-      const anchorReferenced = anchorRef("t1");
+      const anchorReferenced = anchor("t1");
       const template1 = document.querySelector(`template[\\#t1]`);
       expect(anchorReferenced).toBe(template1);
     });
 
     it("it should get child element", () => {
       const parentNode = document.getElementById("parent")!;
-      const childAnchorReferenced = anchorRef(parentNode, "child");
+      const childAnchorReferenced = anchor(parentNode, "child");
       const childElement = document.getElementById("child");
       expect(childAnchorReferenced).toBe(childElement);
     });
@@ -114,7 +114,7 @@ describe("core.ts", () => {
 
   describe("$", () => {
     it("should be alias of `anchorRef`", () => {
-      expect($).toBe(anchorRef);
+      expect($).toBe(anchor);
     });
   });
 
