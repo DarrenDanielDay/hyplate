@@ -1,12 +1,10 @@
 import { SourceMapGenerator } from "source-map";
 import { objectEntriesMap } from "../util.js";
-import { HTMLTagTypeMapping } from "./mapping.js";
 import { createObjLikeExp, replaceExt, str, tabs } from "./shared.js";
 import type { ChildTemplates, OutputWithSourceMap, Template } from "./types.js";
 
 const dtsCodeTemplate = (template: Template) => {
   const id = template.anchor;
-  const mapping: Record<string, string | undefined> = HTMLTagTypeMapping;
   const createSlotUnion = (template: Template, indent: number) => {
     const unionSpace = tabs(indent);
     return (
@@ -17,7 +15,7 @@ const dtsCodeTemplate = (template: Template) => {
   };
   const createRefsType = (template: Template, indent: number) =>
     createObjLikeExp(
-      objectEntriesMap(template.refs, ([, value]) => `${mapping[value.tag] ?? "Element"}`),
+      objectEntriesMap(template.refs, ([, value]) => `${value.el}`),
       indent,
       ";"
     );

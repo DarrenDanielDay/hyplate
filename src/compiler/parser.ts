@@ -1,6 +1,7 @@
 import { IAttribute, INode, ITag, parse as parseHTML, SyntaxKind } from "html5parser";
 import { warn } from "../util.js";
 import { createLocator } from "./locator.js";
+import { HTMLTagTypeMapping, SVGTagTypeMapping } from "./mapping.js";
 import type { ChildTemplates, Template, TemplateOptions, ViewRefs, ViewSlots } from "./types.js";
 
 const defaultTemplateOptions: TemplateOptions = {
@@ -103,6 +104,7 @@ const createTemplate = (templateNode: ITag, isGlobal?: boolean): Template => {
   const exitBody = () => {
     path.pop();
   };
+  let svgScopeCount = 0;
   const nextElement = () => {
     const i = path.length - 1;
     path[i]++;
@@ -120,6 +122,10 @@ const createTemplate = (templateNode: ITag, isGlobal?: boolean): Template => {
     }
     if (skipComment && isComment(node)) {
       return;
+    }
+    const isSvg = isSVG(node);
+    if (isSvg) {
+      svgScopeCount++;
     }
     if (isSlot(node)) {
       let nameAttribute: IAttribute | undefined;
@@ -159,9 +165,11 @@ ${node.open.value}`);
     const anchorRefAttr = findAnchor(node);
     if (anchorRefAttr) {
       const ref = anchorAttrName(anchorRefAttr);
+      const tag = node.name;
       refs[ref] = {
         path: [...path],
-        tag: node.name,
+        el: (svgScopeCount ? SVGTagTypeMapping[tag] : HTMLTagTypeMapping[tag]) ?? "Element",
+        tag,
         position: currentLocator(anchorRefAttr.start),
       };
     }
@@ -175,6 +183,9 @@ ${node.open.value}`);
     }
     if (close) {
       buf.push(close.value);
+    }
+    if (isSvg) {
+      svgScopeCount--;
     }
   };
   const body = templateNode.body;
@@ -197,6 +208,7 @@ ${node.open.value}`);
 };
 
 const isTemplate = (node: ITag) => node.name === "template";
+const isSVG = (node: ITag) => node.name === "svg";
 const isSlot = (node: ITag) => node.name === "slot";
 const isComment = (node: ITag) => node.name === "!--";
 const isAnchor = (attribute: IAttribute) => attribute.name.value.startsWith("#");

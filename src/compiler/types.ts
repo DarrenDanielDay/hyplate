@@ -26,6 +26,11 @@ export interface ViewRef {
    */
   tag: string;
   /**
+   * The inferred element name by tag and context.
+   * SVG elements are also considered, but only tags under `<svg>`.
+   */
+  el: string;
+  /**
    * Index of `children`. Must be index of an element array.
    */
   path: number[];

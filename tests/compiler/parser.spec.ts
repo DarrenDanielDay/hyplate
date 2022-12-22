@@ -290,6 +290,33 @@ describe("transformer.ts", () => {
       expect(templates.default.refs.ok.path).toStrictEqual([1, 0]);
       expect(templates.default.refs.cancel.path).toStrictEqual([1, 1]);
     });
+    it("should infer anchor element type", () => {
+      const templates = parse(`
+<template>
+  <div #div1></div>
+  <span #span1></span>
+  <a #a1></a>
+  <svg #svg1 xmlns="http://www.w3.org/2000/svg">
+    <a #a2></a>
+    <svg xmlns="http://www.w3.org/2000/svg">
+      <a #a3></a>
+    </svg>
+  </svg>
+  <a #a4></a>
+  <custom-element #c1></custom-element>
+</template>
+`);
+      const template = templates.default;
+      expect(template.refs.div1.el).toBe("HTMLDivElement");
+      expect(template.refs.span1.el).toBe("HTMLSpanElement");
+      expect(template.refs.a1.el).toBe("HTMLAnchorElement");
+      expect(template.refs.svg1.el).toBe("SVGSVGElement");
+      expect(template.refs.a2.el).toBe("SVGAElement");
+      expect(template.refs.a3.el).toBe("SVGAElement");
+      expect(template.refs.a4.el).toBe("HTMLAnchorElement");
+      // Unknown tags are treated as "Element".
+      expect(template.refs.c1.el).toBe("Element");
+    });
   });
   describe("slots", () => {
     it("should detect slot names", () => {
