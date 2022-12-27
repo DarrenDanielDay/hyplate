@@ -39,7 +39,7 @@ export const locate = (lines: number[], index: number): Position => {
   }
   return {
     line: left + 1,
-    column: index - lines[left - 1]!,
+    column: index - (lines[left - 1] ?? 0),
   };
 };
 
