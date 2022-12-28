@@ -14,8 +14,7 @@
     "format": "prettier --write .",
     "start": "concurrently npm:start:*",
     "start:dev": "open-cli http://localhost:3000/web/ && serve .",
-    "start:demo-tsc": "tsc -w -p ./web/tsconfig.json",
-    "start:demo-esbuild": "node ./scripts/demo.js",
+    "start:demo": "node ./scripts/demo.js",
     "start:jsx": "tsc -w -p ./tests/tsconfig.json",
     "start:main": "tsc -w",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"

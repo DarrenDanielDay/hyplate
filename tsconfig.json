@@ -6,6 +6,7 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
+    "preserveWatchOutput": true,
     "importsNotUsedAsValues": "error",
     "strict": true,
     "strictBindCallApply": true,

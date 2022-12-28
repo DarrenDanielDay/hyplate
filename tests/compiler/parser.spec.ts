@@ -1,6 +1,6 @@
-import { configure, parse } from "../../dist/compiler/parser";
-import type { ViewSlots } from "../../dist/compiler/types";
-describe("transformer.ts", () => {
+import { configureParser as configure, parse } from "../../dist/compiler/parser";
+import type { ParsedNode, ViewSlots } from "../../dist/compiler/types";
+describe("parser.ts", () => {
   describe("when `preserveEmptyTextNodes` is true", () => {
     beforeAll(() => {
       configure({
@@ -15,9 +15,31 @@ describe("transformer.ts", () => {
 `);
       const defaultTemplate = templates.default;
       expect(defaultTemplate).toBeTruthy();
-      expect(defaultTemplate.content).toBe(`
-  <div>Hello, world!</div>
-`);
+      expect(defaultTemplate.nodes).toStrictEqual<ParsedNode[]>([
+        {
+          type: "text",
+          content: `
+  `,
+        },
+        {
+          type: "open",
+          name: "div",
+          attributes: [],
+        },
+        {
+          type: "text",
+          content: `Hello, world!`,
+        },
+        {
+          type: "close",
+          name: "div",
+        },
+        {
+          type: "text",
+          content: `
+`,
+        },
+      ]);
     });
   });
   describe("when `preserveEmptyTextNodes` is false", () => {
@@ -29,12 +51,26 @@ describe("transformer.ts", () => {
     it("should omit empty text node", () => {
       const templates = parse(`\
 <template>
-  <div>Hello, world</div>
+  <div> Hello, world! </div>
 </template>
 `);
       const defaultTemplate = templates.default;
       expect(defaultTemplate).toBeTruthy();
-      expect(defaultTemplate.content).toBe(`<div>Hello, world</div>`);
+      expect(defaultTemplate.nodes).toStrictEqual<ParsedNode[]>([
+        {
+          type: "open",
+          name: "div",
+          attributes: [],
+        },
+        {
+          type: "text",
+          content: `Hello, world!`,
+        },
+        {
+          type: "close",
+          name: "div",
+        },
+      ]);
     });
   });
   describe("when `preserveComment` is true", () => {
@@ -50,7 +86,7 @@ describe("transformer.ts", () => {
 </template>
 `);
       const defaultTemplate = templates.default;
-      expect(defaultTemplate.content.trim()).toBe(`<!--should not be omitted-->`);
+      expect(defaultTemplate.nodes.find((node) => node.type === "text" && node.content.includes("!--"))).toBeTruthy();
     });
   });
   describe("when `preserveComment` is false", () => {
@@ -66,7 +102,7 @@ describe("transformer.ts", () => {
 </template>
 `);
       const defaultTemplate = templates.default;
-      expect(defaultTemplate.content).toBe(``);
+      expect(defaultTemplate.nodes.find((node) => node.type === "text" && node.content.includes("!--"))).toBeFalsy();
     });
   });
   describe("when `preserveAnchor` is true", () => {
@@ -82,7 +118,24 @@ describe("transformer.ts", () => {
 </template>
 `);
       const defaultTemplate = templates.default;
-      expect(defaultTemplate.content.trim()).toBe(`<div #root>the root</div>`);
+      expect(
+        defaultTemplate.nodes.find(
+          (node) => node.type === "open" && node.attributes.find((a) => a.name.value.startsWith("#"))
+        )
+      ).toBeTruthy();
+    });
+    it("should work with self closing tags", () => {
+      const templates = parse(`\
+      <template>
+        <img #img />
+      </template>
+      `);
+      const defaultTemplate = templates.default;
+      expect(
+        defaultTemplate.nodes.find(
+          (node) => node.type === "self" && node.attributes.find((a) => a.name.value.startsWith("#"))
+        )
+      ).toBeTruthy();
     });
   });
   describe("when `preserveAnchor` is false", () => {
@@ -98,7 +151,11 @@ describe("transformer.ts", () => {
 </template>
 `);
       const defaultTemplate = templates.default;
-      expect(defaultTemplate.content.trim()).toBe(`<div>the root</div>`);
+      expect(
+        defaultTemplate.nodes.find(
+          (node) => node.type === "open" && node.attributes.find((a) => a.name.value.startsWith("#"))
+        )
+      ).toBeFalsy();
     });
     it("should work with self closing tag", () => {
       const templates = parse(`\
@@ -107,7 +164,11 @@ describe("transformer.ts", () => {
 </template>
       `);
       const defaultTemplate = templates.default;
-      expect(defaultTemplate.content.trim()).toBe(`<br/>`);
+      expect(
+        defaultTemplate.nodes.find(
+          (node) => node.type === "open" && node.attributes.find((a) => a.name.value.startsWith("#"))
+        )
+      ).toBeFalsy();
     });
   });
   describe("warnings & errors", () => {
@@ -346,6 +407,21 @@ describe("transformer.ts", () => {
         },
       };
       expect(templates.default.slots).toStrictEqual(expected);
+    });
+  });
+  describe("extracted", () => {
+    it("should extract style elements", () => {
+      const defaultTemplate = parse(`\
+<template>
+  <div>Hello, <span>world</span>!</div>
+  <style>
+    span {
+      color: red;
+    }
+  </style>
+</template>
+`).default;
+      expect(defaultTemplate.styles.length).toBe(1);
     });
   });
 });

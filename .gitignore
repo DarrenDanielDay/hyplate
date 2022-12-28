@@ -1,9 +1,7 @@
 # For this project
 test-dist
-**/*.template.js
-**/*.template.js.map
-**/*.template.d.ts
-**/*.template.d.ts.map
+**/*.template.*
+!**/*.template.html
 web/*.js
 web/*.js.map
 

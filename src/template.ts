@@ -10,7 +10,6 @@ import { createHooks, enterHooks, quitHooks } from "./hooks.js";
 import type {
   CleanUpFunc,
   ContextFactory,
-  ContextSetupFactory,
   FunctionalComponentTemplateFactory,
   SlotMap,
   TemplateContext,
@@ -131,12 +130,14 @@ export const replaced: FunctionalComponentTemplateFactory = (input, contextFacto
   };
 };
 
-export const contextFactory = <C extends Record<string, ContextSetupFactory<{}, string>>>(
-  children: C,
+export const basedOnURL = (url: string) => (path: string) => {
+  return new URL(path, url) + "";
+};
+
+export const contextFactory = (
   paths: Record<string, number[]>
-): ContextFactory<TemplateContext<C, Record<string, ParentNode | undefined>>> => {
+): ContextFactory<TemplateContext<Record<string, ParentNode | undefined>>> => {
   return (fragment) => ({
     refs: objectEntriesMap(paths, ([, value]) => access(fragment, value)),
-    templates: children,
   });
 };

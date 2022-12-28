@@ -5,6 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
+import type { IAttribute, ITag } from "html5parser";
 import type { Position } from "source-map";
 
 export type TemplateFactory = "shadowed" | "replaced";
@@ -25,6 +26,19 @@ export interface TemplateOptions {
    * @default false
    */
   preserveEmptyTextNodes: boolean;
+}
+
+export interface TranspileOptions {
+  /**
+   * Whether to transpile style elements as external files.
+   * @default true
+   */
+  externalStyles: boolean;
+  /**
+   * Whether to transform relative urls.
+   * @default true
+   */
+  relativeURLs: boolean;
 }
 
 export interface ViewRef {
@@ -62,6 +76,39 @@ export type ViewRefs = Record<string, ViewRef>;
 
 export type ViewSlots = Record<string, ViewSlot>;
 
+
+export interface OpenTag {
+  type: "open";
+  name: string;
+  attributes: IAttribute[];
+}
+
+export interface CloseTag {
+  type: "close";
+  name: string;
+}
+
+export interface SelfClosingTag {
+  type: "self";
+  name: string;
+  attributes: IAttribute[];
+}
+
+export interface Texts {
+  type: "text";
+  content: string;
+}
+
+export interface ExtractedNode {
+  /**
+   * The index of `nodes` to insert after.
+   */
+  index: number;
+  node: ITag;
+}
+
+export type ParsedNode = OpenTag | CloseTag | SelfClosingTag | Texts;
+
 export interface Template {
   /**
    * Defined in HTML template files like the following:
@@ -89,10 +136,13 @@ export interface Template {
    */
   position: Position;
   /**
-   * The content HTML text between `template` tags.
-   * `<template>` tags inside the template body is treated as child templates and will not be included.
+   * The preprocessed content nodes.
    */
-  content: string;
+  nodes: ParsedNode[];
+  /**
+   * The extracted style nodes.
+   */
+  styles: ExtractedNode[];
   /**
    * The child templates.
    */
@@ -108,5 +158,5 @@ export interface EmitFile {
 
 export interface OutputWithSourceMap {
   code: EmitFile;
-  map: EmitFile;
+  map?: EmitFile;
 }

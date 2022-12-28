@@ -6,6 +6,7 @@
     "moduleResolution": "Node",
     "jsx": "react-jsx",
     "jsxImportSource": "../dist",
+    "preserveWatchOutput": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },

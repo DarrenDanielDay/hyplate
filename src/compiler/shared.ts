@@ -9,6 +9,16 @@ export const str = (exp: unknown) => JSON.stringify(exp);
 
 export const tabs = (indent: number) => " ".repeat(indent * 2);
 
+export const mergedOptions =
+  <T extends object>(defaults: T) =>
+  (options: Partial<T>): T => {
+    const merged = Object.fromEntries(
+      Object.entries(defaults).map(([key, defaultValue]) => [key, Reflect.get(options, key) ?? defaultValue])
+    );
+    // @ts-expect-error Dynamic Implementation
+    return merged;
+  };
+
 export const createObjLikeExp = (props: Record<string, string>, indent: number, lineBreak: string) => {
   const propSpace = tabs(indent + 1);
   return `{${Object.entries(props)
@@ -21,3 +31,5 @@ ${tabs(indent)}}`;
 };
 
 export const replaceExt = (path: string, suffix: string) => path.replace(/\.html$/, suffix);
+
+export const sourceName = (path: string) => path.split(/[\\\/]/g).at(-1)!;

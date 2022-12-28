@@ -9,7 +9,16 @@ import { IAttribute, INode, ITag, parse as parseHTML, SyntaxKind } from "html5pa
 import { warn } from "../util.js";
 import { createLocator } from "./locator.js";
 import { HTMLTagTypeMapping, SVGTagTypeMapping } from "./mapping.js";
-import type { ChildTemplates, Template, TemplateOptions, ViewRefs, ViewSlots } from "./types.js";
+import { mergedOptions } from "./shared.js";
+import type {
+  ChildTemplates,
+  ExtractedNode,
+  ParsedNode,
+  Template,
+  TemplateOptions,
+  ViewRefs,
+  ViewSlots,
+} from "./types.js";
 
 const defaultTemplateOptions: TemplateOptions = {
   preserveAnchor: false,
@@ -19,18 +28,9 @@ const defaultTemplateOptions: TemplateOptions = {
 
 let templateOptions: TemplateOptions = defaultTemplateOptions;
 
-const mergeOptions = (options: Partial<TemplateOptions>): TemplateOptions => {
-  const merged = Object.fromEntries(
-    Object.entries(defaultTemplateOptions).map(([key, defaultValue]) => [
-      key,
-      Reflect.get(options, key) ?? defaultValue,
-    ])
-  );
-  // @ts-expect-error Dynamic Implementation
-  return merged;
-};
+const mergeOptions = mergedOptions(defaultTemplateOptions);
 
-export const configure = (options: Partial<TemplateOptions>) => {
+export const configureParser = (options: Partial<TemplateOptions>) => {
   templateOptions = mergeOptions(options);
 };
 
@@ -84,21 +84,25 @@ const isValidIdentifier = (name: string) => {
 
 const createTemplate = (templateNode: ITag, isGlobal?: boolean): Template => {
   const { preserveAnchor, preserveComment, preserveEmptyTextNodes } = templateOptions;
-  const openTagHTML: (node: ITag) => string = preserveAnchor
-    ? (node) => node.open.value
+  const processOpeningTag: (node: ITag) => ParsedNode = preserveAnchor
+    ? (node) => ({
+        type: node.close ? "open" : "self",
+        name: node.name,
+        attributes: node.attributes,
+      })
     : (node) => {
-        if (isComment(node)) {
-          return `<!--`;
-        }
-        const attributes: string[] = [];
+        const attributes: IAttribute[] = [];
         for (const attribute of node.attributes) {
           if (isAnchor(attribute)) {
             continue;
           }
-          attributes.push(` ${currentSource.slice(attribute.start, attribute.end)}`);
+          attributes.push(attribute);
         }
-        const isSelfClosingTag = node.open.value.at(-2) === "/";
-        return `<${node.name}${attributes.join("")}${isSelfClosingTag ? "/" : ""}>`;
+        return {
+          type: node.close ? "open" : "self",
+          name: node.name,
+          attributes,
+        };
       };
   const skipComment = !preserveComment;
   const children: ChildTemplates = {};
@@ -116,18 +120,43 @@ const createTemplate = (templateNode: ITag, isGlobal?: boolean): Template => {
     const i = path.length - 1;
     path[i]++;
   };
-  const buf: string[] = [];
+  const nodes: ParsedNode[] = [];
+  const styles: ExtractedNode[] = [];
   const templateAnchorAttr = findAnchor(templateNode);
   const anchor = templateAnchorAttr ? anchorAttrName(templateAnchorAttr, isGlobal) : "default";
   const walk = (node: INode) => {
     if (node.type === SyntaxKind.Text) {
-      const text = preserveEmptyTextNodes ? node.value : node.value.trim();
+      let { start, end } = node;
+      let text: string;
+      if (!preserveEmptyTextNodes) {
+        for (; start < end && isBlankCharacter(currentSource[start]); start++);
+        for (; start < end && isBlankCharacter(currentSource[end - 1]); end--);
+        text = currentSource.slice(start, end);
+      } else {
+        text = node.value;
+      }
       if (text || preserveEmptyTextNodes) {
-        buf.push(text);
+        nodes.push({
+          type: "text",
+          content: text,
+        });
       }
       return;
     }
-    if (skipComment && isComment(node)) {
+    if (isComment(node)) {
+      if (skipComment) {
+        return;
+      }
+      nodes.push({
+        type: "text",
+        content: currentSource.slice(node.start, node.end),
+      });
+    }
+    if (isStyle(node)) {
+      styles.push({
+        index: nodes.length,
+        node,
+      });
       return;
     }
     const isSvg = isSVG(node);
@@ -180,7 +209,7 @@ ${node.open.value}`);
         position: currentLocator(anchorRefAttr.start),
       };
     }
-    buf.push(openTagHTML(node));
+    nodes.push(processOpeningTag(node));
     if (body) {
       enterBody();
       for (const child of body) {
@@ -189,7 +218,10 @@ ${node.open.value}`);
       exitBody();
     }
     if (close) {
-      buf.push(close.value);
+      nodes.push({
+        type: "close",
+        name: node.name,
+      });
     }
     if (isSvg) {
       svgScopeCount--;
@@ -210,11 +242,14 @@ ${node.open.value}`);
     slots,
     position,
     children,
-    content: buf.join(""),
+    nodes,
+    styles,
   };
 };
 
+const isBlankCharacter = (char: string) => /\s/.test(char);
 const isTemplate = (node: ITag) => node.name === "template";
+const isStyle = (node: ITag) => node.name === "style";
 const isSVG = (node: ITag) => node.name === "svg";
 const isSlot = (node: ITag) => node.name === "slot";
 const isComment = (node: ITag) => node.name === "!--";

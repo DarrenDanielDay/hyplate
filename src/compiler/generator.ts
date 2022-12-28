@@ -7,7 +7,7 @@
  */
 import { SourceMapGenerator } from "source-map";
 import { objectEntriesMap } from "../util.js";
-import { createObjLikeExp, replaceExt, str, tabs } from "./shared.js";
+import { createObjLikeExp, replaceExt, sourceName, str, tabs } from "./shared.js";
 import type { ChildTemplates, OutputWithSourceMap, Template } from "./types.js";
 
 const dtsCodeTemplate = (template: Template) => {
@@ -27,15 +27,15 @@ const dtsCodeTemplate = (template: Template) => {
       ";"
     );
   const createSetupFactoryType = (template: Template, indent: number): string => {
-    return `F<C<${createObjLikeExp(
+    return `F<C<${createRefsType(template, indent)}>,
+${createSlotUnion(template, indent)}
+${tabs(indent)}> & ${createObjLikeExp(
       objectEntriesMap(template.children, ([, value]) => {
         return createSetupFactoryType(value, indent + 1);
       }),
       indent,
       ";"
-    )}, ${createRefsType(template, indent)}>,
-${createSlotUnion(template, indent)}
-${tabs(indent)}>`;
+    )}`;
   };
   return `\
 declare type $${id} = ${createSetupFactoryType(template, 0)};
@@ -43,16 +43,17 @@ declare const _${id}: $${id}`;
 };
 
 export const generateDeclaration = (templates: ChildTemplates, path: string): OutputWithSourceMap => {
+  const source = sourceName(path);
   const code = generateDTS(templates, path);
   const map = generateDTSMap(templates, path);
   return {
     code: {
       content: code,
-      path: replaceExt(path, ".d.ts"),
+      path: `./${replaceExt(source, ".d.ts")}`,
     },
     map: {
       content: map,
-      path: replaceExt(path, ".d.ts.map"),
+      path: `./${replaceExt(source, ".d.ts.map")}`,
     },
   };
 };
@@ -94,20 +95,6 @@ export const generateDTSMap = (templates: ChildTemplates, path: string): string 
   };
   const walk = (template: Template) => {
     indent++;
-    // templates
-    for (const child of Object.values(template.children)) {
-      moveNextLine();
-      sourcemap.addMapping({
-        original: child.position,
-        generated: {
-          line,
-          column: indent * 2,
-        },
-        source,
-      });
-      walk(child);
-    }
-    moveNextLine(); // skip ">;"
     // refs
     for (const [, ref] of Object.entries(template.refs)) {
       moveNextLine();
@@ -138,7 +125,21 @@ export const generateDTSMap = (templates: ChildTemplates, path: string): string 
         });
       }
     }
-    moveNextLine(); // move to ">;"
+    moveNextLine(); // move to "> & {"
+    // templates
+    for (const child of Object.values(template.children)) {
+      moveNextLine();
+      sourcemap.addMapping({
+        original: child.position,
+        generated: {
+          line,
+          column: indent * 2,
+        },
+        source,
+      });
+      walk(child);
+    }
+    moveNextLine(); // skip "};"
   };
   moveNextLine();
   moveNextLine();

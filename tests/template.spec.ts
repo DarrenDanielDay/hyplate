@@ -1,7 +1,6 @@
 import { appendChild } from "../dist/core";
-import { useHost, useParent } from "../dist/hooks";
-import { contextFactory, replaced, shadowed, template } from "../dist/template";
-import type { ContextSetupFactory, Mountable, TemplateContext } from "../dist/types";
+import { basedOnURL, contextFactory, replaced, shadowed, template } from "../dist/template";
+import type { Mountable } from "../dist/types";
 import { noop } from "../dist/util";
 describe("template.ts", () => {
   describe("template", () => {
@@ -124,14 +123,22 @@ describe("template.ts", () => {
       cleanup();
     });
   });
+  describe("based on url", () => {
+    it("should concat the relative url", () => {
+      const basedOnFilePath = basedOnURL("http://localhost:3000/foo");
+      expect(basedOnFilePath("./bar")).toBe("http://localhost:3000/bar");
+      const basedOnDirPath = basedOnURL("http://localhost:3000/foo/");
+      expect(basedOnDirPath("./bar")).toBe("http://localhost:3000/foo/bar");
+      expect(basedOnDirPath("/bar")).toBe("http://localhost:3000/bar");
+    });
+  });
   describe("context factory", () => {
     it("should return factory function", () => {
-      const cf = contextFactory({}, { list: [0] });
+      const cf = contextFactory({ list: [0] });
       const fragment = template(`<ul></ul>`).content;
       const list = fragment.firstElementChild;
       expect(cf(fragment)).toStrictEqual({
         refs: { list },
-        templates: {},
       });
     });
   });

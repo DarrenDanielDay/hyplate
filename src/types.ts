@@ -112,8 +112,7 @@ export type ContextSetupFactory<Context extends {}, S extends string> = <P exten
   name?: string
 ) => FunctionalComponent<P, undefined | SlotMap<S>, E>;
 
-export interface TemplateContext<T, R> {
-  templates: T;
+export interface TemplateContext<R> {
   refs: R;
 }
 
