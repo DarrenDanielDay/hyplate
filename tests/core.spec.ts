@@ -20,6 +20,7 @@ import {
   seqAfter,
   svg,
   text,
+  textContent,
 } from "../dist/core";
 import { source } from "../dist/store";
 import { template } from "../dist/template";
@@ -67,6 +68,14 @@ describe("core.ts", () => {
       expect(node.id).toBe("test");
       attr(node, "id", false);
       expect(node.id).toBeFalsy();
+    });
+  });
+
+  describe("text content", () => {
+    it("should insert text content", () => {
+      const span = document.createElement("span");
+      textContent(span, "the content");
+      expect(span.textContent).toBe("the content");
     });
   });
 

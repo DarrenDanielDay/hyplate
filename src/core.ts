@@ -24,6 +24,8 @@ export const clone = <N extends Node>(node: N): N => node.cloneNode(true) as N;
 export const attr = (element: Element, name: string, value: AttributeInterpolation) =>
   value == null || value === false ? element.removeAttribute(name) : element.setAttribute(name, `${value}`);
 
+export const textContent = (node: Node, content: TextInterpolation) => (node.textContent = `${content}`);
+
 export const select: {
   <S extends string>(host: ParentNode, selecor: S): ParseSelector<S> | null;
   <S extends string>(selecor: S): ParseSelector<S> | null;
@@ -46,7 +48,7 @@ export const $$ = <S extends string>(host: ParentNode, selector: S): ParseSelect
   Array.from(host.querySelectorAll(selector));
 
 export const bindText = (node: Node, query: Query<TextInterpolation>) =>
-  subscribe(query, (text) => (node.textContent = `${text}`));
+  subscribe(query, (text) => textContent(node, text));
 
 export const text = (
   fragments: TemplateStringsArray,
