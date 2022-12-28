@@ -122,12 +122,26 @@ describe("core.ts", () => {
   });
 
   describe("$", () => {
-    it("should be alias of `anchorRef`", () => {
-      expect($).toBe(anchor);
+    afterEach(() => {
+      document.body.innerHTML = "";
+    });
+    it("should perform `querySelector`", () => {
+      const node = element("div");
+      const list = [];
+      for (let i = 0; i < 10; i++) {
+        const p = element("p");
+        list.push(p);
+        appendChild(node)(p);
+      }
+      appendChild(document.body)(node);
+      expect($("p")).toBe(list[0]);
     });
   });
 
   describe("$$", () => {
+    afterEach(() => {
+      document.body.innerHTML = "";
+    });
     it("should perform `querySelectorAll`", () => {
       const node = element("div");
       const list = [];
@@ -136,7 +150,8 @@ describe("core.ts", () => {
         list.push(p);
         appendChild(node)(p);
       }
-      expect($$(node, "p")).toStrictEqual(list);
+      appendChild(document.body)(node);
+      expect($$("p")).toStrictEqual(list);
     });
   });
 

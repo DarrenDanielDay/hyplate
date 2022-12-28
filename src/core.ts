@@ -12,12 +12,14 @@ import type { AttachFunc, AttributeInterpolation, CleanUpFunc, EventHost, Query,
 import { applyAll, isObject, isString, push } from "./util.js";
 import { comment } from "./internal.js";
 
-export const element = document.createElement.bind(document);
+const doc = document;
+
+export const element = doc.createElement.bind(doc);
 
 export const svg: <K extends keyof SVGElementTagNameMap>(name: K) => SVGElementTagNameMap[K] = (name) =>
-  document.createElementNS("http://www.w3.org/2000/svg", name);
+  doc.createElementNS("http://www.w3.org/2000/svg", name);
 
-export const docFragment = document.createDocumentFragment.bind(document);
+export const docFragment = doc.createDocumentFragment.bind(doc);
 
 export const clone = <N extends Node>(node: N): N => node.cloneNode(true) as N;
 
@@ -30,22 +32,21 @@ export const select: {
   <S extends string>(host: ParentNode, selecor: S): ParseSelector<S> | null;
   <S extends string>(selecor: S): ParseSelector<S> | null;
 } = <S extends string>(host: ParentNode | S, selecor?: S): ParseSelector<S> | null =>
-  isString(host) ? document.querySelector(host) : host.querySelector(selecor!);
+  isString(host) ? doc.querySelector(host) : host.querySelector(selecor!);
 
 export const anchor: {
   (hid: string): HTMLTemplateElement | null;
   (owner: ParentNode, hid: string): Element | null;
 } = (p1, p2?) => {
   if (isString(p1)) {
-    return document.querySelector(`template[\\#${p1}]`);
+    return doc.querySelector(`template[\\#${p1}]`);
   }
   return p1.querySelector(`[\\#${p2}]`);
 };
 
-export const $ = anchor;
+export const $: <S extends string>(selector: S) => ParseSelector<S> = doc.querySelector.bind(doc);
 
-export const $$ = <S extends string>(host: ParentNode, selector: S): ParseSelector<S>[] =>
-  Array.from(host.querySelectorAll(selector));
+export const $$ = <S extends string>(selector: S): ParseSelector<S>[] => Array.from(doc.querySelectorAll(selector));
 
 export const bindText = (node: Node, query: Query<TextInterpolation>) =>
   subscribe(query, (text) => textContent(node, text));

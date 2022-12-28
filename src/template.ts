@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { $$, access, appendChild, before, clone, element, insertSlot, remove } from "./core.js";
+import { access, appendChild, before, clone, element, insertSlot, remove } from "./core.js";
 import { createHooks, enterHooks, quitHooks } from "./hooks.js";
 import type {
   CleanUpFunc,
@@ -96,7 +96,7 @@ export const replaced: FunctionalComponentTemplateFactory = (input, contextFacto
       const host = attach(fragment);
       attach(end);
       if (slots) {
-        const fragmentSlots = $$(host, "slot");
+        const fragmentSlots = host.querySelectorAll("slot");
         for (const slot of fragmentSlots) {
           const slotInput = slots[slot.name as keyof typeof slots];
           if (slotInput == null) {
