@@ -16,6 +16,15 @@ export type AnyFunc = (...args: any[]) => any;
 
 export type CleanUpFunc = () => void;
 
+// @ts-ignore unused type parameter for geneic extension
+export interface Subscribable<T> {
+
+}
+
+export type SubscribeFunc = <T>(subscribable: Subscribable<T>, subscriber: Subscriber<T>) => CleanUpFunc;
+
+export type SubscribableTester = (value: unknown) => value is Subscribable<unknown>;
+
 export interface Query<T extends unknown> {
   readonly val: T;
 }

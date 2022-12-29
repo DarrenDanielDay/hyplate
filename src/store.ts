@@ -9,10 +9,16 @@
 import { compare, err, __DEV__ } from "./util.js";
 import type { CleanUpFunc, Differ, Query, Source, Subscriber } from "./types.js";
 import { once, scopes } from "./util.js";
+import { configureBinding } from "./binding.js";
 
 let defaultDiffer: Differ = compare;
 export const setDiffer = (differ: Differ | undefined | null) => {
   defaultDiffer = differ ?? compare;
+};
+
+export const enableBuiltinStore = () => {
+  // @ts-expect-error type should be configured
+  configureBinding(watch, isQuery);
 };
 
 const [enterScope, quitScope, currentScope] = scopes<(src: Query<unknown>) => void>();
@@ -52,14 +58,12 @@ const subscriptions = new WeakMap<Query<unknown>, Set<Subscriber<any>>>();
 if (__DEV__) {
   Object.assign(globalThis, { __SUBSCRIPTIONS__: subscriptions });
 }
-/**
- * @internal
- */
-export const isReactive = (obj: object): obj is Query<unknown> =>
+
+export const isQuery = (obj: unknown): obj is Query<unknown> =>
   // @ts-expect-error contravariance
   subscriptions.has(obj);
 
-export const subscribe = <T extends unknown>(query: Query<T>, subscriber: Subscriber<T>): CleanUpFunc => {
+export const watch = <T extends unknown>(query: Query<T>, subscriber: Subscriber<T>): CleanUpFunc => {
   subscriptions.get(query)!.add(subscriber);
   subscriber(query.val);
   return once(() => {

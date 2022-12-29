@@ -1,10 +1,13 @@
 import { replaced } from "../dist/template.js";
 import count from "./components/count/count.template";
 import { useCleanUp, useEvent, useRef, useAnchor, useChildView } from "../dist/hooks.js";
-import { query as computed, source as ref } from "../dist/store.js";
+import { enableBuiltinStore, query, source } from "../dist/store.js";
 import { For, Show } from "../dist/directive.js";
-import { text, bindEvent, appendChild, select, anchor, bindAttr, seqAfter } from "../dist/core.js";
+import { listen as bindEvent, appendChild, select, anchor, seqAfter } from "../dist/core.js";
 import { jsxRef } from "../dist/jsx-runtime.js";
+import { bindAttr, interpolation as text, subscribe } from "../dist/binding.js";
+
+enableBuiltinStore();
 function main() {
   const t1 = anchor("t1");
   const t2 = anchor("t2");
@@ -13,7 +16,7 @@ function main() {
   const unmountBtn = select("button#unmount");
   const World = replaced(t2)();
   const Count = count(({}, ctx) => {
-    const counter = ref(0);
+    const counter = source(0);
     bindEvent(ctx.refs.addCountBtn)("click", () => {
       counter.set(counter.val + 1);
     });
@@ -21,34 +24,34 @@ function main() {
     useCleanUp(text`you clicked ${counter} times.`(appendChild(ctx.refs.msg)));
   });
   const App = replaced<"world">(t1)(({ user }: { user: string }) => {
-    const count = ref(0);
-    const double = computed(() => count.val * 2);
+    const count = source(0);
+    const double = query(() => count.val * 2);
     const addButton = useRef("button.add-btn");
     const oddDisabledBtn = useAnchor("odd-disabled");
     useCleanUp(text`${user} clicked ${count} times.`(appendChild(addButton)));
     useCleanUp(text`double of count: ${double}`(appendChild(useAnchor("double"))));
-    const disabled = computed(() => count.val % 2 === 1);
+    const disabled = query(() => count.val % 2 === 1);
     useCleanUp(bindAttr(oddDisabledBtn, "disabled", disabled));
     useEvent(addButton)("click", () => {
       console.log("click!");
       count.set(count.val + 1);
     });
     const listItem = (text: string) => ({
-      text: ref(text),
+      text: source(text),
     });
-    const list = ref([listItem("aaa"), listItem("bbb"), listItem("ccc")]);
+    const list = source([listItem("aaa"), listItem("bbb"), listItem("ccc")]);
     useChildView(
       <>
-        <Show when={computed(() => count.val % 2 === 0)}>
+        <Show when={query(() => count.val % 2 === 0)}>
           <div>mod 2 = 0</div>
         </Show>
-        <Show when={computed(() => count.val % 3)} fallback={<div>mod 3 = 0</div>}>
+        <Show when={query(() => count.val % 3)} fallback={<div>mod 3 = 0</div>}>
           {(attach, mod) => {
             console.log(`mod changed: ${mod}`);
             return (<div>
               mod 3 = 1 or 2
               <>
-                <div style={computed(() => (count.val % 3 === 1 ? `color: red` : `color: blue`))}>fragment</div>
+                <div style={query(() => (count.val % 3 === 1 ? `color: red` : `color: blue`))}>fragment</div>
                 <div>supported</div>
               </>
             </div>)(attach);

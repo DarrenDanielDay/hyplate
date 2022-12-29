@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import type { ParseSelector } from "typed-query-selector/parser.js";
-import { bindEvent, anchor, select } from "./core.js";
+import { listen, anchor, select } from "./core.js";
 import type {
   AttachFunc,
   CleanUpFunc,
@@ -77,7 +77,7 @@ export const useChildView =
 export const useCleanUp = (cleanup: CleanUpFunc) => resolveHooks().useCleanUpCollector()(cleanup);
 
 export const useEvent = <T extends EventTarget>(target: T): EventHost<T> => {
-  const eventHost = bindEvent(target);
+  const eventHost = listen(target);
   const effect = resolveHooks().useCleanUpCollector();
   return (name, handler, options) => {
     const cleanup = effect(eventHost(name, handler, options));

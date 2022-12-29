@@ -48,6 +48,12 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./binding": {
+      "types": "./dist/binding.d.ts",
+      "browser": "./dist/binding.browser.esm.min.js",
+      "import": "./dist/binding.js",
+      "default": "./dist/binding.js"
+    },
     "./compiler": {
       "types": "./dist/compiler/index.d.ts",
       "node": "./dist/compiler/index.js",

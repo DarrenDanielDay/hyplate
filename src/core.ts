@@ -6,10 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 import type { ParseSelector } from "typed-query-selector/parser.js";
-import { err, __DEV__ } from "./util.js";
-import { isReactive, subscribe } from "./store.js";
-import type { AttachFunc, AttributeInterpolation, CleanUpFunc, EventHost, Query, TextInterpolation } from "./types.js";
-import { applyAll, isObject, isString, push } from "./util.js";
+import type { AttachFunc, AttributeInterpolation, EventHost, TextInterpolation } from "./types.js";
+import { isString, push } from "./util.js";
 import { comment } from "./internal.js";
 
 const doc = document;
@@ -26,7 +24,7 @@ export const clone = <N extends Node>(node: N): N => node.cloneNode(true) as N;
 export const attr = (element: Element, name: string, value: AttributeInterpolation) =>
   value == null || value === false ? element.removeAttribute(name) : element.setAttribute(name, `${value}`);
 
-export const textContent = (node: Node, content: TextInterpolation) => (node.textContent = `${content}`);
+export const text = (node: Node, content: TextInterpolation) => (node.textContent = `${content}`);
 
 export const select: {
   <S extends string>(host: ParentNode, selecor: S): ParseSelector<S> | null;
@@ -48,60 +46,7 @@ export const $: <S extends string>(selector: S) => ParseSelector<S> = doc.queryS
 
 export const $$ = <S extends string>(selector: S): ParseSelector<S>[] => Array.from(doc.querySelectorAll(selector));
 
-export const bindText = (node: Node, query: Query<TextInterpolation>) =>
-  subscribe(query, (text) => textContent(node, text));
-
-export const text = (
-  fragments: TemplateStringsArray,
-  ...bindings: (TextInterpolation | Query<TextInterpolation>)[]
-) => {
-  const fragmentsLength = fragments.length;
-  const bindingsLength = bindings.length;
-  if (__DEV__) {
-    if (fragmentsLength !== bindingsLength + 1) {
-      err(
-        `Invalid usage of "text". Fragments length(${fragments.length}) and bindings length(${bindings.length}) do not match.`
-      );
-    }
-    if (bindings.some((binding) => isObject(binding) && !isReactive(binding))) {
-      err(`Invalid usage of "text". Object text child must be reactive source/query.`);
-    }
-  }
-  return (attach: AttachFunc): CleanUpFunc => {
-    const effects: CleanUpFunc[] = [];
-    const buf: string[] = [];
-    const flushBuf = () => {
-      const textContent = buf.join("");
-      if (textContent) {
-        const textNode = new Text(textContent);
-        push(effects, () => remove(textNode));
-        attach(textNode);
-      }
-      buf.length = 0;
-    };
-    for (let i = 0; i < bindingsLength; i++) {
-      push(buf, fragments[i]!);
-      const expression = bindings[i]!;
-      if (isObject(expression)) {
-        flushBuf();
-        const dynamicText = new Text();
-        push(effects, bindText(dynamicText, expression));
-        push(effects, () => remove(dynamicText));
-        attach(dynamicText);
-      } else {
-        push(buf, `${expression}`);
-      }
-    }
-    push(buf, fragments.at(-1)!);
-    flushBuf();
-    return applyAll(effects);
-  };
-};
-
-export const bindAttr = (el: Element, name: string, query: Query<AttributeInterpolation>) =>
-  subscribe(query, (attribute) => attr(el, name, attribute));
-
-export const bindEvent =
+export const listen =
   <T extends EventTarget>(target: T): EventHost<T> =>
   (name, handler, options) => {
     // @ts-expect-error generic

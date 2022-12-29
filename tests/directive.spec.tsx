@@ -1,9 +1,17 @@
+import { resetBinding } from "../dist/binding";
 import { appendChild } from "../dist/core";
 import { If, Show, For } from "../dist/directive";
 import { jsxRef } from "../dist/jsx-runtime";
 import { query, source } from "../dist/store";
 import type { AttachFunc, Query, Source } from "../dist/types";
+import { setHyplateStore } from "./configure-store";
 describe("directive.ts", () => {
+  beforeAll(() => {
+    setHyplateStore();
+  });
+  afterAll(() => {
+    resetBinding();
+  });
   describe("if", () => {
     let container: HTMLDivElement;
     let attach: AttachFunc;
@@ -170,13 +178,13 @@ describe("directive.ts", () => {
       warnSpy.mockImplementation(() => {});
       (<For of={list}>{renderChild}</For>)(attach);
       const arr = list.val;
-      list.set([arr[1], arr[0], arr[0], arr[9]])
+      list.set([arr[1], arr[0], arr[0], arr[9]]);
       expect(warnSpy).toBeCalled();
       warnSpy.mockReset();
       warnSpy.mockRestore();
     });
     it("should render list", () => {
-      const [cleanup] = (<For of={list}>{(item) => <span>{item.val}</span>}</For>)(attach);
+      const [cleanup] = (<For of={list}>{(item: Item) => <span>{item.val}</span>}</For>)(attach);
       expect(container.children.length).toBe(10);
       expect(container.textContent).toBe("0123456789");
       cleanup();

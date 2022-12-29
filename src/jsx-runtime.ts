@@ -5,22 +5,22 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { appendChild, attr, bindAttr, bindEvent, docFragment, element, remove, svg, text } from "./core.js";
-import { isReactive } from "./store.js";
+import { bindAttr, interpolation, isSubscribable } from "./binding.js";
+import { appendChild, attr, listen, docFragment, element, remove, svg } from "./core.js";
 import type {
   JSXChildNode,
   FunctionalComponent,
   JSXChild,
   AttachFunc,
   CleanUpFunc,
-  Query,
   AttributeInterpolation,
   Rendered,
   Props,
   PropsBase,
   Later,
+  Subscribable,
 } from "./types.js";
-import { applyAll, err, isFunction, isObject, noop, push, __DEV__ } from "./util.js";
+import { applyAll, isFunction, noop, push, __DEV__ } from "./util.js";
 
 const addChild = (child: JSXChild, attach: AttachFunc) => {
   if (child instanceof Node) {
@@ -32,7 +32,7 @@ const addChild = (child: JSXChild, attach: AttachFunc) => {
   if (isFunction(child)) {
     return child(attach)[0];
   }
-  return text`${child}`(attach);
+  return interpolation`${child}`(attach);
 };
 
 const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
@@ -72,9 +72,9 @@ let currentElementFactory: (name: string) => Element = element;
 export const jsx = (
   type: FunctionalComponent | string,
   props: Partial<Props<PropsBase, JSXChildNode, {}>>
-  ): JSX.Element => {
-    if (typeof type === "string") {
-      return (attach): Rendered<object> => {
+): JSX.Element => {
+  if (typeof type === "string") {
+    return (attach): Rendered<object> => {
       let lastElementFactory = currentElementFactory;
       const isSvg = type === "svg";
       //#region enter svg creating scope
@@ -90,13 +90,10 @@ export const jsx = (
       }
       const [cleanups] = children != null ? renderChild(children, appendChild(el)) : [[]];
       for (const [key, value] of Object.entries(attributes)) {
-        if (isObject(value)) {
-          if (__DEV__ && !isReactive(value)) {
-            err(`The given value '${JSON.stringify(value)}' for attribute ${key} is not a reactive source/query.`);
-          }
-          push(cleanups, bindAttr(el, key, value as Query<AttributeInterpolation>));
+        if (isSubscribable(value)) {
+          push(cleanups, bindAttr(el, key, value as Subscribable<AttributeInterpolation>));
         } else if (isFunction(value) && isEventAttribute(key)) {
-          const host = bindEvent(el);
+          const host = listen(el);
           push(cleanups, host(key.slice(2).toLowerCase() as never, value));
         } else {
           attr(el, key, value as AttributeInterpolation);

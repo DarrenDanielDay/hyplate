@@ -1,10 +1,18 @@
+import { resetBinding } from "../dist/binding";
 import { appendChild, element } from "../dist/core";
 import { If, Show } from "../dist/directive";
 import { Fragment, jsx, jsxRef, jsxs } from "../dist/jsx-runtime";
 import { source } from "../dist/store";
 import type { AttachFunc, FunctionalComponent, Mountable } from "../dist/types";
 import { noop } from "../dist/util";
+import { setHyplateStore } from "./configure-store";
 describe("jsx-runtime.ts", () => {
+  beforeAll(() => {
+    setHyplateStore();
+  });
+  afterAll(() => {
+    resetBinding();
+  });
   describe("JSX syntax", () => {
     it("should work with intrinsic element tags and fragment", () => {
       const msg = "world";
@@ -149,6 +157,8 @@ describe("jsx-runtime.ts", () => {
       disabled.set(true);
       expect(button.disabled).toBeFalsy();
     });
+    /*
+    // This test case is inactivated because the `isSubscribable` check API is exposed to user.
     it("should emit warning when object attribute is not a reactive source/query", () => {
       const warnSpy = import.meta.jest.spyOn(console, "error");
       warnSpy.mockImplementation(() => {});
@@ -160,6 +170,7 @@ describe("jsx-runtime.ts", () => {
       warnSpy.mockReset();
       warnSpy.mockRestore();
     });
+    //*/
     it("should bind inline event handler", () => {
       const handler = import.meta.jest.fn();
       const mountable: Mountable<HTMLButtonElement> = <button onClick={handler}></button>;

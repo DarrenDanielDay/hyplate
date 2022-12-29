@@ -6,7 +6,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { compare, err, isFunction, warned, __DEV__ } from "./util.js";
-import { source, subscribe } from "./store.js";
 import type {
   AttachFunc,
   CleanUpFunc,
@@ -14,38 +13,34 @@ import type {
   ExposeBase,
   Mountable,
   Props,
-  Query,
   Rendered,
+  Subscribable,
 } from "./types.js";
 import { noop } from "./util.js";
 import { withCommentRange } from "./internal.js";
 import { before, moveRange } from "./core.js";
+import  { subscribe } from "./binding.js";
 
 const createIfDirective = <Test, T extends ExposeBase, F extends ExposeBase = void>(
-  condition: Query<Test>,
+  condition: Subscribable<Test>,
   trueResult: ConditionalMountable<Test, T>,
   falseResult?: Mountable<F>
-): Mountable<Query<T | F | void>> => {
+): Mountable<void> => {
   return (attach) => {
     const [clearCommentRange, [begin, end, clear], getRange] = withCommentRange("if/show directive");
     attach(begin);
     attach(end);
     const attachContent: AttachFunc = before(end);
-    const exposed = source<T | F | void>(void 0);
     let lastAttached: CleanUpFunc | null = null;
     const unsubscribe = subscribe(condition, (newValue) => {
       const shouldReRender = !!newValue;
       lastAttached?.();
       clear();
       if (shouldReRender) {
-        let trueRendered: T;
         // @ts-expect-error truty check
-        [lastAttached, trueRendered] = trueResult(attachContent, newValue);
-        exposed.set(trueRendered);
+        [lastAttached] = trueResult(attachContent, newValue);
       } else {
-        let falseRendered: F | void;
-        [lastAttached, falseRendered] = falseResult?.(attachContent) ?? [null, void 0];
-        exposed.set(falseRendered);
+        [lastAttached] = falseResult?.(attachContent) ?? [null, void 0];
       }
     });
     return [
@@ -54,7 +49,7 @@ const createIfDirective = <Test, T extends ExposeBase, F extends ExposeBase = vo
         lastAttached?.();
         clearCommentRange();
       },
-      exposed,
+      void 0,
       getRange,
     ];
   };
@@ -69,9 +64,9 @@ export const If = <Test, T extends ExposeBase, F extends ExposeBase = void>({
   condition,
   children,
 }: Props<
-  { condition: Query<Test> },
+  { condition: Subscribable<Test> },
   { then: ConditionalMountable<Test, T>; else?: Mountable<F> },
-  Query<T | F | void>
+  Subscribable<T | F | void>
 >) => {
   if (!children) {
     return warned("Invalid usage of 'If'. Must provide children.", nil);
@@ -88,7 +83,7 @@ export const Show = <Test, T extends ExposeBase, F extends ExposeBase = void>({
   when,
   children,
   fallback,
-}: Props<{ when: Query<Test>; fallback?: Mountable<F> }, ConditionalMountable<Test, T>, Query<T | F | void>>) => {
+}: Props<{ when: Subscribable<Test>; fallback?: Mountable<F> }, ConditionalMountable<Test, T>, Subscribable<T | F | void>>) => {
   if (!children) {
     return warned("Invalid usage of 'Show'. Must provide children.", nil);
   }
@@ -98,7 +93,7 @@ interface ForProps<T extends unknown> {
   /**
    * The iterable query.
    */
-  of: Query<Iterable<T>>;
+  of: Subscribable<Iterable<T>>;
 }
 
 /**
