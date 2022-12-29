@@ -1,4 +1,5 @@
-import { appendChild, before, bindText, text } from "hyplate/core";
+import { bindText, interpolation } from "hyplate/binding";
+import { appendChild, before } from "hyplate/core";
 import { useChildView, useCleanUp, useEvent } from "hyplate/hooks";
 import { source as atom, query as selector } from "hyplate/store";
 import { app, counter } from "./app.template.js";
@@ -18,7 +19,7 @@ const Counter = counter(({ name }: CounterProps, ctx) => {
     count.set(count.val + 1);
   });
   // Use `text` with template literal for text binding:
-  const unbindText = text`${name} clicked ${count} times.`(appendChild(ctx.refs.countMsg));
+  const unbindText = interpolation`${name} clicked ${count} times.`(appendChild(ctx.refs.countMsg));
 
   // Unsubscribe when component destroyed.
   useCleanUp(unbindText);

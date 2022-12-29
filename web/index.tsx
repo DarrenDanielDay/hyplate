@@ -5,7 +5,7 @@ import { enableBuiltinStore, query, source } from "../dist/store.js";
 import { For, Show } from "../dist/directive.js";
 import { listen as bindEvent, appendChild, select, anchor, seqAfter } from "../dist/core.js";
 import { jsxRef } from "../dist/jsx-runtime.js";
-import { bindAttr, interpolation as text, subscribe } from "../dist/binding.js";
+import { bindAttr, interpolation as text } from "../dist/binding.js";
 
 enableBuiltinStore();
 function main() {

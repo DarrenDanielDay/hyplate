@@ -5,8 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start:wasm": "concurrently \"serve public\" \"node ./scripts/dev.js --for-wasm\"",
-    "start": "node ./scripts/dev.js"
+    "start": "concurrently \"serve .\" \"node --experimental-json-modules ./scripts/dev.js\""
   },
   "author": {
     "email": "Darren_Daniel_Day@hotmail.com",
@@ -15,10 +14,12 @@
   },
   "license": "MIT",
   "dependencies": {
-    "hyplate": "^0.2.0-beta3"
+    "hyplate": "^0.3.0-beta"
   },
   "devDependencies": {
+    "@types/node": "^18.11.18",
     "concurrently": "^7.6.0",
+    "es-modularize": "^2.2.6",
     "esbuild": "^0.16.4",
     "serve": "^14.1.2",
     "typescript": "^4.9.4"

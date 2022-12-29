@@ -1,5 +1,8 @@
 node_modules/
-**/*.template.js
-**/*.template.js.map
-**/*.template.d.ts
-**/*.template.d.ts.map
+resolved.json
+**/*.js
+!js/*.js
+!scripts/**
+**/*.js.map
+**/*.template.*
+!**/*.template.html

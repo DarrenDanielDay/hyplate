@@ -1,57 +1,60 @@
-// @ts-check
-import esbuild from "esbuild";
-import { readFile } from "fs/promises";
+// The compile steps of a hyplate project
+import G from "glob";
+import { promisify } from "util";
 import { resolve } from "path";
 import { emit } from "hyplate/compiler";
-/** @type {esbuild.BuildOptions} */
-const options = {
-  entryPoints: ["./src/index.tsx"],
-  //#region development mode
-  platform: "neutral",
-  define: {
-    "process.env.NODE_ENV": "'development'",
-  },
-  //#endregion
-  //#region production mode
-  // platform: 'browser',
-  //#endregion
-  bundle: true,
-  sourcemap: true,
-  outdir: "public/dist",
-  plugins: [
-    {
-      name: "hyplate",
-      setup(b) {
-        const pattern = /\.template(\.js|\.html)?$/;
-        b.onResolve({ filter: pattern }, async ({ path, resolveDir }) => ({
-          path: resolve(resolveDir, path.replace(pattern, ".template.html")),
-        }));
-        b.onLoad({ filter: pattern }, async ({ path }) => {
-          try {
-            // This is the essential compiler method of hyplate. All in one!
-            await emit(path, "shadowed");
-          } catch (error) {
-            return {
-              errors: [
-                {
-                  detail: error,
-                  text: error instanceof Error ? error.message : undefined,
-                },
-              ],
-            };
-          }
-          return {
-            watchFiles: [path],
-            contents: await readFile(path.replace(pattern, ".template.js")),
-          };
-        });
-      },
+import ts from "typescript";
+import { watch } from "fs";
+import { loadStaticallyAndSaveDefaultJSON } from "es-modularize/node";
+import packagejson from "../package.json" assert { type: "json" };
+// build es-modularize static loaded json
+await loadStaticallyAndSaveDefaultJSON(".", packagejson.dependencies);
+// build typescript project
+const watchTypeScriptProject = () => {
+  /** @type {ts.FormatDiagnosticsHost} */
+  const formatHost = {
+    getCanonicalFileName: (path) => path,
+    getCurrentDirectory: ts.sys.getCurrentDirectory,
+    getNewLine: () => ts.sys.newLine,
+  };
+  const host = ts.createWatchCompilerHost(
+    resolve("./tsconfig.json"),
+    {},
+    ts.sys,
+    ts.createEmitAndSemanticDiagnosticsBuilderProgram,
+    (diagnostic) => {
+      console.error(
+        "[TypeScript]",
+        diagnostic.code,
+        ":",
+        ts.flattenDiagnosticMessageText(diagnostic.messageText, ts.sys.newLine)
+      );
     },
-  ],
+    (diagnostic) => {
+      console.info(ts.formatDiagnostic(diagnostic, formatHost));
+    }
+  );
+  ts.createWatchProgram(host);
 };
-const isStackblitz = process.argv.includes("--for-wasm");
-if (isStackblitz) {
-  esbuild.build({ ...options, watch: true });
-} else {
-  esbuild.serve({ servedir: "public" }, options);
-}
+// build templates
+const watchTemplates = async () => {
+  const base = ".";
+  const pattern = `${base}/**/*.template.html`;
+  const existingTemplates = await promisify(G.glob)(pattern);
+  await Promise.all(existingTemplates.map((t) => emit(t)));
+  watch(
+    base,
+    {
+      encoding: "utf-8",
+      recursive: true,
+    },
+    (event, fileName) => {
+      if (event === "change" && fileName.match(/\.template\.html$/)) {
+        emit(resolve(base, fileName));
+      }
+    }
+  );
+};
+
+watchTemplates();
+watchTypeScriptProject();

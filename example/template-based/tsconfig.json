@@ -3,12 +3,12 @@
     "strictNullChecks": true,
     "module": "ESNext",
     "target": "ESNext",
-    "allowJs": true,
-    "outDir": "dist",
+    "allowJs": false,
     "sourceMap": true,
     "moduleResolution": "NodeNext",
     "jsx": "react-jsx",
     "jsxImportSource": "hyplate"
   },
-  "include": ["."]
+  "include": ["."],
+  "exclude": ["scripts"]
 }

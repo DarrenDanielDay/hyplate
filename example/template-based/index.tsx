@@ -1,5 +1,7 @@
+import { enableBuiltinStore } from "hyplate/store";
 import { appendChild } from "hyplate/core";
 import { App } from "./components/app/app.js";
+enableBuiltinStore();
 // If you prefer JSX, you can use JSX syntax instead of `App({greet: "You"})`.
 const appMountable = <App greet="You"></App>;
 const attach = appendChild<HTMLElement>(document.body);
