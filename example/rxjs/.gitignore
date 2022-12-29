@@ -1,0 +1,8 @@
+node_modules/
+resolved.json
+**/*.js
+!js/*.js
+!scripts/**
+**/*.js.map
+**/*.template.*
+!**/*.template.html

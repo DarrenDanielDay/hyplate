@@ -1,0 +1,28 @@
+{
+  "name": "@hyplate/example-count",
+  "version": "0.1.0",
+  "description": "basic counter example for hyplate",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "concurrently \"serve .\" \"node --experimental-json-modules ./scripts/dev.js\""
+  },
+  "author": {
+    "email": "Darren_Daniel_Day@hotmail.com",
+    "name": "Darren Daniel Day",
+    "url": "https://github.com/DarrenDanielDay"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "hyplate": "^0.3.0-beta",
+    "rxjs": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "concurrently": "^7.6.0",
+    "es-modularize": "^2.2.6",
+    "esbuild": "^0.16.4",
+    "serve": "^14.1.2",
+    "typescript": "^4.9.4"
+  }
+}
