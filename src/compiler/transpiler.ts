@@ -15,13 +15,15 @@ import type {
   OutputWithSourceMap,
   Template,
   TemplateFactory,
+  TemplateInfo,
   TranspileOptions,
 } from "./types.js";
 
-const defaultTranspileOptions: TranspileOptions = {
-  externalStyles: true,
-  relativeURLs: true,
-};
+export const defaultTranspileOptions = Object.freeze<TranspileOptions>({
+  externalStyles: "link",
+  processInlineCSS: (style, _template) => style.body?.map((n) => (n as IText).value).join("") ?? "",
+  relativeURLs: "resolve",
+});
 
 let transpilerOptions = defaultTranspileOptions;
 
@@ -36,27 +38,14 @@ const CONTEXT_FACTORY = "c";
 const REPLACED = "r";
 const BASE_URL = "b";
 const TO_URL = "u";
-/**
- * @internal
- */
-interface TemplateInfo {
-  /**
-   * The indexed id like `_0_1_3`.
-   */
-  id: string;
-  /**
-   * The template name path.
-   */
-  path: string[];
-  template: Template;
-}
+
 export const transpile = (
   templates: ChildTemplates,
-  path: string,
+  file: string,
   factory: TemplateFactory = "shadowed"
 ): OutputWithSourceMap[] => {
-  const { externalStyles, relativeURLs } = transpilerOptions;
-  const source = sourceName(path);
+  const { externalStyles, processInlineCSS, relativeURLs } = transpilerOptions;
+  const source = sourceName(file);
   // Currently generated JavaScript file have no symbol mapping.
   const sourcemap = new SourceMapGenerator({
     file: `${replaceExt(source, ".js")}`,
@@ -73,6 +62,7 @@ export const transpile = (
     const templateIndexId = `_${indexPath.join("_")}`;
     templateMap[templateIndexId] = {
       id: templateIndexId,
+      file,
       path: [...anchorPath],
       template,
     };
@@ -94,33 +84,50 @@ export const transpile = (
   const transpileTemplate = (id: string): string => {
     const templateInfo = templateMap[id]!;
     const addStyle: (node: ITag) => void = externalStyles
-      ? (style) => {
-          const links = (externals[id] ??= []);
-          const templateId = templateInfo.path.join(".");
-          const generatedURL = `./${replaceExt(source, "")}.${templateId}-${links.length}.css`;
-          const styleURL = asRelative(generatedURL);
-          buf.push(`<link rel="stylesheet" href="${styleURL}"/>`);
-          links.push({
-            code: {
-              content: style.body?.map((n) => (n as IText).value).join("") ?? "",
-              path: generatedURL,
-            },
-          });
-        }
+      ? (() => {
+          const addStyleLink = (url: string) => {
+            const styleURL = asRelative(url);
+            buf.push(`<link rel="stylesheet" href="${styleURL}"/>`);
+          };
+          const addStyleImport = (url: string) => {
+            addSideEffectImport(url);
+            buf.push(`<style></style>`);
+          };
+          const handlers: Record<typeof externalStyles, (generatedURL: string) => void> = {
+            import: addStyleImport,
+            link: addStyleLink,
+          };
+          const handle = handlers[externalStyles];
+          return (style) => {
+            const links = (externals[id] ??= []);
+            const templateId = templateInfo.path.join(".");
+            const generatedURL = `./${replaceExt(source, "")}.${templateId}-${links.length}.css`;
+            handle(generatedURL);
+            links.push({
+              code: {
+                content: processInlineCSS(style, templateInfo),
+                path: generatedURL,
+              },
+            });
+          };
+        })()
       : (style) => {
           addToTemplate(
-            `<${style.name}${style.attributes.map(normalAttribute)}>${
-              style.body?.map((n) => (n as IText).value) ?? ""
-            }</${style.name}>`
+            `<${style.name}${style.attributes.map(normalAttribute)}>${processInlineCSS(style, templateInfo)}</${
+              style.name
+            }>`
           );
         };
     const transpileAttribute: (attribute: IAttribute) => string = relativeURLs
-      ? (attribute) => {
-          if (attribute.value && urlLikeAttributes.has(attribute.name.value) && isRelative(attribute.value.value)) {
-            return ` ${attribute.name}=${asRelative(attribute.value.value)}`;
-          }
-          return normalAttribute(attribute);
-        }
+      ? (() => {
+          const trasformRelativeURL = relativeURLs === "resolve" ? asRelative : asImportURL;
+          return (attribute) => {
+            if (attribute.value && urlLikeAttributes.has(attribute.name.value) && isRelative(attribute.value.value)) {
+              return ` ${attribute.name.value}=${trasformRelativeURL(attribute.value.value)}`;
+            }
+            return normalAttribute(attribute);
+          };
+        })()
       : normalAttribute;
     const buf: string[] = [];
     const addToTemplate = (text: string) => {
@@ -183,23 +190,41 @@ ${Object.entries(template.children)
   )
   .join("")}`;
   };
-  const importCode = `import {${factory} as ${FACTORY},replaced as ${REPLACED},contextFactory as ${CONTEXT_FACTORY},basedOnURL as ${BASE_URL}}from"hyplate/template";`;
+  const addtionalImportStatements: string[] = [];
+  const addSideEffectImport = (url: string) => {
+    addtionalImportStatements.push(`import ${str(url)};`);
+  };
+  const addDefaultImport = (() => {
+    let count = 0;
+    return (url: string) => {
+      const defaultName = `_default_${count++}`;
+      addtionalImportStatements.push(`import ${defaultName} from ${str(url)};`);
+      return defaultName;
+    };
+  })();
+
   let usedToURL = false;
-  const asRelative = (relativeUrl: string) => {
+  const asRelative = (relativeURL: string) => {
     usedToURL = true;
-    return `\${${TO_URL}(${str(relativeUrl)})}`;
+    return inserted(`${TO_URL}(${str(relativeURL)})`);
+  };
+  const asImportURL = (relativeURL: string) => {
+    return inserted(addDefaultImport(relativeURL));
   };
   // Using library function code rather than `import.meta.resolve` for bundlers to inline `import.meta.url`.
   const toURLCode = `const ${TO_URL}=${BASE_URL}(import.meta.url);
 `;
   const createSetupCode = emitIdSequence.map((id) => jsCodeTemplate(id)).join("");
+  const importCode = `import {${factory} as ${FACTORY},replaced as ${REPLACED},contextFactory as ${CONTEXT_FACTORY},basedOnURL as ${BASE_URL}}from"hyplate/template";${addtionalImportStatements
+    .map((s) => "\n" + s)
+    .join("")}`;
   const exportCode = `export {${Object.keys(templates)
     .map((key, i) => `_${i} as ${key}`)
     .join(",")}};`;
   const code = `\
 ${importCode}
 ${usedToURL ? toURLCode : ""}${createSetupCode}${exportCode}
-//# sourceMappingURL=${replaceExt(path.split("/").at(-1)!, ".js.map")}`;
+//# sourceMappingURL=${replaceExt(file.split("/").at(-1)!, ".js.map")}`;
   return [
     {
       code: {
@@ -217,7 +242,7 @@ ${usedToURL ? toURLCode : ""}${createSetupCode}${exportCode}
 
 const urlLikeAttributes = new Set(["href", "src"]);
 const isRelative = (url: string) => !url.startsWith("/") && !/(\w+):\/\//.test(url);
-
+const inserted = (expr: string) => `\${${expr}}`;
 const normalAttribute = (attribute: IAttribute): string => {
   return ` ${attribute.name.value}${
     attribute.value ? `=${attribute.value.quote}${attribute.value.value}${attribute.value.quote}` : ``

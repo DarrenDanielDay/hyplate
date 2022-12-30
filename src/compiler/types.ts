@@ -30,15 +30,51 @@ export interface TemplateOptions {
 
 export interface TranspileOptions {
   /**
-   * Whether to transpile style elements as external files.
-   * @default true
+   * Define how to transpile inline style elements as external files.
+   *
+   * When configured to `false`, the style element will be kept inline.
+   *
+   * When configured to `"link"`, the style element will be replaced as an external `<link />` element.
+   * (recommended for `shadowed` factory)
+   *
+   * When configured to `"import"`, the style element will be replaced with an empty `<style>` element,
+   * and a CSS file import statement will be added to the JavaScript code.
+   * (recommended for `replaced` factory and bundlers)
+   *
+   * Note that the generated external CSS files will always be relative to the template in the same directory.
+   * @default "link"
    */
-  externalStyles: boolean;
+  externalStyles: false | "link" | "import";
   /**
-   * Whether to transform relative urls.
-   * @default true
+   * Define how to process CSS code in templates. By default the transpiler leaves the content as what it is,
+   * even the blanks and tabs in template HTML.
+   * @param style the style tag (AST object) with element attributes info
+   * @param template the template info
+   * @returns the precessed CSS code
    */
-  relativeURLs: boolean;
+  processInlineCSS: (style: ITag, template: TemplateInfo) => string;
+  /**
+   * Define how to transform relative urls.
+   *
+   * When configured to `false`, the relative URLs will be kept as what it is.
+   *
+   * When configured to `"resolve"`, the relative URL will be dynamically converted like the following dynamically:
+   *
+   * ```js
+   * const _converted = new URL("<relative>", import.meta.url).toString();
+   * // The `_converted` will be inserted into the template.
+   * ```
+   *
+   * When configured to `"import"`, the relative URL will be treated as assets URLs and a import statement will be added.
+   *
+   * ```js
+   * import _ref from "<relative>";
+   * // The default export `_ref` should be a converted URL string, and it will be inserted into the template.
+   * ```
+   *
+   * @default "resolve"
+   */
+  relativeURLs: false | "resolve" | "import";
 }
 
 export interface ViewRef {
@@ -75,7 +111,6 @@ export interface ViewSlot {
 export type ViewRefs = Record<string, ViewRef>;
 
 export type ViewSlots = Record<string, ViewSlot>;
-
 
 export interface OpenTag {
   type: "open";
@@ -150,6 +185,25 @@ export interface Template {
 }
 
 export type ChildTemplates = Record<string, Template>;
+
+export interface TemplateInfo {
+  /**
+   * The indexed id like `_0_1_3`.
+   */
+  id: string;
+  /**
+   * The `file` parameter of `transpile`.
+   */
+  file: string;
+  /**
+   * The template name path.
+   */
+  path: string[];
+  /**
+   * The hyplate template object.
+   */
+  template: Template;
+}
 
 export interface EmitFile {
   path: string;

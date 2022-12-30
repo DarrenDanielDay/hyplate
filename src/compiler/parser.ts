@@ -20,13 +20,13 @@ import type {
   ViewSlots,
 } from "./types.js";
 
-const defaultTemplateOptions: TemplateOptions = {
+export const defaultTemplateOptions = Object.freeze<TemplateOptions>({
   preserveAnchor: false,
   preserveComment: false,
   preserveEmptyTextNodes: false,
-};
+});
 
-let templateOptions: TemplateOptions = defaultTemplateOptions;
+let templateOptions = defaultTemplateOptions;
 
 const mergeOptions = mergedOptions(defaultTemplateOptions);
 
@@ -152,13 +152,6 @@ const createTemplate = (templateNode: ITag, isGlobal?: boolean): Template => {
         content: currentSource.slice(node.start, node.end),
       });
     }
-    if (isStyle(node)) {
-      styles.push({
-        index: nodes.length,
-        node,
-      });
-      return;
-    }
     const isSvg = isSVG(node);
     if (isSvg) {
       svgScopeCount++;
@@ -197,6 +190,16 @@ ${node.open.value}`);
       return;
     }
     nextElement();
+    if (isStyle(node)) {
+      // Style elements are extracted just for processing their contents, 
+      // and there must be a corresponding element in the template.
+      // So the index cursor should be move to next.
+      styles.push({
+        index: nodes.length,
+        node,
+      });
+      return;
+    }
     const { close, body } = node;
     const anchorRefAttr = findAnchor(node);
     if (anchorRefAttr) {

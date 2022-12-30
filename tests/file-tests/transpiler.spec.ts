@@ -26,13 +26,24 @@ describe("transpiler.ts", () => {
           const transpiled = transpile(templates, fakePath);
           expect(transpiled[0].code.content.includes("</style>")).toBeTruthy();
         });
-        it("should emit style file when `externalStyles` set to false", () => {
+        it("should emit style file when `externalStyles` set to 'link'", () => {
           configureTranspiler({
-            externalStyles: true,
+            externalStyles: "link",
           });
           const transpiled = transpile(templates, fakePath);
           expect(transpiled.length).toBe(2);
           expect(transpiled[0].code.content.includes("</style>")).toBeFalsy();
+          expect(transpiled[0].code.content).toMatch(/<link .+\/>/);
+          expect(transpiled[1].code.content).toBe("input:checked { background-color: blue; }");
+        });
+        it("should add import when `externalStyles` set to 'import'", () => {
+          configureTranspiler({
+            externalStyles: "import",
+          });
+          const transpiled = transpile(templates, fakePath);
+          expect(transpiled.length).toBe(2);
+          expect(transpiled[0].code.content.includes("</style>")).toBeTruthy();
+          expect(transpiled[0].code.content).toMatch(/import (['"]).+\.css\1/);
           expect(transpiled[1].code.content).toBe("input:checked { background-color: blue; }");
         });
       });
@@ -52,7 +63,7 @@ describe("transpiler.ts", () => {
             transpile(templates, fakePath);
           }).not.toThrow();
           configureTranspiler({
-            externalStyles: true,
+            externalStyles: "link",
           });
           expect(() => {
             transpile(templates, fakePath);
@@ -74,6 +85,35 @@ describe("transpiler.ts", () => {
           "./inline.html"
         );
         expect(transpiled[0].code.content).toMatch(/src=(['"])\.\/foo\.jpg\1/);
+      });
+
+      it("should insert converted url when `relativeURLs` set to 'resolve'", () => {
+        configureTranspiler({
+          relativeURLs: "resolve",
+        });
+        const transpiled = transpile(
+          parse(`\
+<template>
+  <img src="./foo.jpg"/>
+</template>
+`),
+          "./inline.html"
+        );
+        expect(transpiled[0].code.content).toMatch(/src=\$\{.+\}/);
+      });
+      it("should insert converted url when `relativeURLs` set to 'resolve'", () => {
+        configureTranspiler({
+          relativeURLs: "import",
+        });
+        const transpiled = transpile(
+          parse(`\
+<template>
+  <img src="./foo.jpg"/>
+</template>
+`),
+          "./inline.html"
+        );
+        expect(transpiled[0].code.content).toMatch(/import \w+ from (['"]).+foo\.jpg\1/);
       });
     });
   });
