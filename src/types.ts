@@ -84,12 +84,12 @@ export interface Hooks {
   useParent(): Element;
 }
 
+export type SlotContent = Element | DocumentFragment | Mountable<any>;
+
 /**
  * Slot name map for
  */
-export type SlotMap<S extends string = string> = [S] extends [never]
-  ? undefined
-  : Partial<Record<S, Element | DocumentFragment | Mountable<any>>>;
+export type SlotMap<S extends string = string> = [S] extends [never] ? undefined : Partial<Record<S, SlotContent>>;
 
 export type ExposeBase = {} | void;
 
@@ -116,10 +116,10 @@ export type FunctionalComponent<P extends PropsBase = PropsBase, C = undefined, 
 
 export type ContextFactory<Context extends {}> = (fragment: DocumentFragment) => Context;
 
-export type ContextSetupFactory<Context extends {}, S extends string> = <P extends PropsBase, E extends ExposeBase>(
+export type ContextSetupFactory<Context extends {}, S extends SlotMap> = <P extends PropsBase, E extends ExposeBase>(
   setup?: (props: P, context: Context) => E,
   name?: string
-) => FunctionalComponent<P, undefined | SlotMap<S>, E>;
+) => FunctionalComponent<P, undefined | S, E>;
 
 export interface TemplateContext<R> {
   refs: R;
@@ -130,7 +130,7 @@ export interface FunctionalComponentTemplateFactory {
     setup?: (props: P) => E,
     name?: string
   ) => FunctionalComponent<P, undefined | SlotMap<S>, E>;
-  <S extends string, Context extends {}>(
+  <S extends SlotMap, Context extends {}>(
     input: string | HTMLTemplateElement,
     contextFactory?: ContextFactory<Context>
   ): ContextSetupFactory<Context, S>;

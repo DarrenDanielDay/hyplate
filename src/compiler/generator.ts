@@ -7,19 +7,17 @@
  */
 import { SourceMapGenerator } from "source-map";
 import { objectEntriesMap } from "../util.js";
-import { createObjLikeExp, replaceExt, sourceName, str, tabs } from "./shared.js";
+import { createObjLikeExp, replaceExt, sourceName } from "./shared.js";
 import type { ChildTemplates, OutputWithSourceMap, Template } from "./types.js";
 
 const dtsCodeTemplate = (template: Template) => {
   const id = template.anchor;
-  const createSlotUnion = (template: Template, indent: number) => {
-    const unionSpace = tabs(indent);
-    return (
-      Object.entries(template.slots)
-        .map(([s]) => `${unionSpace}| ${str(s)}`)
-        .join("\n") || `${unionSpace}never`
+  const createSlotObjects = (template: Template, indent: number) =>
+    createObjLikeExp(
+      objectEntriesMap(template.slots, () => "S"),
+      indent,
+      ";"
     );
-  };
   const createRefsType = (template: Template, indent: number) =>
     createObjLikeExp(
       objectEntriesMap(template.refs, ([, value]) => `${value.el}`),
@@ -27,9 +25,7 @@ const dtsCodeTemplate = (template: Template) => {
       ";"
     );
   const createSetupFactoryType = (template: Template, indent: number): string => {
-    return `F<C<${createRefsType(template, indent)}>,
-${createSlotUnion(template, indent)}
-${tabs(indent)}> & ${createObjLikeExp(
+    return `F<C<${createRefsType(template, indent)}>, ${createSlotObjects(template, indent)}> & ${createObjLikeExp(
       objectEntriesMap(template.children, ([, value]) => {
         return createSetupFactoryType(value, indent + 1);
       }),
@@ -59,7 +55,7 @@ export const generateDeclaration = (templates: ChildTemplates, path: string): Ou
 };
 
 export const generateDTS = (templates: ChildTemplates, path: string) => {
-  const importCode = `import type {ContextSetupFactory as F,TemplateContext as C} from "hyplate/types";`;
+  const importCode = `import type {ContextSetupFactory as F,TemplateContext as C, SlotContent as S} from "hyplate/types";`;
   const declarations = Object.values(templates)
     .map((template) => dtsCodeTemplate(template))
     .join("\n");
@@ -125,7 +121,7 @@ export const generateDTSMap = (templates: ChildTemplates, path: string): string 
         });
       }
     }
-    moveNextLine(); // move to "> & {"
+    moveNextLine(); // move to "}> & {"
     // templates
     for (const child of Object.values(template.children)) {
       moveNextLine();

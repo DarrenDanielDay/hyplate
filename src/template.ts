@@ -11,7 +11,6 @@ import type {
   CleanUpFunc,
   ContextFactory,
   FunctionalComponentTemplateFactory,
-  SlotMap,
   TemplateContext,
 } from "./types.js";
 import { applyAll, isFunction, objectEntriesMap, once, patch, push } from "./util.js";
@@ -42,7 +41,7 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
       const context = contextFactory?.(fragment)!;
       shadow.appendChild(fragment);
       if (slots) {
-        for (const [name, slotInput] of Object.entries<SlotMap[string]>(slots)) {
+        for (const [name, slotInput] of Object.entries(slots)) {
           if (slotInput == null) {
             continue;
           }
