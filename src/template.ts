@@ -11,6 +11,7 @@ import type {
   CleanUpFunc,
   ContextFactory,
   FunctionalComponentTemplateFactory,
+  HyplateElement,
   TemplateContext,
 } from "./types.js";
 import { applyAll, isFunction, objectEntriesMap, once, patch, push } from "./util.js";
@@ -19,7 +20,10 @@ import { withCommentRange } from "./internal.js";
 export const template = (input: string | HTMLTemplateElement): HTMLTemplateElement =>
   input instanceof HTMLTemplateElement ? input : patch(element("template"), { innerHTML: input });
 
-const anonymousElement = () => class HyplateAnonymousElement extends HTMLElement {};
+const anonymousElement = () =>
+  class HyplateAnonymousElement<T> extends HTMLElement implements HyplateElement<T> {
+    readonly exposed: T = null as T;
+  };
 
 let templateId = 0;
 const templateName = (name: string | undefined) => name ?? `hype-${templateId++}`;
@@ -34,7 +38,8 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
     return (props) => (attach) => {
       const localCleanups: CleanUpFunc[] = [];
       const slots = props.children;
-      const owner = element(elementTag);
+      // @ts-expect-error dynamic created element
+      const owner: HyplateElement<unknown> = element(elementTag);
       const parent = attach(owner);
       const shadow = owner.attachShadow({ mode: "open" });
       const fragment = clone(t.content);
@@ -62,6 +67,9 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
       enterHooks(hooks);
       const exposed = setup?.(props as never, context) as never;
       quitHooks();
+      Object.defineProperty(owner, "exposed", {
+        value: exposed,
+      });
       const cleanupView = () => {
         for (const child of Array.from(shadow.childNodes)) {
           remove(child);

@@ -84,6 +84,10 @@ export interface Hooks {
   useParent(): Element;
 }
 
+export interface HyplateElement<T> extends HTMLElement {
+  readonly exposed: T;
+}
+
 export type SlotContent = Element | DocumentFragment | Mountable<any>;
 
 /**
