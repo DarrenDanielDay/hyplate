@@ -17,9 +17,7 @@ export type AnyFunc = (...args: any[]) => any;
 export type CleanUpFunc = () => void;
 
 // @ts-ignore unused type parameter for geneic extension
-export interface Subscribable<T> {
-
-}
+export interface Subscribable<T> {}
 
 export type SubscribeFunc = <T>(subscribable: Subscribable<T>, subscriber: Subscriber<T>) => CleanUpFunc;
 
@@ -154,7 +152,7 @@ export type Rendered<E extends ExposeBase> = [unmount: CleanUpFunc, exposed: E, 
 //#region JSX types
 type ArrayOr<T> = T | T[];
 
-export type JSXChild = JSX.Element | Node | TextInterpolation | Query<TextInterpolation>;
+export type JSXChild = JSX.Element | Node | TextInterpolation | Subscribable<TextInterpolation>;
 
 export type JSXChildNode = ArrayOr<JSXChild>;
 
@@ -175,7 +173,7 @@ type ElementAttributes<E extends Element> = {
 };
 
 type Attributes<T extends {}, E extends Element> = {
-  [K in keyof T]?: T[K] | Query<T[K]>;
+  [K in keyof T]?: T[K] | Subscribable<T[K]>;
 } & ElementAttributes<E> &
   JSX.IntrinsicAttributes;
 
