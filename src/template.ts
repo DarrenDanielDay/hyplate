@@ -22,7 +22,7 @@ export const template = (input: string | HTMLTemplateElement): HTMLTemplateEleme
 
 const anonymousElement = () =>
   class HyplateAnonymousElement<T> extends HTMLElement implements HyplateElement<T> {
-    readonly exposed: T = null as T;
+    declare exposed: T;
   };
 
 let templateId = 0;

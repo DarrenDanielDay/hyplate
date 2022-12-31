@@ -1,6 +1,6 @@
 import { appendChild } from "../dist/core";
 import { basedOnURL, contextFactory, replaced, shadowed, template } from "../dist/template";
-import type { Mountable } from "../dist/types";
+import type { HyplateElement, Mountable } from "../dist/types";
 import { noop } from "../dist/util";
 describe("template.ts", () => {
   describe("template", () => {
@@ -62,6 +62,19 @@ describe("template.ts", () => {
       })(appendChild(document.body));
       // JSDOM support for shadow root & slot?
       cleanup();
+    });
+    it("should define readonly `exposed` property", () => {
+      const Comopnent = shadowed(``)(() => {
+        return {};
+      }, "test-exposed");
+      const [unmount, exposed] = Comopnent({})(appendChild(document.body));
+      const el = document.querySelector<HyplateElement<unknown>>("test-exposed")!;
+      expect(el.exposed).toBe(exposed);
+      expect(() => {
+        // @ts-expect-error readonly property
+        el.exposed = {};
+      }).toThrow();
+      unmount();
     });
   });
   describe("replaced", () => {
