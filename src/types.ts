@@ -177,7 +177,13 @@ type ElementAttributes<E extends Element> = {
 type Attributes<T extends {}, E extends Element> = {
   [K in keyof T]?: T[K] | Subscribable<T[K]>;
 } & ElementAttributes<E> &
-  JSX.IntrinsicAttributes;
+  JSX.IntrinsicAttributes &
+  Partial<FunctionalGlobalEventHandler> & {
+    /**
+     * Allow any custom attributes.
+     */
+    [key: string]: unknown;
+  };
 
 type _EventName<E extends string> = E extends `on${infer e}` ? e : never;
 
@@ -203,7 +209,7 @@ interface ExperimentalImportance {
   fetchpriority: EnumeratedValues<"auto" | "high" | "low">;
 }
 type FormMethods = EnumeratedValues<"post" | "get" | "dialog">;
-interface FormElementAttributes {
+export interface FormElementAttributes {
   autofocus: BooleanAttributeValue;
   disabled: BooleanAttributeValue;
   form: string;
@@ -233,7 +239,7 @@ type ReferrerPolicyOptions = EnumeratedValues<
 //#endregion
 
 //#region input attributes
-type InputTypes =
+type InputTypes = EnumeratedValues<
   | "button"
   | "checkbox"
   | "color"
@@ -255,7 +261,8 @@ type InputTypes =
   | "text"
   | "time"
   | "url"
-  | "week";
+  | "week"
+>;
 type Except<K extends InputTypes> = Exclude<InputTypes, K>;
 type AttributeInfo<T, V extends InputTypes> = [type: T, valid: V];
 type TextLikeInputTypes = "text" | "search" | "url" | "tel" | "email" | "password";
@@ -374,7 +381,7 @@ type InputAttributes = {
   };
 }[InputTypes];
 type ListStyleType = EnumeratedValues<"a" | "A" | "i" | "I" | "1">;
-interface PlayerAttributes {
+export interface PlayerAttributes {
   autoplay: BooleanAttributeValue;
   controls: BooleanAttributeValue;
   /**
@@ -397,7 +404,7 @@ interface PlayerAttributes {
  * @see https://developer.mozilla.org/docs/Web/HTML/Global_attributes
  */
 //#region global attributes
-interface GlobalAttributes
+export interface GlobalAttributes
   //#region general attributes
   extends GeneralAttributes<
       | "accesskey"
@@ -479,8 +486,7 @@ interface GlobalAttributes
       | "title"
     >,
     //#endregion
-    BooleanAttributes<"autofocus" | "contenteditable" | "draggable" | "inert" | "spellcheck">,
-    FunctionalGlobalEventHandler {
+    BooleanAttributes<"autofocus" | "contenteditable" | "draggable" | "inert" | "spellcheck"> {
   /** @deprecated */
   "xml:lang": string;
   /** @deprecated */
@@ -574,17 +580,12 @@ interface GlobalAttributes
   style: string;
   tabindex: number;
   translate: EnumeratedValues<"yes" | "no">;
-  [ariaAttributes: `aria-${string}`]: string;
-  [dataAttributes: `data-${string}`]: string;
-  /**
-   * Allow any attributes.
-   */
-  [key: string]: unknown;
 }
+
 //#endregion
 
 //#region HTML attributes
-interface HTMLAnchorElementAttributes extends GlobalAttributes {
+export interface HTMLAnchorElementAttributes extends GlobalAttributes {
   download: string;
   href: string;
   hreflang: string;
@@ -595,7 +596,7 @@ interface HTMLAnchorElementAttributes extends GlobalAttributes {
   type: string;
 }
 
-interface HTMLAreaElementAttributes extends GlobalAttributes {
+export interface HTMLAreaElementAttributes extends GlobalAttributes {
   alt: string;
   coords: string;
   download: string;
@@ -610,47 +611,47 @@ interface HTMLAreaElementAttributes extends GlobalAttributes {
   target: TargetOptions;
 }
 
-interface HTMLAudioElementAttributes extends GlobalAttributes, PlayerAttributes {}
+export interface HTMLAudioElementAttributes extends GlobalAttributes, PlayerAttributes {}
 
-interface HTMLButtonElementAttributes extends GlobalAttributes, FormElementAttributes {
+export interface HTMLButtonElementAttributes extends GlobalAttributes, FormElementAttributes {
   type: EnumeratedValues<"submit" | "reset" | "button" | "menu">;
 }
 
-interface HTMLCanvasElementAttributes extends GlobalAttributes, SizeOptions {}
+export interface HTMLCanvasElementAttributes extends GlobalAttributes, SizeOptions {}
 
-interface HTMLTableColElementAttributes extends GlobalAttributes {
+export interface HTMLTableColElementAttributes extends GlobalAttributes {
   span: NumericAttributeValue;
 }
 
-interface HTMLDataElementAttributes extends GlobalAttributes {
+export interface HTMLDataElementAttributes extends GlobalAttributes {
   value: string;
 }
 
-interface HTMLModElementAttributes extends GlobalAttributes {
+export interface HTMLModElementAttributes extends GlobalAttributes {
   cite: string;
   datatime: string;
 }
 
-interface HTMLDetailsElementAttributes extends GlobalAttributes {
+export interface HTMLDetailsElementAttributes extends GlobalAttributes {
   open: BooleanAttributeValue;
 }
 
-interface HTMLDialogElementAttributes extends Omit<GlobalAttributes, "tabindex"> {
+export interface HTMLDialogElementAttributes extends Omit<GlobalAttributes, "tabindex"> {
   open: BooleanAttributeValue;
 }
 
-interface HTMLEmbedElementAttributes extends GlobalAttributes, SizeOptions {
+export interface HTMLEmbedElementAttributes extends GlobalAttributes, SizeOptions {
   src: string;
   type: string;
 }
 
-interface HTMLFieldSetElementAttributes extends GlobalAttributes {
+export interface HTMLFieldSetElementAttributes extends GlobalAttributes {
   disabled: BooleanAttributeValue;
   form: string;
   name: string;
 }
 
-interface HTMLFormElementAttributes extends GlobalAttributes {
+export interface HTMLFormElementAttributes extends GlobalAttributes {
   "accept-charset": string;
   action: string;
   autocomplete: AutoCompleteSwitch;
@@ -662,7 +663,7 @@ interface HTMLFormElementAttributes extends GlobalAttributes {
   target: TargetOptions;
 }
 
-interface HTMLIFrameElementAttributes extends GlobalAttributes, ExperimentalImportance, SizeOptions {
+export interface HTMLIFrameElementAttributes extends GlobalAttributes, ExperimentalImportance, SizeOptions {
   allow: string;
   /**
    * @deprecated
@@ -699,7 +700,7 @@ interface HTMLIFrameElementAttributes extends GlobalAttributes, ExperimentalImpo
   srcdoc: string;
 }
 
-interface HTMLImageElementAttributes extends GlobalAttributes, ExperimentalImportance, SizeOptions {
+export interface HTMLImageElementAttributes extends GlobalAttributes, ExperimentalImportance, SizeOptions {
   alt: string;
   crossorigin: CORSOptions;
   decoding: EnumeratedValues<"sync" | "async" | "auto">;
@@ -712,7 +713,8 @@ interface HTMLImageElementAttributes extends GlobalAttributes, ExperimentalImpor
   usemap: string;
 }
 
-interface HTMLInputElementAttributes extends GlobalAttributes, FormElementAttributes {
+export interface HTMLInputElementAttributes extends GlobalAttributes, FormElementAttributes {
+  type: InputTypes;
   accept: string;
   alt: string;
   autocomplete: EnumeratedValues<AutoCompleteHints>;
@@ -736,11 +738,11 @@ interface HTMLInputElementAttributes extends GlobalAttributes, FormElementAttrib
   width: NumericAttributeValue;
 }
 
-interface HTMLLabelElementAttributes extends GlobalAttributes {
+export interface HTMLLabelElementAttributes extends GlobalAttributes {
   for: string;
 }
 
-interface HTMLLIElementAttributes extends GlobalAttributes {
+export interface HTMLLIElementAttributes extends GlobalAttributes {
   value: NumericAttributeValue;
   /**
    * @deprecated
@@ -748,7 +750,7 @@ interface HTMLLIElementAttributes extends GlobalAttributes {
   type: ListStyleType;
 }
 
-interface HTMLLinkElementAttributes extends GlobalAttributes, ExperimentalImportance {
+export interface HTMLLinkElementAttributes extends GlobalAttributes, ExperimentalImportance {
   as: EnumeratedValues<
     | "audio"
     | "document"
@@ -785,11 +787,11 @@ interface HTMLLinkElementAttributes extends GlobalAttributes, ExperimentalImport
   blocking: string;
 }
 
-interface HTMLMapElementAttributes extends GlobalAttributes {
+export interface HTMLMapElementAttributes extends GlobalAttributes {
   name: string;
 }
 
-interface HTMLMeterElementAttributes extends GlobalAttributes {
+export interface HTMLMeterElementAttributes extends GlobalAttributes {
   value: NumericAttributeValue;
   min: NumericAttributeValue;
   max: NumericAttributeValue;
@@ -798,47 +800,47 @@ interface HTMLMeterElementAttributes extends GlobalAttributes {
   optimum: NumericAttributeValue;
 }
 
-interface HTMLObjectElementAttributes extends GlobalAttributes, SizeOptions {
+export interface HTMLObjectElementAttributes extends GlobalAttributes, SizeOptions {
   data: string;
   form: string;
   type: string;
   usemap: string;
 }
 
-interface HTMLOListElementAttributes extends GlobalAttributes {
+export interface HTMLOListElementAttributes extends GlobalAttributes {
   reversed: BooleanAttributeValue;
   start: NumericAttributeValue;
   type: ListStyleType;
 }
 
-interface HTMLOptGroupElementAttributes extends GlobalAttributes {
+export interface HTMLOptGroupElementAttributes extends GlobalAttributes {
   disabled: BooleanAttributeValue;
   label: string;
 }
 
-interface HTMLOptionElementAttributes extends GlobalAttributes {
+export interface HTMLOptionElementAttributes extends GlobalAttributes {
   disabled: BooleanAttributeValue;
   label: string;
   selected: BooleanAttributeValue;
   value: string;
 }
 
-interface HTMLOutputElementAttributes extends GlobalAttributes {
+export interface HTMLOutputElementAttributes extends GlobalAttributes {
   for: string;
   form: string;
   name: string;
 }
 
-interface HTMLProgressElementAttributes extends GlobalAttributes {
+export interface HTMLProgressElementAttributes extends GlobalAttributes {
   max: NumericAttributeValue;
   value: NumericAttributeValue;
 }
 
-interface HTMLQuoteElementAttributes extends GlobalAttributes {
+export interface HTMLQuoteElementAttributes extends GlobalAttributes {
   cite: string;
 }
 
-interface HTMLScriptElementAttributes extends GlobalAttributes, ExperimentalImportance {
+export interface HTMLScriptElementAttributes extends GlobalAttributes, ExperimentalImportance {
   async: BooleanAttributeValue;
   crossorigin: CORSOptions;
   defer: BooleanAttributeValue;
@@ -851,7 +853,7 @@ interface HTMLScriptElementAttributes extends GlobalAttributes, ExperimentalImpo
   blocking: string;
 }
 
-interface HTMLSelectElementAttributes extends GlobalAttributes {
+export interface HTMLSelectElementAttributes extends GlobalAttributes {
   autocomplete: AutoCompleteHints;
   autofocus: BooleanAttributeValue;
   disabled: BooleanAttributeValue;
@@ -862,11 +864,11 @@ interface HTMLSelectElementAttributes extends GlobalAttributes {
   size: NumericAttributeValue;
 }
 
-interface HTMLSlotElementAttributes extends GlobalAttributes {
+export interface HTMLSlotElementAttributes extends GlobalAttributes {
   name: string;
 }
 
-interface HTMLSourceElementAttributes extends GlobalAttributes, SizeOptions {
+export interface HTMLSourceElementAttributes extends GlobalAttributes, SizeOptions {
   type: string;
   src: string;
   srcset: string;
@@ -874,20 +876,20 @@ interface HTMLSourceElementAttributes extends GlobalAttributes, SizeOptions {
   media: string;
 }
 
-interface HTMLStyleElementAttributes extends GlobalAttributes {
+export interface HTMLStyleElementAttributes extends GlobalAttributes {
   media: string;
   nonce: string;
   title: string;
   blocking: string;
 }
 
-interface HTMLTDElementAttributes extends GlobalAttributes {
+export interface HTMLTDElementAttributes extends GlobalAttributes {
   colspan: NumericAttributeValue;
   headers: string;
   rowspan: NumericAttributeValue;
 }
 
-interface HTMLTextAreaElementAttributes extends Omit<GlobalAttributes, "spellcheck"> {
+export interface HTMLTextAreaElementAttributes extends Omit<GlobalAttributes, "spellcheck"> {
   autocomplete: AutoCompleteSwitch;
   autofocus: BooleanAttributeValue;
   cols: NumericAttributeValue;
@@ -904,7 +906,7 @@ interface HTMLTextAreaElementAttributes extends Omit<GlobalAttributes, "spellche
   wrap: EnumeratedValues<"hard" | "soft">;
 }
 
-interface HTMLTHElementAttributes extends GlobalAttributes {
+export interface HTMLTHElementAttributes extends GlobalAttributes {
   abbr: string;
   colspan: NumericAttributeValue;
   headers: string;
@@ -912,11 +914,11 @@ interface HTMLTHElementAttributes extends GlobalAttributes {
   scope: EnumeratedValues<"row" | "col" | "rowgroup" | "colgroup">;
 }
 
-interface HTMLTimeElementAttributes extends GlobalAttributes {
+export interface HTMLTimeElementAttributes extends GlobalAttributes {
   datetime: string;
 }
 
-interface HTMLTrackElementAttributes extends GlobalAttributes {
+export interface HTMLTrackElementAttributes extends GlobalAttributes {
   default: BooleanAttributeValue;
   kind: EnumeratedValues<"subtitles" | "captions" | "descriptions" | "chapters" | "metadata">;
   label: string;
@@ -924,7 +926,7 @@ interface HTMLTrackElementAttributes extends GlobalAttributes {
   srclang: string;
 }
 
-interface HTMLVideoElementAttributes extends GlobalAttributes, SizeOptions, PlayerAttributes {
+export interface HTMLVideoElementAttributes extends GlobalAttributes, SizeOptions, PlayerAttributes {
   /**
    * @experimental
    */
@@ -939,7 +941,7 @@ interface HTMLVideoElementAttributes extends GlobalAttributes, SizeOptions, Play
 //#endregion
 
 //#region SVG shared attributes
-interface SVGCoreAttributes {
+export interface SVGCoreAttributes {
   id: string;
   lang: string;
   tabIndex: string;
@@ -947,18 +949,14 @@ interface SVGCoreAttributes {
   "xml:lang": string;
   /** @deprecated */
   "xml:space": EnumeratedValues<"default" | "preserve">;
-  /**
-   * Allow any attributes.
-   */
-  [key: string]: unknown;
 }
 
-interface StylingAttributes {
+export interface StylingAttributes {
   class: string;
   style: string;
 }
 
-interface PresentationAttributes {
+export interface PresentationAttributes {
   "clip-path": string;
   "clip-rule": string;
   color: string;
@@ -986,7 +984,7 @@ interface PresentationAttributes {
   visibility: string;
 }
 
-interface AnimationTimingAttributes {
+export interface AnimationTimingAttributes {
   begin: string;
   dur: string;
   end: string;
@@ -998,7 +996,7 @@ interface AnimationTimingAttributes {
   fill: string;
 }
 
-interface AnimationValueAttributes {
+export interface AnimationValueAttributes {
   calcMode: string;
   values: string;
   keyTimes: string;
@@ -1008,13 +1006,12 @@ interface AnimationValueAttributes {
   by: string;
 }
 
-interface AnimationAdditionAttributes {
+export interface AnimationAdditionAttributes {
   additive: string;
   accumulate: string;
 }
-interface DocumentEventAttributes
-  extends GeneralAttributes<"onabort" | "onerror" | "onresize" | "onscroll" | "onunload">,
-    FunctionalGlobalEventHandler {}
+export interface DocumentEventAttributes
+  extends GeneralAttributes<"onabort" | "onerror" | "onresize" | "onscroll" | "onunload"> {}
 
 type FunctionalDocumentElementEventHandler = {
   [K in keyof DocumentAndElementEventHandlers as `on${Capitalize<_EventName<K>>}`]: (
@@ -1022,11 +1019,11 @@ type FunctionalDocumentElementEventHandler = {
   ) => void;
 };
 
-interface DocumentElementEventAttributes
+export interface DocumentElementEventAttributes
   extends GeneralAttributes<"oncopy" | "oncut" | "onpaste">,
     FunctionalDocumentElementEventHandler {}
 
-interface GlobalEventAttributes
+export interface GlobalEventAttributes
   extends GeneralAttributes<
       | "oncancel"
       | "oncanplay"
@@ -1087,17 +1084,17 @@ interface GlobalEventAttributes
     >,
     FunctionalGlobalEventHandler {}
 
-interface AnimationAttributeTargetAttributes {
+export interface AnimationAttributeTargetAttributes {
   /** @deprecated */
   attributeType: string;
   attributeName: string;
 }
 
-interface ConditionalProcessingAttributes {
+export interface ConditionalProcessingAttributes {
   systemLanguage: string;
 }
 
-interface GraphicalEventAttributes
+export interface GraphicalEventAttributes
   extends GeneralAttributes<"onactivate" | "onfocusin" | "onfocusout">,
     FunctionalDocumentElementEventHandler {}
 
@@ -1124,7 +1121,7 @@ type InOrIn2Attributes = EnumeratedValues<
   "SourceGraphic" | "SourceAlpha" | "BackgroundImage" | "BackgroundAlpha" | "FillPaint" | "StrokePaint"
 >;
 
-interface SVGFilterAttributes {
+export interface SVGFilterAttributes {
   width: string;
   height: string;
   x: string;
@@ -1132,7 +1129,7 @@ interface SVGFilterAttributes {
   result: string;
 }
 
-interface TransferFunctionAttributes {
+export interface TransferFunctionAttributes {
   type: EnumeratedValues<"translate" | "scale" | "rotate" | "skewX" | "skewY">;
   tableValues: string;
   /** @deprecated */
@@ -1144,21 +1141,21 @@ interface TransferFunctionAttributes {
 //#endregion
 
 //#region SVG attributes
-interface SVGAElementAttributes
+export interface SVGAElementAttributes
   extends Omit<HTMLAnchorElementAttributes, "lang" | keyof GlobalAttributes>,
     SVGCoreAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
     GlobalEventAttributes {}
 
-interface SVGAnimateElementAttributes
+export interface SVGAnimateElementAttributes
   extends StylingAttributes,
     AnimationTimingAttributes,
     AnimationValueAttributes,
     AnimationAdditionAttributes,
     GlobalEventAttributes,
     DocumentElementEventAttributes {}
-interface SVGAnimateMotionElementAttributes
+export interface SVGAnimateMotionElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     AnimationTimingAttributes,
@@ -1171,7 +1168,7 @@ interface SVGAnimateMotionElementAttributes
   path: string;
   rotate: string;
 }
-interface SVGAnimateTransformElementAttributes
+export interface SVGAnimateTransformElementAttributes
   extends ConditionalProcessingAttributes,
     SVGCoreAttributes,
     AnimationAttributeTargetAttributes,
@@ -1183,7 +1180,7 @@ interface SVGAnimateTransformElementAttributes
   to: string;
   type: EnumeratedValues<"translate" | "scale" | "rotate" | "skewX" | "skewY">;
 }
-interface SVGCircleElementAttributes
+export interface SVGCircleElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
@@ -1195,33 +1192,33 @@ interface SVGCircleElementAttributes
   r: string;
   pathLength: string;
 }
-interface SVGClipPathElementAttributes
+export interface SVGClipPathElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
     PresentationAttributes {
   clipPathUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
 }
-interface SVGDefsElementAttributes
+export interface SVGDefsElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
     GlobalEventAttributes,
     DocumentElementEventAttributes,
     GraphicalEventAttributes {}
-interface SVGDescElementAttributes
+export interface SVGDescElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     GlobalEventAttributes,
     DocumentElementEventAttributes {}
-interface SVGDiscardElementAttributes
+export interface SVGDiscardElementAttributes
   extends ConditionalProcessingAttributes,
     SVGCoreAttributes,
     PresentationAttributes {
   begin: string;
   href: string;
 }
-interface SVGEllipseElementAttributes
+export interface SVGEllipseElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
@@ -1234,7 +1231,7 @@ interface SVGEllipseElementAttributes
   ry: string;
   pathLength: string;
 }
-interface SVGFEBlendElementAttributes
+export interface SVGFEBlendElementAttributes
   extends SVGCoreAttributes,
     PresentationAttributes,
     SVGFilterAttributes,
@@ -1243,7 +1240,7 @@ interface SVGFEBlendElementAttributes
   in2: InOrIn2Attributes;
   mode: BlendMode;
 }
-interface SVGFEColorMatrixElementAttributes
+export interface SVGFEColorMatrixElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1252,14 +1249,14 @@ interface SVGFEColorMatrixElementAttributes
   type: EnumeratedValues<"translate" | "scale" | "rotate" | "skewX" | "skewY">;
   values: string;
 }
-interface SVGFEComponentTransferElementAttributes
+export interface SVGFEComponentTransferElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
     SVGFilterAttributes {
   in: InOrIn2Attributes;
 }
-interface SVGFECompositeElementAttributes
+export interface SVGFECompositeElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1272,7 +1269,7 @@ interface SVGFECompositeElementAttributes
   k3: string;
   k4: string;
 }
-interface SVGFEConvolveMatrixElementAttributes
+export interface SVGFEConvolveMatrixElementAttributes
   extends SVGCoreAttributes,
     PresentationAttributes,
     SVGFilterAttributes,
@@ -1289,7 +1286,7 @@ interface SVGFEConvolveMatrixElementAttributes
   kernelUnitLength: string;
   preserveAlpha: EnumeratedValues<"true" | "false">;
 }
-interface SVGFEDiffuseLightingElementAttributes
+export interface SVGFEDiffuseLightingElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1300,7 +1297,7 @@ interface SVGFEDiffuseLightingElementAttributes
   /** @deprecated */
   kernelUnitLength: string;
 }
-interface SVGFEDisplacementMapElementAttributes
+export interface SVGFEDisplacementMapElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1311,11 +1308,11 @@ interface SVGFEDisplacementMapElementAttributes
   xChannelSelector: EnumeratedValues<"R" | "G" | "B" | "A">;
   yChannelSelector: EnumeratedValues<"R" | "G" | "B" | "A">;
 }
-interface SVGFEDistantLightElementAttributes extends SVGCoreAttributes {
+export interface SVGFEDistantLightElementAttributes extends SVGCoreAttributes {
   azimuth: string;
   elevation: string;
 }
-interface SVGFEDropShadowElementAttributes
+export interface SVGFEDropShadowElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     SVGFilterAttributes,
@@ -1324,7 +1321,7 @@ interface SVGFEDropShadowElementAttributes
   dy: string;
   stdDeviation: string;
 }
-interface SVGFEFloodElementAttributes
+export interface SVGFEFloodElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1332,11 +1329,11 @@ interface SVGFEFloodElementAttributes
   "flood-color": string;
   "flood-opacity": string;
 }
-interface SVGFEFuncAElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
-interface SVGFEFuncBElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
-interface SVGFEFuncGElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
-interface SVGFEFuncRElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
-interface SVGFEGaussianBlurElementAttributes
+export interface SVGFEFuncAElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
+export interface SVGFEFuncBElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
+export interface SVGFEFuncGElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
+export interface SVGFEFuncRElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
+export interface SVGFEGaussianBlurElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1345,7 +1342,7 @@ interface SVGFEGaussianBlurElementAttributes
   stdDeviation: string;
   edgeMode: EnumeratedValues<"duplicate" | "wrap" | "none">;
 }
-interface SVGFEImageElementAttributes
+export interface SVGFEImageElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1353,15 +1350,15 @@ interface SVGFEImageElementAttributes
   preserveAspectRatio: string;
   "xlink:href": string;
 }
-interface SVGFEMergeElementAttributes
+export interface SVGFEMergeElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
     SVGFilterAttributes {}
-interface SVGFEMergeNodeElementAttributes extends SVGCoreAttributes {
+export interface SVGFEMergeNodeElementAttributes extends SVGCoreAttributes {
   in: InOrIn2Attributes;
 }
-interface SVGFEMorphologyElementAttributes
+export interface SVGFEMorphologyElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1370,7 +1367,7 @@ interface SVGFEMorphologyElementAttributes
   operator: EnumeratedValues<"over" | "in" | "out" | "atop" | "xor" | "lighter" | "arithmetic">;
   radius: string;
 }
-interface SVGFEOffsetElementAttributes
+export interface SVGFEOffsetElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1379,12 +1376,12 @@ interface SVGFEOffsetElementAttributes
   dx: string;
   dy: string;
 }
-interface SVGFEPointLightElementAttributes extends SVGCoreAttributes {
+export interface SVGFEPointLightElementAttributes extends SVGCoreAttributes {
   x: string;
   y: string;
   z: string;
 }
-interface SVGFESpecularLightingElementAttributes
+export interface SVGFESpecularLightingElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1396,7 +1393,7 @@ interface SVGFESpecularLightingElementAttributes
   /** @deprecated */
   kernelUnitLength: string;
 }
-interface SVGFESpotLightElementAttributes extends SVGCoreAttributes {
+export interface SVGFESpotLightElementAttributes extends SVGCoreAttributes {
   x: string;
   y: string;
   z: string;
@@ -1406,14 +1403,14 @@ interface SVGFESpotLightElementAttributes extends SVGCoreAttributes {
   specularExponent: string;
   limitingConeAngle: string;
 }
-interface SVGFETileElementAttributes
+export interface SVGFETileElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
     SVGFilterAttributes {
   in: InOrIn2Attributes;
 }
-interface SVGFETurbulenceElementAttributes
+export interface SVGFETurbulenceElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1424,7 +1421,7 @@ interface SVGFETurbulenceElementAttributes
   stitchTiles: EnumeratedValues<"noStitch" | "stitch">;
   type: EnumeratedValues<"translate" | "scale" | "rotate" | "skewX" | "skewY">;
 }
-interface SVGFilterElementAttributes
+export interface SVGFilterElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1433,7 +1430,7 @@ interface SVGFilterElementAttributes
   primitiveUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
   "xlink:href": string;
 }
-interface SVGForeignObjectElementAttributes
+export interface SVGForeignObjectElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
@@ -1443,14 +1440,14 @@ interface SVGForeignObjectElementAttributes
     GraphicalEventAttributes,
     DocumentEventAttributes,
     DocumentElementEventAttributes {}
-interface SVGGElementAttributes
+export interface SVGGElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
     GlobalEventAttributes,
     GraphicalEventAttributes {}
-interface SVGImageElementAttributes
+export interface SVGImageElementAttributes
   extends SVGCoreAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
@@ -1462,7 +1459,7 @@ interface SVGImageElementAttributes
   preserveAspectRatio: string;
   crossorigin: EnumeratedValues<"anonymous" | "use-credentials" | "">;
 }
-interface SVGLineElementAttributes
+export interface SVGLineElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1475,7 +1472,7 @@ interface SVGLineElementAttributes
   y2: string;
   pathLength: string;
 }
-interface SVGLinearGradientElementAttributes
+export interface SVGLinearGradientElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1492,7 +1489,7 @@ interface SVGLinearGradientElementAttributes
   y1: string;
   y2: string;
 }
-interface SVGMarkerElementAttributes
+export interface SVGMarkerElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
@@ -1506,7 +1503,7 @@ interface SVGMarkerElementAttributes
   refY: string;
   viewBox: string;
 }
-interface SVGMaskElementAttributes
+export interface SVGMaskElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
@@ -1518,11 +1515,11 @@ interface SVGMaskElementAttributes
   x: string;
   y: string;
 }
-interface SVGMetadataElementAttributes extends SVGCoreAttributes, GlobalEventAttributes {}
-interface SVGMPathElementAttributes extends SVGCoreAttributes {
+export interface SVGMetadataElementAttributes extends SVGCoreAttributes, GlobalEventAttributes {}
+export interface SVGMPathElementAttributes extends SVGCoreAttributes {
   "xlink:href": string;
 }
-interface SVGPathElementAttributes
+export interface SVGPathElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1532,7 +1529,7 @@ interface SVGPathElementAttributes
   d: string;
   pathLength: string;
 }
-interface SVGPatternElementAttributes
+export interface SVGPatternElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
@@ -1548,7 +1545,7 @@ interface SVGPatternElementAttributes
   x: string;
   y: string;
 }
-interface SVGPolygonElementAttributes
+export interface SVGPolygonElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1558,7 +1555,7 @@ interface SVGPolygonElementAttributes
   points: string;
   pathLength: string;
 }
-interface SVGPolylineElementAttributes
+export interface SVGPolylineElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1568,7 +1565,7 @@ interface SVGPolylineElementAttributes
   points: string;
   pathLength: string;
 }
-interface SVGRadialGradientElementAttributes
+export interface SVGRadialGradientElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1586,7 +1583,7 @@ interface SVGRadialGradientElementAttributes
   spreadMethod: string;
   "xlink:href": string;
 }
-interface SVGRectElementAttributes
+export interface SVGRectElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1601,7 +1598,7 @@ interface SVGRectElementAttributes
   ry: string;
   pathLength: string;
 }
-interface SVGSetElementAttributes
+export interface SVGSetElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     AnimationTimingAttributes,
@@ -1610,7 +1607,7 @@ interface SVGSetElementAttributes
     DocumentElementEventAttributes {
   to: string;
 }
-interface SVGStopElementAttributes
+export interface SVGStopElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1621,7 +1618,7 @@ interface SVGStopElementAttributes
   "stop-color": string;
   "stop-opacity": string;
 }
-interface SVGSVGElementAttributes
+export interface SVGSVGElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
@@ -1639,7 +1636,7 @@ interface SVGSVGElementAttributes
   x: string;
   y: string;
 }
-interface SVGSwitchElementAttributes
+export interface SVGSwitchElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
@@ -1647,7 +1644,7 @@ interface SVGSwitchElementAttributes
     GraphicalEventAttributes {
   transform: string;
 }
-interface SVGSymbolElementAttributes
+export interface SVGSymbolElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1663,7 +1660,7 @@ interface SVGSymbolElementAttributes
   x: string;
   y: string;
 }
-interface SVGTextElementAttributes
+export interface SVGTextElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1685,7 +1682,7 @@ interface SVGTextElementAttributes
   lengthAdjust: EnumeratedValues<"pacing" | "spacingAndGlyphs">;
   textLength: string;
 }
-interface SVGTextPathElementAttributes
+export interface SVGTextPathElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1703,12 +1700,12 @@ interface SVGTextPathElementAttributes
   startOffset: string;
   textLength: string;
 }
-interface SVGTitleElementAttributes
+export interface SVGTitleElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     GlobalEventAttributes,
     DocumentElementEventAttributes {}
-interface SVGTSpanElementAttributes
+export interface SVGTSpanElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1723,7 +1720,7 @@ interface SVGTSpanElementAttributes
   lengthAdjust: EnumeratedValues<"pacing" | "spacingAndGlyphs">;
   textLength: string;
 }
-interface SVGUseElementAttributes
+export interface SVGUseElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
@@ -1738,7 +1735,7 @@ interface SVGUseElementAttributes
   width: string;
   height: string;
 }
-interface SVGViewElementAttributes extends SVGCoreAttributes, GlobalEventAttributes {
+export interface SVGViewElementAttributes extends SVGCoreAttributes, GlobalEventAttributes {
   viewBox: string;
   preserveAspectRatio: string;
 }

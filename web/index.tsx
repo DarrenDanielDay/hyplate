@@ -27,7 +27,7 @@ function main() {
     const count = source(0);
     const double = query(() => count.val * 2);
     const addButton = useRef("button.add-btn");
-    const oddDisabledBtn = useAnchor("odd-disabled");
+    const oddDisabledBtn = useAnchor("odd-disabled") as HTMLButtonElement;
     useCleanUp(text`${user} clicked ${count} times.`(appendChild(addButton)));
     useCleanUp(text`double of count: ${double}`(appendChild(useAnchor("double"))));
     const disabled = query(() => count.val % 2 === 1);

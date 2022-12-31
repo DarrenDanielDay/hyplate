@@ -2,6 +2,7 @@ import { attr, remove, text } from "./core.js";
 import type {
   AttachFunc,
   AttributeInterpolation,
+  AttributesMap,
   CleanUpFunc,
   Subscribable,
   SubscribableTester,
@@ -91,5 +92,12 @@ export const interpolation = (
   };
 };
 
-export const bindAttr = (el: Element, name: string, query: Subscribable<AttributeInterpolation>) =>
+export const bindAttr: {
+  <E extends Element, P extends keyof AttributesMap<E>>(
+    el: E,
+    name: P,
+    query: Subscribable<AttributesMap<E>[P]>
+  ): CleanUpFunc;
+  (el: Element, name: string, query: Subscribable<AttributeInterpolation>): CleanUpFunc;
+} = (el: Element, name: string, query: Subscribable<AttributeInterpolation>) =>
   subscribe(query, (attribute) => attr(el, name, attribute));
