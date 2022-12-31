@@ -42,8 +42,8 @@ export const resetBinding = () => {
   isSubscribable = defaultIsSubscribable;
 };
 
-export const bindText = (node: Node, query: Subscribable<TextInterpolation>) =>
-  subscribe(query, (content) => text(node, content));
+export const bindText = (node: Node, subscribable: Subscribable<TextInterpolation>) =>
+  subscribe(subscribable, (content) => text(node, content));
 
 export const interpolation = (
   fragments: TemplateStringsArray,
@@ -58,7 +58,7 @@ export const interpolation = (
       );
     }
     if (bindings.some((binding) => isObject(binding) && !isSubscribable(binding))) {
-      err(`Invalid usage of "text". Object text child must be reactive source/query.`);
+      err(`Invalid usage of "text". Object text child must be a subscribable.`);
     }
   }
   return (attach: AttachFunc): CleanUpFunc => {
@@ -96,8 +96,8 @@ export const bindAttr: {
   <E extends Element, P extends keyof AttributesMap<E>>(
     el: E,
     name: P,
-    query: Subscribable<AttributesMap<E>[P]>
+    subscribable: Subscribable<AttributesMap<E>[P]>
   ): CleanUpFunc;
-  (el: Element, name: string, query: Subscribable<AttributeInterpolation>): CleanUpFunc;
-} = (el: Element, name: string, query: Subscribable<AttributeInterpolation>) =>
-  subscribe(query, (attribute) => attr(el, name, attribute));
+  (el: Element, name: string, subscribable: Subscribable<AttributeInterpolation>): CleanUpFunc;
+} = (el: Element, name: string, subscribable: Subscribable<AttributeInterpolation>) =>
+  subscribe(subscribable, (attribute) => attr(el, name, attribute));
