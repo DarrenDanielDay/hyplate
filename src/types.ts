@@ -56,10 +56,15 @@ export type EventMap<T extends EventTarget> = T extends HTMLElement
   ? XMLHttpRequestEventMap
   : never;
 
-export type Handler<T extends EventTarget, E extends Extract<keyof EventMap<T>, string>> = (
-  this: T,
-  e: EventMap<T>[E]
-) => any;
+export type FunctionalEventHanlder<T extends EventTarget, E extends Event> = (this: T, e: E) => any;
+
+export interface ObjectEventHandler<E extends Event> {
+  handleEvent(event: E): void;
+}
+
+export type Handler<T extends EventTarget, E extends Extract<keyof EventMap<T>, string>> =
+  | FunctionalEventHanlder<T, Extract<EventMap<T>[E], Event>>
+  | ObjectEventHandler<Extract<EventMap<T>[E], Event>>;
 
 export type Events<T extends EventTarget> = Extract<keyof EventMap<T>, string>;
 
@@ -160,37 +165,10 @@ export type JSXChildNode = ArrayOr<JSXChild>;
 
 type GeneralAttributeType = string | number | boolean | undefined | null;
 
-type GeneralAttributes<K extends string> = {
-  [P in K]: GeneralAttributeType;
-};
-
-type BooleanAttributes<K extends string> = {
-  [P in K]: BooleanAttributeValue;
-};
-
 type EnumeratedValues<E extends string> = E | (string & {});
 
 type ElementAttributes<E extends Element> = {
   ref?: Later<E>;
-};
-
-type Attributes<T extends {}, E extends Element> = {
-  [K in keyof T]?: T[K] | Subscribable<T[K]>;
-} & ElementAttributes<E> &
-  JSX.IntrinsicAttributes &
-  Partial<FunctionalGlobalEventHandler> & {
-    /**
-     * Allow any custom attributes.
-     */
-    [key: string]: unknown;
-  };
-
-type _EventName<E extends string> = E extends `on${infer e}` ? e : never;
-
-type FunctionalGlobalEventHandler = {
-  [K in keyof GlobalEventHandlers as `on${Capitalize<_EventName<K>>}`]: (
-    event: Parameters<Extract<GlobalEventHandlers[K], (...args: any[]) => any>>[0]
-  ) => void;
 };
 
 //#region shared attribute enum values
@@ -404,101 +382,97 @@ export interface PlayerAttributes {
  * @see https://developer.mozilla.org/docs/Web/HTML/Global_attributes
  */
 //#region global attributes
-export interface GlobalAttributes
-  //#region general attributes
-  extends GeneralAttributes<
-      | "accesskey"
-      | "class"
-      | `data-${string}`
-      | "enterkeyhint"
-      | "id"
-      | "is"
-      | "itemid"
-      | "itemprop"
-      | "itemref"
-      | "itemscope"
-      | "itemtype"
-      | "lang"
-      | "nonce"
-      | "onabort"
-      | "onautocomplete"
-      | "onautocompleteerror"
-      | "onblur"
-      | "oncancel"
-      | "oncanplay"
-      | "oncanplaythrough"
-      | "onchange"
-      | "onclick"
-      | "onclose"
-      | "oncontextmenu"
-      | "oncuechange"
-      | "ondblclick"
-      | "ondrag"
-      | "ondragend"
-      | "ondragenter"
-      | "ondragleave"
-      | "ondragover"
-      | "ondragstart"
-      | "ondrop"
-      | "ondurationchange"
-      | "onemptied"
-      | "onended"
-      | "onerror"
-      | "onfocus"
-      | "oninput"
-      | "oninvalid"
-      | "onkeydown"
-      | "onkeypress"
-      | "onkeyup"
-      | "onload"
-      | "onloadeddata"
-      | "onloadedmetadata"
-      | "onloadstart"
-      | "onmousedown"
-      | "onmouseenter"
-      | "onmouseleave"
-      | "onmousemove"
-      | "onmouseout"
-      | "onmouseover"
-      | "onmouseup"
-      | "onmousewheel"
-      | "onpause"
-      | "onplay"
-      | "onplaying"
-      | "onprogress"
-      | "onratechange"
-      | "onreset"
-      | "onresize"
-      | "onscroll"
-      | "onseeked"
-      | "onseeking"
-      | "onselect"
-      | "onshow"
-      | "onsort"
-      | "onstalled"
-      | "onsubmit"
-      | "onsuspend"
-      | "ontimeupdate"
-      | "ontoggle"
-      | "onvolumechange"
-      | "onwaiting"
-      | "part"
-      | "title"
-    >,
-    //#endregion
-    BooleanAttributes<"autofocus" | "contenteditable" | "draggable" | "inert" | "spellcheck"> {
-  /** @deprecated */
-  "xml:lang": string;
-  /** @deprecated */
-  "xml:base": string;
+export interface HTMLGlobalEventAttributes {
+  onabort: string;
+  onautocomplete: string;
+  onautocompleteerror: string;
+  onblur: string;
+  oncancel: string;
+  oncanplay: string;
+  oncanplaythrough: string;
+  onchange: string;
+  onclick: string;
+  onclose: string;
+  oncontextmenu: string;
+  oncuechange: string;
+  ondblclick: string;
+  ondrag: string;
+  ondragend: string;
+  ondragenter: string;
+  ondragleave: string;
+  ondragover: string;
+  ondragstart: string;
+  ondrop: string;
+  ondurationchange: string;
+  onemptied: string;
+  onended: string;
+  onerror: string;
+  onfocus: string;
+  oninput: string;
+  oninvalid: string;
+  onkeydown: string;
+  onkeypress: string;
+  onkeyup: string;
+  onload: string;
+  onloadeddata: string;
+  onloadedmetadata: string;
+  onloadstart: string;
+  onmousedown: string;
+  onmouseenter: string;
+  onmouseleave: string;
+  onmousemove: string;
+  onmouseout: string;
+  onmouseover: string;
+  onmouseup: string;
+  onmousewheel: string;
+  onpause: string;
+  onplay: string;
+  onplaying: string;
+  onprogress: string;
+  onratechange: string;
+  onreset: string;
+  onresize: string;
+  onscroll: string;
+  onseeked: string;
+  onseeking: string;
+  onselect: string;
+  onshow: string;
+  onsort: string;
+  onstalled: string;
+  onsubmit: string;
+  onsuspend: string;
+  ontimeupdate: string;
+  ontoggle: string;
+  onvolumechange: string;
+  onwaiting: string;
+}
+
+export interface GlobalAttributes extends HTMLGlobalEventAttributes {
+  accesskey: GeneralAttributeType;
   autocapitalize: EnumeratedValues<"off" | "none" | "on" | "sentences" | "words" | "characters">;
+  autofocus: BooleanAttributeValue;
+  class: string;
+  contenteditable: BooleanAttributeValue;
   /** @deprecated */
   contextmenu: GeneralAttributeType;
   dir: EnumeratedValues<"ltr" | "rtl" | "auto">;
+  draggable: BooleanAttributeValue;
+  enterkeyhint: EnumeratedValues<"enter" | "done" | "go" | "next" | "previous" | "search" | "send">;
   /** @experimental */
   exportparts: GeneralAttributeType;
   hidden: EnumeratedValues<"" | "hidden" | "until-found">;
+  id: GeneralAttributeType;
   inputmode: EnumeratedValues<"none" | "text" | "decimal" | "numeric" | "tel" | "search" | "email" | "url">;
+  inert: BooleanAttributeValue;
+  is: string;
+  itemid: GeneralAttributeType;
+  itemprop: string;
+  itemref: string;
+  itemscope: string;
+  itemtype: string;
+  lang: string;
+  nonce: string;
+  part: GeneralAttributeType;
   //#region ARIA role
   role: EnumeratedValues<
     | "alert"
@@ -577,9 +551,15 @@ export interface GlobalAttributes
    * `slot` is handled. Do not use.
    */
   slot: never;
+  spellcheck: BooleanAttributeValue;
   style: string;
-  tabindex: number;
+  tabindex: NumericAttributeValue;
+  title: string;
   translate: EnumeratedValues<"yes" | "no">;
+  /** @deprecated */
+  "xml:lang": string;
+  /** @deprecated */
+  "xml:base": string;
 }
 
 //#endregion
@@ -1010,79 +990,78 @@ export interface AnimationAdditionAttributes {
   additive: string;
   accumulate: string;
 }
-export interface DocumentEventAttributes
-  extends GeneralAttributes<"onabort" | "onerror" | "onresize" | "onscroll" | "onunload"> {}
+export interface DocumentEventAttributes {
+  onabort: string;
+  onerror: string;
+  onresize: string;
+  onscroll: string;
+  onunload: string;
+}
 
-type FunctionalDocumentElementEventHandler = {
-  [K in keyof DocumentAndElementEventHandlers as `on${Capitalize<_EventName<K>>}`]: (
-    event: Parameters<Extract<DocumentAndElementEventHandlers[K], (...args: any[]) => any>>[0]
-  ) => void;
-};
+export interface DocumentElementEventAttributes {
+  oncopy: string;
+  oncut: string;
+  onpaste: string;
+}
 
-export interface DocumentElementEventAttributes
-  extends GeneralAttributes<"oncopy" | "oncut" | "onpaste">,
-    FunctionalDocumentElementEventHandler {}
-
-export interface GlobalEventAttributes
-  extends GeneralAttributes<
-      | "oncancel"
-      | "oncanplay"
-      | "oncanplaythrough"
-      | "onchange"
-      | "onclick"
-      | "onclose"
-      | "oncuechange"
-      | "ondblclick"
-      | "ondrag"
-      | "ondragend"
-      | "ondragenter"
-      | "ondragleave"
-      | "ondragover"
-      | "ondragstart"
-      | "ondrop"
-      | "ondurationchange"
-      | "onemptied"
-      | "onended"
-      | "onerror"
-      | "onfocus"
-      | "oninput"
-      | "oninvalid"
-      | "onkeydown"
-      | "onkeypress"
-      | "onkeyup"
-      | "onload"
-      | "onloadeddata"
-      | "onloadedmetadata"
-      | "onloadstart"
-      | "onmousedown"
-      | "onmouseenter"
-      | "onmouseleave"
-      | "onmousemove"
-      | "onmouseout"
-      | "onmouseover"
-      | "onmouseup"
-      | "onmousewheel"
-      | "onpause"
-      | "onplay"
-      | "onplaying"
-      | "onprogress"
-      | "onratechange"
-      | "onreset"
-      | "onresize"
-      | "onscroll"
-      | "onseeked"
-      | "onseeking"
-      | "onselect"
-      | "onshow"
-      | "onstalled"
-      | "onsubmit"
-      | "onsuspend"
-      | "ontimeupdate"
-      | "ontoggle"
-      | "onvolumechange"
-      | "onwaiting"
-    >,
-    FunctionalGlobalEventHandler {}
+export interface SVGGlobalEventAttributes {
+  oncancel: string;
+  oncanplay: string;
+  oncanplaythrough: string;
+  onchange: string;
+  onclick: string;
+  onclose: string;
+  oncuechange: string;
+  ondblclick: string;
+  ondrag: string;
+  ondragend: string;
+  ondragenter: string;
+  ondragleave: string;
+  ondragover: string;
+  ondragstart: string;
+  ondrop: string;
+  ondurationchange: string;
+  onemptied: string;
+  onended: string;
+  onerror: string;
+  onfocus: string;
+  oninput: string;
+  oninvalid: string;
+  onkeydown: string;
+  onkeypress: string;
+  onkeyup: string;
+  onload: string;
+  onloadeddata: string;
+  onloadedmetadata: string;
+  onloadstart: string;
+  onmousedown: string;
+  onmouseenter: string;
+  onmouseleave: string;
+  onmousemove: string;
+  onmouseout: string;
+  onmouseover: string;
+  onmouseup: string;
+  onmousewheel: string;
+  onpause: string;
+  onplay: string;
+  onplaying: string;
+  onprogress: string;
+  onratechange: string;
+  onreset: string;
+  onresize: string;
+  onscroll: string;
+  onseeked: string;
+  onseeking: string;
+  onselect: string;
+  onshow: string;
+  onstalled: string;
+  onsubmit: string;
+  onsuspend: string;
+  ontimeupdate: string;
+  ontoggle: string;
+  onvolumechange: string;
+  onwaiting: string;
+}
 
 export interface AnimationAttributeTargetAttributes {
   /** @deprecated */
@@ -1094,9 +1073,11 @@ export interface ConditionalProcessingAttributes {
   systemLanguage: string;
 }
 
-export interface GraphicalEventAttributes
-  extends GeneralAttributes<"onactivate" | "onfocusin" | "onfocusout">,
-    FunctionalDocumentElementEventHandler {}
+export interface GraphicalEventAttributes {
+  onactivate: string;
+  onfocusin: string;
+  onfocusout: string;
+}
 
 type BlendMode = EnumeratedValues<
   | "normal"
@@ -1142,18 +1123,18 @@ export interface TransferFunctionAttributes {
 
 //#region SVG attributes
 export interface SVGAElementAttributes
-  extends Omit<HTMLAnchorElementAttributes, "lang" | keyof GlobalAttributes>,
+  extends Omit<HTMLAnchorElementAttributes, keyof GlobalAttributes>,
     SVGCoreAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
-    GlobalEventAttributes {}
+    SVGGlobalEventAttributes {}
 
 export interface SVGAnimateElementAttributes
   extends StylingAttributes,
     AnimationTimingAttributes,
     AnimationValueAttributes,
     AnimationAdditionAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     DocumentElementEventAttributes {}
 export interface SVGAnimateMotionElementAttributes
   extends SVGCoreAttributes,
@@ -1162,7 +1143,7 @@ export interface SVGAnimateMotionElementAttributes
     AnimationValueAttributes,
     AnimationAdditionAttributes,
     AnimationAttributeTargetAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     DocumentElementEventAttributes {
   keyPoints: string;
   path: string;
@@ -1185,7 +1166,7 @@ export interface SVGCircleElementAttributes
     StylingAttributes,
     ConditionalProcessingAttributes,
     PresentationAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   cx: string;
   cy: string;
@@ -1203,13 +1184,13 @@ export interface SVGDefsElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     DocumentElementEventAttributes,
     GraphicalEventAttributes {}
 export interface SVGDescElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     DocumentElementEventAttributes {}
 export interface SVGDiscardElementAttributes
   extends ConditionalProcessingAttributes,
@@ -1223,7 +1204,7 @@ export interface SVGEllipseElementAttributes
     StylingAttributes,
     ConditionalProcessingAttributes,
     PresentationAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   cx: string;
   cy: string;
@@ -1436,7 +1417,7 @@ export interface SVGForeignObjectElementAttributes
     ConditionalProcessingAttributes,
     PresentationAttributes,
     Omit<SVGFilterAttributes, "result">,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes,
     DocumentEventAttributes,
     DocumentElementEventAttributes {}
@@ -1445,14 +1426,14 @@ export interface SVGGElementAttributes
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {}
 export interface SVGImageElementAttributes
   extends SVGCoreAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
     Omit<SVGFilterAttributes, "result">,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   href: string;
   "xlink:href": string;
@@ -1464,7 +1445,7 @@ export interface SVGLineElementAttributes
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   x1: string;
   x2: string;
@@ -1476,7 +1457,7 @@ export interface SVGLinearGradientElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     DocumentElementEventAttributes {
   gradientUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
   gradientTransform: string;
@@ -1515,7 +1496,7 @@ export interface SVGMaskElementAttributes
   x: string;
   y: string;
 }
-export interface SVGMetadataElementAttributes extends SVGCoreAttributes, GlobalEventAttributes {}
+export interface SVGMetadataElementAttributes extends SVGCoreAttributes, SVGGlobalEventAttributes {}
 export interface SVGMPathElementAttributes extends SVGCoreAttributes {
   "xlink:href": string;
 }
@@ -1524,7 +1505,7 @@ export interface SVGPathElementAttributes
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   d: string;
   pathLength: string;
@@ -1550,7 +1531,7 @@ export interface SVGPolygonElementAttributes
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   points: string;
   pathLength: string;
@@ -1560,7 +1541,7 @@ export interface SVGPolylineElementAttributes
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   points: string;
   pathLength: string;
@@ -1569,7 +1550,7 @@ export interface SVGRadialGradientElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     DocumentElementEventAttributes {
   cx: string;
   xy: string;
@@ -1588,7 +1569,7 @@ export interface SVGRectElementAttributes
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   x: string;
   y: string;
@@ -1603,7 +1584,7 @@ export interface SVGSetElementAttributes
     StylingAttributes,
     AnimationTimingAttributes,
     AnimationAttributeTargetAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     DocumentElementEventAttributes {
   to: string;
 }
@@ -1611,7 +1592,7 @@ export interface SVGStopElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     DocumentElementEventAttributes {
   /** @deprecated */
   offset: string;
@@ -1623,7 +1604,7 @@ export interface SVGSVGElementAttributes
     StylingAttributes,
     ConditionalProcessingAttributes,
     PresentationAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes,
     DocumentEventAttributes,
     DocumentElementEventAttributes {
@@ -1648,7 +1629,7 @@ export interface SVGSymbolElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     DocumentElementEventAttributes,
     GraphicalEventAttributes {
   width: string;
@@ -1665,7 +1646,7 @@ export interface SVGTextElementAttributes
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   "font-family": string;
   "font-size": string;
@@ -1687,7 +1668,7 @@ export interface SVGTextPathElementAttributes
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   href: string;
   lengthAdjust: EnumeratedValues<"pacing" | "spacingAndGlyphs">;
@@ -1703,14 +1684,14 @@ export interface SVGTextPathElementAttributes
 export interface SVGTitleElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     DocumentElementEventAttributes {}
 export interface SVGTSpanElementAttributes
   extends SVGCoreAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   x: string;
   y: string;
@@ -1725,7 +1706,7 @@ export interface SVGUseElementAttributes
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
-    GlobalEventAttributes,
+    SVGGlobalEventAttributes,
     GraphicalEventAttributes {
   href: string;
   /** @deprecated  */
@@ -1735,7 +1716,7 @@ export interface SVGUseElementAttributes
   width: string;
   height: string;
 }
-export interface SVGViewElementAttributes extends SVGCoreAttributes, GlobalEventAttributes {
+export interface SVGViewElementAttributes extends SVGCoreAttributes, SVGGlobalEventAttributes {
   viewBox: string;
   preserveAspectRatio: string;
 }
@@ -1876,184 +1857,198 @@ declare global {
     interface ElementChildrenAttribute {
       children: {};
     }
+    type JSXEventHandlerAttributes<E extends globalThis.Element> = {
+      [K in Extract<keyof EventMap<E>, string> as `on${Capitalize<K>}`]?: Handler<E, K>;
+    };
+
+    type JSXAttributes<T extends {}, E extends globalThis.Element> = {
+      [K in keyof T]?: T[K] | Subscribable<T[K]>;
+    } & ElementAttributes<E> &
+      JSX.IntrinsicAttributes &
+      JSXEventHandlerAttributes<E> & {
+        /**
+         * Allow any custom attributes.
+         */
+        [key: string]: unknown;
+      };
 
     interface JSXHTMLElements {
-      a: Attributes<HTMLAnchorElementAttributes, HTMLAnchorElement>;
-      abbr: Attributes<GlobalAttributes, HTMLElement>;
-      address: Attributes<GlobalAttributes, HTMLElement>;
-      area: Attributes<HTMLAreaElementAttributes, HTMLAreaElement>;
-      article: Attributes<GlobalAttributes, HTMLElement>;
-      aside: Attributes<GlobalAttributes, HTMLElement>;
-      audio: Attributes<HTMLAudioElementAttributes, HTMLAudioElement>;
-      b: Attributes<GlobalAttributes, HTMLElement>;
-      bdi: Attributes<GlobalAttributes, HTMLElement>;
-      bdo: Attributes<GlobalAttributes, HTMLElement>;
-      blockquote: Attributes<GlobalAttributes, HTMLQuoteElement>;
-      br: Attributes<GlobalAttributes, HTMLBRElement>;
-      button: Attributes<HTMLButtonElementAttributes, HTMLButtonElement>;
-      canvas: Attributes<HTMLCanvasElementAttributes, HTMLCanvasElement>;
-      caption: Attributes<GlobalAttributes, HTMLTableCaptionElement>;
-      cite: Attributes<GlobalAttributes, HTMLElement>;
-      code: Attributes<GlobalAttributes, HTMLElement>;
-      col: Attributes<HTMLTableColElementAttributes, HTMLTableColElement>;
-      colgroup: Attributes<HTMLTableColElementAttributes, HTMLTableColElement>;
-      data: Attributes<HTMLDataElementAttributes, HTMLDataElement>;
-      datalist: Attributes<GlobalAttributes, HTMLDataListElement>;
-      dd: Attributes<GlobalAttributes, HTMLElement>;
-      del: Attributes<HTMLModElementAttributes, HTMLModElement>;
-      details: Attributes<HTMLDetailsElementAttributes, HTMLDetailsElement>;
-      dfn: Attributes<GlobalAttributes, HTMLElement>;
-      dialog: Attributes<HTMLDialogElementAttributes, HTMLDialogElement>;
-      div: Attributes<GlobalAttributes, HTMLDivElement>;
-      dl: Attributes<GlobalAttributes, HTMLDListElement>;
-      dt: Attributes<GlobalAttributes, HTMLElement>;
-      em: Attributes<GlobalAttributes, HTMLElement>;
-      embed: Attributes<HTMLEmbedElementAttributes, HTMLEmbedElement>;
-      fieldset: Attributes<HTMLFieldSetElementAttributes, HTMLFieldSetElement>;
-      figcaption: Attributes<GlobalAttributes, HTMLElement>;
-      figure: Attributes<GlobalAttributes, HTMLElement>;
-      footer: Attributes<GlobalAttributes, HTMLElement>;
-      form: Attributes<HTMLFormElementAttributes, HTMLFormElement>;
-      h1: Attributes<GlobalAttributes, HTMLHeadingElement>;
-      h2: Attributes<GlobalAttributes, HTMLHeadingElement>;
-      h3: Attributes<GlobalAttributes, HTMLHeadingElement>;
-      h4: Attributes<GlobalAttributes, HTMLHeadingElement>;
-      h5: Attributes<GlobalAttributes, HTMLHeadingElement>;
-      h6: Attributes<GlobalAttributes, HTMLHeadingElement>;
-      head: Attributes<GlobalAttributes, HTMLHeadElement>;
-      header: Attributes<GlobalAttributes, HTMLElement>;
-      hgroup: Attributes<GlobalAttributes, HTMLElement>;
-      hr: Attributes<GlobalAttributes, HTMLElement>;
-      i: Attributes<GlobalAttributes, HTMLElement>;
-      iframe: Attributes<HTMLIFrameElementAttributes, HTMLIFrameElement>;
-      img: Attributes<HTMLImageElementAttributes, HTMLImageElement>;
-      input: Attributes<
+      a: JSXAttributes<HTMLAnchorElementAttributes, HTMLAnchorElement>;
+      abbr: JSXAttributes<GlobalAttributes, HTMLElement>;
+      address: JSXAttributes<GlobalAttributes, HTMLElement>;
+      area: JSXAttributes<HTMLAreaElementAttributes, HTMLAreaElement>;
+      article: JSXAttributes<GlobalAttributes, HTMLElement>;
+      aside: JSXAttributes<GlobalAttributes, HTMLElement>;
+      audio: JSXAttributes<HTMLAudioElementAttributes, HTMLAudioElement>;
+      b: JSXAttributes<GlobalAttributes, HTMLElement>;
+      bdi: JSXAttributes<GlobalAttributes, HTMLElement>;
+      bdo: JSXAttributes<GlobalAttributes, HTMLElement>;
+      blockquote: JSXAttributes<GlobalAttributes, HTMLQuoteElement>;
+      br: JSXAttributes<GlobalAttributes, HTMLBRElement>;
+      button: JSXAttributes<HTMLButtonElementAttributes, HTMLButtonElement>;
+      canvas: JSXAttributes<HTMLCanvasElementAttributes, HTMLCanvasElement>;
+      caption: JSXAttributes<GlobalAttributes, HTMLTableCaptionElement>;
+      cite: JSXAttributes<GlobalAttributes, HTMLElement>;
+      code: JSXAttributes<GlobalAttributes, HTMLElement>;
+      col: JSXAttributes<HTMLTableColElementAttributes, HTMLTableColElement>;
+      colgroup: JSXAttributes<HTMLTableColElementAttributes, HTMLTableColElement>;
+      data: JSXAttributes<HTMLDataElementAttributes, HTMLDataElement>;
+      datalist: JSXAttributes<GlobalAttributes, HTMLDataListElement>;
+      dd: JSXAttributes<GlobalAttributes, HTMLElement>;
+      del: JSXAttributes<HTMLModElementAttributes, HTMLModElement>;
+      details: JSXAttributes<HTMLDetailsElementAttributes, HTMLDetailsElement>;
+      dfn: JSXAttributes<GlobalAttributes, HTMLElement>;
+      dialog: JSXAttributes<HTMLDialogElementAttributes, HTMLDialogElement>;
+      div: JSXAttributes<GlobalAttributes, HTMLDivElement>;
+      dl: JSXAttributes<GlobalAttributes, HTMLDListElement>;
+      dt: JSXAttributes<GlobalAttributes, HTMLElement>;
+      em: JSXAttributes<GlobalAttributes, HTMLElement>;
+      embed: JSXAttributes<HTMLEmbedElementAttributes, HTMLEmbedElement>;
+      fieldset: JSXAttributes<HTMLFieldSetElementAttributes, HTMLFieldSetElement>;
+      figcaption: JSXAttributes<GlobalAttributes, HTMLElement>;
+      figure: JSXAttributes<GlobalAttributes, HTMLElement>;
+      footer: JSXAttributes<GlobalAttributes, HTMLElement>;
+      form: JSXAttributes<HTMLFormElementAttributes, HTMLFormElement>;
+      h1: JSXAttributes<GlobalAttributes, HTMLHeadingElement>;
+      h2: JSXAttributes<GlobalAttributes, HTMLHeadingElement>;
+      h3: JSXAttributes<GlobalAttributes, HTMLHeadingElement>;
+      h4: JSXAttributes<GlobalAttributes, HTMLHeadingElement>;
+      h5: JSXAttributes<GlobalAttributes, HTMLHeadingElement>;
+      h6: JSXAttributes<GlobalAttributes, HTMLHeadingElement>;
+      head: JSXAttributes<GlobalAttributes, HTMLHeadElement>;
+      header: JSXAttributes<GlobalAttributes, HTMLElement>;
+      hgroup: JSXAttributes<GlobalAttributes, HTMLElement>;
+      hr: JSXAttributes<GlobalAttributes, HTMLElement>;
+      i: JSXAttributes<GlobalAttributes, HTMLElement>;
+      iframe: JSXAttributes<HTMLIFrameElementAttributes, HTMLIFrameElement>;
+      img: JSXAttributes<HTMLImageElementAttributes, HTMLImageElement>;
+      input: JSXAttributes<
         JSXTypeConfig extends { strictInput: boolean } ? InputAttributes : HTMLInputElementAttributes,
         HTMLInputElement
       >;
-      ins: Attributes<HTMLModElementAttributes, HTMLModElement>;
-      kbd: Attributes<GlobalAttributes, HTMLElement>;
-      label: Attributes<HTMLLabelElementAttributes, HTMLLabelElement>;
-      legend: Attributes<GlobalAttributes, HTMLElement>;
-      li: Attributes<HTMLLIElementAttributes, HTMLLIElement>;
-      link: Attributes<HTMLLinkElementAttributes, HTMLLinkElement>;
-      main: Attributes<GlobalAttributes, HTMLElement>;
-      map: Attributes<HTMLMapElementAttributes, HTMLMapElement>;
-      mark: Attributes<GlobalAttributes, HTMLElement>;
-      menu: Attributes<GlobalAttributes, HTMLMenuElement>;
-      meter: Attributes<HTMLMeterElementAttributes, HTMLMeterElement>;
-      nav: Attributes<GlobalAttributes, HTMLElement>;
-      noscript: Attributes<GlobalAttributes, HTMLElement>;
-      object: Attributes<HTMLObjectElementAttributes, HTMLObjectElement>;
-      ol: Attributes<HTMLOListElementAttributes, HTMLOListElement>;
-      optgroup: Attributes<HTMLOptGroupElementAttributes, HTMLOptGroupElement>;
-      option: Attributes<HTMLOptionElementAttributes, HTMLOptionElement>;
-      output: Attributes<HTMLOutputElementAttributes, HTMLOutputElement>;
-      p: Attributes<GlobalAttributes, HTMLParagraphElement>;
-      picture: Attributes<GlobalAttributes, HTMLPictureElement>;
-      pre: Attributes<GlobalAttributes, HTMLPreElement>;
-      progress: Attributes<HTMLProgressElementAttributes, HTMLProgressElement>;
-      q: Attributes<HTMLQuoteElementAttributes, HTMLQuoteElement>;
-      rp: Attributes<GlobalAttributes, HTMLElement>;
-      rt: Attributes<GlobalAttributes, HTMLElement>;
-      ruby: Attributes<GlobalAttributes, HTMLElement>;
-      s: Attributes<GlobalAttributes, HTMLElement>;
-      samp: Attributes<GlobalAttributes, HTMLElement>;
-      script: Attributes<HTMLScriptElementAttributes, HTMLScriptElement>;
-      section: Attributes<GlobalAttributes, HTMLElement>;
-      select: Attributes<HTMLSelectElementAttributes, HTMLSelectElement>;
-      slot: Attributes<HTMLSlotElementAttributes, HTMLSlotElement>;
-      small: Attributes<GlobalAttributes, HTMLElement>;
-      source: Attributes<HTMLSourceElementAttributes, HTMLSourceElement>;
-      span: Attributes<GlobalAttributes, HTMLSpanElement>;
-      strong: Attributes<GlobalAttributes, HTMLElement>;
-      style: Attributes<HTMLStyleElementAttributes, HTMLStyleElement>;
-      sub: Attributes<GlobalAttributes, HTMLElement>;
-      summary: Attributes<GlobalAttributes, HTMLElement>;
-      sup: Attributes<GlobalAttributes, HTMLElement>;
-      table: Attributes<GlobalAttributes, HTMLTableElement>;
-      tbody: Attributes<GlobalAttributes, HTMLTableSectionElement>;
-      td: Attributes<HTMLTDElementAttributes, HTMLTableCellElement>;
-      template: Attributes<GlobalAttributes, HTMLTemplateElement>;
-      textarea: Attributes<HTMLTextAreaElementAttributes, HTMLTextAreaElement>;
-      tfoot: Attributes<GlobalAttributes, HTMLTableSectionElement>;
-      th: Attributes<HTMLTHElementAttributes, HTMLTableCellElement>;
-      thead: Attributes<GlobalAttributes, HTMLTableSectionElement>;
-      time: Attributes<HTMLTimeElementAttributes, HTMLTimeElement>;
-      tr: Attributes<GlobalAttributes, HTMLTableRowElement>;
-      track: Attributes<HTMLTrackElementAttributes, HTMLTrackElement>;
-      u: Attributes<GlobalAttributes, HTMLElement>;
-      ul: Attributes<GlobalAttributes, HTMLUListElement>;
-      var: Attributes<GlobalAttributes, HTMLElement>;
-      video: Attributes<HTMLVideoElementAttributes, HTMLVideoElement>;
-      wbr: Attributes<GlobalAttributes, HTMLElement>;
+      ins: JSXAttributes<HTMLModElementAttributes, HTMLModElement>;
+      kbd: JSXAttributes<GlobalAttributes, HTMLElement>;
+      label: JSXAttributes<HTMLLabelElementAttributes, HTMLLabelElement>;
+      legend: JSXAttributes<GlobalAttributes, HTMLElement>;
+      li: JSXAttributes<HTMLLIElementAttributes, HTMLLIElement>;
+      link: JSXAttributes<HTMLLinkElementAttributes, HTMLLinkElement>;
+      main: JSXAttributes<GlobalAttributes, HTMLElement>;
+      map: JSXAttributes<HTMLMapElementAttributes, HTMLMapElement>;
+      mark: JSXAttributes<GlobalAttributes, HTMLElement>;
+      menu: JSXAttributes<GlobalAttributes, HTMLMenuElement>;
+      meter: JSXAttributes<HTMLMeterElementAttributes, HTMLMeterElement>;
+      nav: JSXAttributes<GlobalAttributes, HTMLElement>;
+      noscript: JSXAttributes<GlobalAttributes, HTMLElement>;
+      object: JSXAttributes<HTMLObjectElementAttributes, HTMLObjectElement>;
+      ol: JSXAttributes<HTMLOListElementAttributes, HTMLOListElement>;
+      optgroup: JSXAttributes<HTMLOptGroupElementAttributes, HTMLOptGroupElement>;
+      option: JSXAttributes<HTMLOptionElementAttributes, HTMLOptionElement>;
+      output: JSXAttributes<HTMLOutputElementAttributes, HTMLOutputElement>;
+      p: JSXAttributes<GlobalAttributes, HTMLParagraphElement>;
+      picture: JSXAttributes<GlobalAttributes, HTMLPictureElement>;
+      pre: JSXAttributes<GlobalAttributes, HTMLPreElement>;
+      progress: JSXAttributes<HTMLProgressElementAttributes, HTMLProgressElement>;
+      q: JSXAttributes<HTMLQuoteElementAttributes, HTMLQuoteElement>;
+      rp: JSXAttributes<GlobalAttributes, HTMLElement>;
+      rt: JSXAttributes<GlobalAttributes, HTMLElement>;
+      ruby: JSXAttributes<GlobalAttributes, HTMLElement>;
+      s: JSXAttributes<GlobalAttributes, HTMLElement>;
+      samp: JSXAttributes<GlobalAttributes, HTMLElement>;
+      script: JSXAttributes<HTMLScriptElementAttributes, HTMLScriptElement>;
+      section: JSXAttributes<GlobalAttributes, HTMLElement>;
+      select: JSXAttributes<HTMLSelectElementAttributes, HTMLSelectElement>;
+      slot: JSXAttributes<HTMLSlotElementAttributes, HTMLSlotElement>;
+      small: JSXAttributes<GlobalAttributes, HTMLElement>;
+      source: JSXAttributes<HTMLSourceElementAttributes, HTMLSourceElement>;
+      span: JSXAttributes<GlobalAttributes, HTMLSpanElement>;
+      strong: JSXAttributes<GlobalAttributes, HTMLElement>;
+      style: JSXAttributes<HTMLStyleElementAttributes, HTMLStyleElement>;
+      sub: JSXAttributes<GlobalAttributes, HTMLElement>;
+      summary: JSXAttributes<GlobalAttributes, HTMLElement>;
+      sup: JSXAttributes<GlobalAttributes, HTMLElement>;
+      table: JSXAttributes<GlobalAttributes, HTMLTableElement>;
+      tbody: JSXAttributes<GlobalAttributes, HTMLTableSectionElement>;
+      td: JSXAttributes<HTMLTDElementAttributes, HTMLTableCellElement>;
+      template: JSXAttributes<GlobalAttributes, HTMLTemplateElement>;
+      textarea: JSXAttributes<HTMLTextAreaElementAttributes, HTMLTextAreaElement>;
+      tfoot: JSXAttributes<GlobalAttributes, HTMLTableSectionElement>;
+      th: JSXAttributes<HTMLTHElementAttributes, HTMLTableCellElement>;
+      thead: JSXAttributes<GlobalAttributes, HTMLTableSectionElement>;
+      time: JSXAttributes<HTMLTimeElementAttributes, HTMLTimeElement>;
+      tr: JSXAttributes<GlobalAttributes, HTMLTableRowElement>;
+      track: JSXAttributes<HTMLTrackElementAttributes, HTMLTrackElement>;
+      u: JSXAttributes<GlobalAttributes, HTMLElement>;
+      ul: JSXAttributes<GlobalAttributes, HTMLUListElement>;
+      var: JSXAttributes<GlobalAttributes, HTMLElement>;
+      video: JSXAttributes<HTMLVideoElementAttributes, HTMLVideoElement>;
+      wbr: JSXAttributes<GlobalAttributes, HTMLElement>;
     }
     interface JSXSVGElements {
-      animate: Attributes<SVGAnimateElementAttributes, SVGAnimateElement>;
-      animateMotion: Attributes<SVGAnimateMotionElementAttributes, SVGAnimateMotionElement>;
-      animateTransform: Attributes<SVGAnimateTransformElementAttributes, SVGAnimateTransformElement>;
-      circle: Attributes<SVGCircleElementAttributes, SVGCircleElement>;
-      clipPath: Attributes<SVGClipPathElementAttributes, SVGClipPathElement>;
-      defs: Attributes<SVGDefsElementAttributes, SVGDefsElement>;
-      desc: Attributes<SVGDescElementAttributes, SVGDescElement>;
+      animate: JSXAttributes<SVGAnimateElementAttributes, SVGAnimateElement>;
+      animateMotion: JSXAttributes<SVGAnimateMotionElementAttributes, SVGAnimateMotionElement>;
+      animateTransform: JSXAttributes<SVGAnimateTransformElementAttributes, SVGAnimateTransformElement>;
+      circle: JSXAttributes<SVGCircleElementAttributes, SVGCircleElement>;
+      clipPath: JSXAttributes<SVGClipPathElementAttributes, SVGClipPathElement>;
+      defs: JSXAttributes<SVGDefsElementAttributes, SVGDefsElement>;
+      desc: JSXAttributes<SVGDescElementAttributes, SVGDescElement>;
       /** @experimental */
-      discard: Attributes<SVGDiscardElementAttributes, SVGElement>;
-      ellipse: Attributes<SVGEllipseElementAttributes, SVGEllipseElement>;
-      feblend: Attributes<SVGFEBlendElementAttributes, SVGFEBlendElement>;
-      feColorMatrix: Attributes<SVGFEColorMatrixElementAttributes, SVGFEColorMatrixElement>;
-      feComponentTransfer: Attributes<SVGFEComponentTransferElementAttributes, SVGFEComponentTransferElement>;
-      feComposite: Attributes<SVGFECompositeElementAttributes, SVGFECompositeElement>;
-      feConvolveMatrix: Attributes<SVGFEConvolveMatrixElementAttributes, SVGFEConvolveMatrixElement>;
-      feDiffuseLighting: Attributes<SVGFEDiffuseLightingElementAttributes, SVGFEDiffuseLightingElement>;
-      feDisplacementMap: Attributes<SVGFEDisplacementMapElementAttributes, SVGFEDisplacementMapElement>;
-      feDistantLight: Attributes<SVGFEDistantLightElementAttributes, SVGFEDistantLightElement>;
-      feDropShadow: Attributes<SVGFEDropShadowElementAttributes, SVGFEDropShadowElement>;
-      feFlood: Attributes<SVGFEFloodElementAttributes, SVGFEFloodElement>;
-      feFuncA: Attributes<SVGFEFuncAElementAttributes, SVGFEFuncAElement>;
-      feFuncB: Attributes<SVGFEFuncBElementAttributes, SVGFEFuncBElement>;
-      feFuncG: Attributes<SVGFEFuncGElementAttributes, SVGFEFuncGElement>;
-      feFuncR: Attributes<SVGFEFuncRElementAttributes, SVGFEFuncRElement>;
-      feGaussianBlur: Attributes<SVGFEGaussianBlurElementAttributes, SVGFEGaussianBlurElement>;
-      feImage: Attributes<SVGFEImageElementAttributes, SVGFEImageElement>;
-      feMerge: Attributes<SVGFEMergeElementAttributes, SVGFEMergeElement>;
-      feMergeNode: Attributes<SVGFEMergeNodeElementAttributes, SVGFEMergeElement>;
-      feMorphology: Attributes<SVGFEMorphologyElementAttributes, SVGFEMorphologyElement>;
-      feOffset: Attributes<SVGFEOffsetElementAttributes, SVGFEOffsetElement>;
-      fePointLight: Attributes<SVGFEPointLightElementAttributes, SVGFEPointLightElement>;
-      feSpecularLighting: Attributes<SVGFESpecularLightingElementAttributes, SVGFESpecularLightingElement>;
-      feSpotLight: Attributes<SVGFESpotLightElementAttributes, SVGFESpotLightElement>;
-      feTile: Attributes<SVGFETileElementAttributes, SVGFETileElement>;
-      feTurbulence: Attributes<SVGFETurbulenceElementAttributes, SVGFETurbulenceElement>;
-      filter: Attributes<SVGFilterElementAttributes, SVGFilterElement>;
-      foreignObject: Attributes<SVGForeignObjectElementAttributes, SVGForeignObjectElement>;
-      g: Attributes<SVGGElementAttributes, SVGGElement>;
-      image: Attributes<SVGImageElementAttributes, SVGImageElement>;
-      line: Attributes<SVGLineElementAttributes, SVGLineElement>;
-      linearGradient: Attributes<SVGLinearGradientElementAttributes, SVGLinearGradientElement>;
-      marker: Attributes<SVGMarkerElementAttributes, SVGMarkerElement>;
-      mask: Attributes<SVGMaskElementAttributes, SVGMaskElement>;
-      metadata: Attributes<SVGMetadataElementAttributes, SVGMetadataElement>;
-      mpath: Attributes<SVGMPathElementAttributes, SVGMPathElement>;
-      path: Attributes<SVGPathElementAttributes, SVGPathElement>;
-      pattern: Attributes<SVGPatternElementAttributes, SVGPatternElement>;
-      polygon: Attributes<SVGPolygonElementAttributes, SVGPolygonElement>;
-      polyline: Attributes<SVGPolylineElementAttributes, SVGPolylineElement>;
-      radialGradient: Attributes<SVGRadialGradientElementAttributes, SVGRadialGradientElement>;
-      rect: Attributes<SVGRectElementAttributes, SVGRectElement>;
-      set: Attributes<SVGSetElementAttributes, SVGSetElement>;
-      stop: Attributes<SVGStopElementAttributes, SVGStopElement>;
-      svg: Attributes<SVGSVGElementAttributes, SVGSVGElement>;
-      switch: Attributes<SVGSwitchElementAttributes, SVGSwitchElement>;
-      symbol: Attributes<SVGSymbolElementAttributes, SVGSymbolElement>;
-      text: Attributes<SVGTextElementAttributes, SVGTextElement>;
-      textPath: Attributes<SVGTextPathElementAttributes, SVGTextPathElement>;
+      discard: JSXAttributes<SVGDiscardElementAttributes, SVGElement>;
+      ellipse: JSXAttributes<SVGEllipseElementAttributes, SVGEllipseElement>;
+      feblend: JSXAttributes<SVGFEBlendElementAttributes, SVGFEBlendElement>;
+      feColorMatrix: JSXAttributes<SVGFEColorMatrixElementAttributes, SVGFEColorMatrixElement>;
+      feComponentTransfer: JSXAttributes<SVGFEComponentTransferElementAttributes, SVGFEComponentTransferElement>;
+      feComposite: JSXAttributes<SVGFECompositeElementAttributes, SVGFECompositeElement>;
+      feConvolveMatrix: JSXAttributes<SVGFEConvolveMatrixElementAttributes, SVGFEConvolveMatrixElement>;
+      feDiffuseLighting: JSXAttributes<SVGFEDiffuseLightingElementAttributes, SVGFEDiffuseLightingElement>;
+      feDisplacementMap: JSXAttributes<SVGFEDisplacementMapElementAttributes, SVGFEDisplacementMapElement>;
+      feDistantLight: JSXAttributes<SVGFEDistantLightElementAttributes, SVGFEDistantLightElement>;
+      feDropShadow: JSXAttributes<SVGFEDropShadowElementAttributes, SVGFEDropShadowElement>;
+      feFlood: JSXAttributes<SVGFEFloodElementAttributes, SVGFEFloodElement>;
+      feFuncA: JSXAttributes<SVGFEFuncAElementAttributes, SVGFEFuncAElement>;
+      feFuncB: JSXAttributes<SVGFEFuncBElementAttributes, SVGFEFuncBElement>;
+      feFuncG: JSXAttributes<SVGFEFuncGElementAttributes, SVGFEFuncGElement>;
+      feFuncR: JSXAttributes<SVGFEFuncRElementAttributes, SVGFEFuncRElement>;
+      feGaussianBlur: JSXAttributes<SVGFEGaussianBlurElementAttributes, SVGFEGaussianBlurElement>;
+      feImage: JSXAttributes<SVGFEImageElementAttributes, SVGFEImageElement>;
+      feMerge: JSXAttributes<SVGFEMergeElementAttributes, SVGFEMergeElement>;
+      feMergeNode: JSXAttributes<SVGFEMergeNodeElementAttributes, SVGFEMergeElement>;
+      feMorphology: JSXAttributes<SVGFEMorphologyElementAttributes, SVGFEMorphologyElement>;
+      feOffset: JSXAttributes<SVGFEOffsetElementAttributes, SVGFEOffsetElement>;
+      fePointLight: JSXAttributes<SVGFEPointLightElementAttributes, SVGFEPointLightElement>;
+      feSpecularLighting: JSXAttributes<SVGFESpecularLightingElementAttributes, SVGFESpecularLightingElement>;
+      feSpotLight: JSXAttributes<SVGFESpotLightElementAttributes, SVGFESpotLightElement>;
+      feTile: JSXAttributes<SVGFETileElementAttributes, SVGFETileElement>;
+      feTurbulence: JSXAttributes<SVGFETurbulenceElementAttributes, SVGFETurbulenceElement>;
+      filter: JSXAttributes<SVGFilterElementAttributes, SVGFilterElement>;
+      foreignObject: JSXAttributes<SVGForeignObjectElementAttributes, SVGForeignObjectElement>;
+      g: JSXAttributes<SVGGElementAttributes, SVGGElement>;
+      image: JSXAttributes<SVGImageElementAttributes, SVGImageElement>;
+      line: JSXAttributes<SVGLineElementAttributes, SVGLineElement>;
+      linearGradient: JSXAttributes<SVGLinearGradientElementAttributes, SVGLinearGradientElement>;
+      marker: JSXAttributes<SVGMarkerElementAttributes, SVGMarkerElement>;
+      mask: JSXAttributes<SVGMaskElementAttributes, SVGMaskElement>;
+      metadata: JSXAttributes<SVGMetadataElementAttributes, SVGMetadataElement>;
+      mpath: JSXAttributes<SVGMPathElementAttributes, SVGMPathElement>;
+      path: JSXAttributes<SVGPathElementAttributes, SVGPathElement>;
+      pattern: JSXAttributes<SVGPatternElementAttributes, SVGPatternElement>;
+      polygon: JSXAttributes<SVGPolygonElementAttributes, SVGPolygonElement>;
+      polyline: JSXAttributes<SVGPolylineElementAttributes, SVGPolylineElement>;
+      radialGradient: JSXAttributes<SVGRadialGradientElementAttributes, SVGRadialGradientElement>;
+      rect: JSXAttributes<SVGRectElementAttributes, SVGRectElement>;
+      set: JSXAttributes<SVGSetElementAttributes, SVGSetElement>;
+      stop: JSXAttributes<SVGStopElementAttributes, SVGStopElement>;
+      svg: JSXAttributes<SVGSVGElementAttributes, SVGSVGElement>;
+      switch: JSXAttributes<SVGSwitchElementAttributes, SVGSwitchElement>;
+      symbol: JSXAttributes<SVGSymbolElementAttributes, SVGSymbolElement>;
+      text: JSXAttributes<SVGTextElementAttributes, SVGTextElement>;
+      textPath: JSXAttributes<SVGTextPathElementAttributes, SVGTextPathElement>;
       /**
        * `<title>` is only considered to be used in SVG.
        */
-      title: Attributes<SVGTitleElementAttributes, SVGTitleElement>;
-      tspan: Attributes<SVGTSpanElementAttributes, SVGTSpanElement>;
-      use: Attributes<SVGUseElementAttributes, SVGUseElement>;
-      view: Attributes<SVGViewElementAttributes, SVGViewElement>;
+      title: JSXAttributes<SVGTitleElementAttributes, SVGTitleElement>;
+      tspan: JSXAttributes<SVGTSpanElementAttributes, SVGTSpanElement>;
+      use: JSXAttributes<SVGUseElementAttributes, SVGUseElement>;
+      view: JSXAttributes<SVGViewElementAttributes, SVGViewElement>;
     }
 
     interface IntrinsicElements extends JSXHTMLElements, JSXSVGElements {}
