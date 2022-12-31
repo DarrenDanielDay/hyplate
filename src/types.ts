@@ -190,7 +190,7 @@ type BooleanAttributeValue = boolean | `${boolean}` | "";
 type NumericAttributeValue = string | number;
 type TargetOptions = EnumeratedValues<"_self" | "_blank" | "_parent" | "_top">;
 type EncryptionTypes = EnumeratedValues<"application/x-www-form-urlencoded" | "multipart/form-data" | "text/plain">;
-type ExperimentalImportance = {
+interface ExperimentalImportance {
   /**
    * @experimental
    */
@@ -199,9 +199,9 @@ type ExperimentalImportance = {
    * @experimental
    */
   fetchpriority: EnumeratedValues<"auto" | "high" | "low">;
-};
+}
 type FormMethods = EnumeratedValues<"post" | "get" | "dialog">;
-type FormElementAttributes = {
+interface FormElementAttributes {
   autofocus: BooleanAttributeValue;
   disabled: BooleanAttributeValue;
   form: string;
@@ -211,12 +211,12 @@ type FormElementAttributes = {
   formnovalidate: BooleanAttributeValue;
   formtarget: TargetOptions;
   name: string;
-  value: string;
-};
-type SizeOptions = {
+  value: TextInterpolation;
+}
+interface SizeOptions {
   height: NumericAttributeValue;
   width: NumericAttributeValue;
-};
+}
 type CORSOptions = EnumeratedValues<"anonymous" | "use-credentials" | "">;
 type ReferrerPolicyOptions = EnumeratedValues<
   | "no-referrer"
@@ -259,10 +259,7 @@ type AttributeInfo<T, V extends InputTypes> = [type: T, valid: V];
 type TextLikeInputTypes = "text" | "search" | "url" | "tel" | "email" | "password";
 
 type NumericInputTypes = "date" | "month" | "week" | "time" | "datetime-local" | "number" | "range";
-type ModElementAttributes = {
-  cite: string;
-  datatime: string;
-};
+
 //#region autocomplete
 type AutoCompleteSwitch = EnumeratedValues<"on" | "off">;
 type AutoCompleteHints =
@@ -375,19 +372,23 @@ type InputAttributes = {
   };
 }[InputTypes];
 type ListStyleType = EnumeratedValues<"a" | "A" | "i" | "I" | "1">;
-type PlayerAttributes = {
+interface PlayerAttributes {
   autoplay: BooleanAttributeValue;
   controls: BooleanAttributeValue;
   /**
    * @experimental
    */
   controlslist: string;
+  /**
+   * @experimental
+   */
+  disableremoteplayback: BooleanAttributeValue;
   crossorigin: CORSOptions;
   loop: BooleanAttributeValue;
   muted: BooleanAttributeValue;
   preload: EnumeratedValues<"none" | "metadata" | "auto">;
   src: string;
-};
+}
 //#endregion
 
 /**
@@ -580,8 +581,363 @@ interface GlobalAttributes
 }
 //#endregion
 
-/** SVG CORE ATTRIBUTES */
-type SVGCoreAttributes = {
+//#region HTML attributes
+interface HTMLAnchorElementAttributes extends GlobalAttributes {
+  download: string;
+  href: string;
+  hreflang: string;
+  ping: string;
+  referrerpolicy: ReferrerPolicyOptions;
+  rel: string;
+  target: TargetOptions;
+  type: string;
+}
+
+interface HTMLAreaElementAttributes extends GlobalAttributes {
+  alt: string;
+  coords: string;
+  download: string;
+  href: string;
+  /**
+   * @deprecated
+   */
+  hreflang: string;
+  referrerpolicy: ReferrerPolicyOptions;
+  rel: string;
+  shape: string;
+  target: TargetOptions;
+}
+
+interface HTMLAudioElementAttributes extends GlobalAttributes, PlayerAttributes {}
+
+interface HTMLButtonElementAttributes extends GlobalAttributes, FormElementAttributes {
+  type: EnumeratedValues<"submit" | "reset" | "button" | "menu">;
+}
+
+interface HTMLCanvasElementAttributes extends GlobalAttributes, SizeOptions {}
+
+interface HTMLTableColElementAttributes extends GlobalAttributes {
+  span: NumericAttributeValue;
+}
+
+interface HTMLDataElementAttributes extends GlobalAttributes {
+  value: string;
+}
+
+interface HTMLModElementAttributes extends GlobalAttributes {
+  cite: string;
+  datatime: string;
+}
+
+interface HTMLDetailsElementAttributes extends GlobalAttributes {
+  open: BooleanAttributeValue;
+}
+
+interface HTMLDialogElementAttributes extends Omit<GlobalAttributes, "tabindex"> {
+  open: BooleanAttributeValue;
+}
+
+interface HTMLEmbedElementAttributes extends GlobalAttributes, SizeOptions {
+  src: string;
+  type: string;
+}
+
+interface HTMLFieldSetElementAttributes extends GlobalAttributes {
+  disabled: BooleanAttributeValue;
+  form: string;
+  name: string;
+}
+
+interface HTMLFormElementAttributes extends GlobalAttributes {
+  "accept-charset": string;
+  action: string;
+  autocomplete: AutoCompleteSwitch;
+  enctype: EncryptionTypes;
+  method: FormMethods;
+  name: string;
+  novalidate: BooleanAttributeValue;
+  rel: string;
+  target: TargetOptions;
+}
+
+interface HTMLIFrameElementAttributes extends GlobalAttributes, ExperimentalImportance, SizeOptions {
+  allow: string;
+  /**
+   * @deprecated
+   * Use allow="fullscreen" instead.
+   */
+  allowfullscreen: BooleanAttributeValue;
+  /**
+   * @deprecated
+   * Use allow="payment" instead.
+   */
+  allowpaymentrequest: BooleanAttributeValue;
+  /**
+   * @experimental
+   */
+  csp: string;
+  name: string;
+  referrerpolicy: ReferrerPolicyOptions;
+  sandbox: EnumeratedValues<
+    | "allow-downloads-without-user-activation"
+    | "allow-forms"
+    | "allow-modals"
+    | "allow-orientation-lock"
+    | "allow-pointer-lock"
+    | "allow-popups"
+    | "allow-popups-to-escape-sandbox"
+    | "allow-presentation"
+    | "allow-same-origin"
+    | "allow-scripts"
+    | "allow-storage-access-by-user-activation"
+    | "allow-top-navigation"
+    | "allow-top-navigation-by-user-activation"
+  >;
+  src: string;
+  srcdoc: string;
+}
+
+interface HTMLImageElementAttributes extends GlobalAttributes, ExperimentalImportance, SizeOptions {
+  alt: string;
+  crossorigin: CORSOptions;
+  decoding: EnumeratedValues<"sync" | "async" | "auto">;
+  ismap: BooleanAttributeValue;
+  loading: EnumeratedValues<"eager" | "lazy">;
+  referrerpolicy: ReferrerPolicyOptions;
+  sizes: string;
+  src: string;
+  srcset: string;
+  usemap: string;
+}
+
+interface HTMLInputElementAttributes extends GlobalAttributes, FormElementAttributes {
+  accept: string;
+  alt: string;
+  autocomplete: EnumeratedValues<AutoCompleteHints>;
+  capture: EnumeratedValues<"user" | "environment">;
+  checked: BooleanAttributeValue;
+  dirname: string;
+  height: NumericAttributeValue;
+  list: string;
+  max: NumericAttributeValue;
+  maxlength: NumericAttributeValue;
+  min: NumericAttributeValue;
+  minlength: NumericAttributeValue;
+  multiple: BooleanAttributeValue;
+  pattern: string;
+  placeholder: string;
+  readonly: BooleanAttributeValue;
+  required: BooleanAttributeValue;
+  size: NumericAttributeValue;
+  src: string;
+  step: NumericAttributeValue;
+  width: NumericAttributeValue;
+}
+
+interface HTMLLabelElementAttributes extends GlobalAttributes {
+  for: string;
+}
+
+interface HTMLLIElementAttributes extends GlobalAttributes {
+  value: NumericAttributeValue;
+  /**
+   * @deprecated
+   */
+  type: ListStyleType;
+}
+
+interface HTMLLinkElementAttributes extends GlobalAttributes, ExperimentalImportance {
+  as: EnumeratedValues<
+    | "audio"
+    | "document"
+    | "embed"
+    | "fetch"
+    | "font"
+    | "image"
+    | "object"
+    | "script"
+    | "style"
+    | "track"
+    | "video"
+    | "worker"
+  >;
+  crossorigin: CORSOptions;
+  href: string;
+  hreflang: string;
+  imagesizes: string;
+  imagesrcset: string;
+  integrity: string;
+  media: string;
+  /**
+   * @experimental
+   */
+  prefetch: BooleanAttributeValue;
+  referrerpolicy: ReferrerPolicyOptions;
+  rel: string;
+  /**
+   * @experimental
+   */
+  sizes: string;
+  title: string;
+  type: string;
+  blocking: string;
+}
+
+interface HTMLMapElementAttributes extends GlobalAttributes {
+  name: string;
+}
+
+interface HTMLMeterElementAttributes extends GlobalAttributes {
+  value: NumericAttributeValue;
+  min: NumericAttributeValue;
+  max: NumericAttributeValue;
+  low: NumericAttributeValue;
+  high: NumericAttributeValue;
+  optimum: NumericAttributeValue;
+}
+
+interface HTMLObjectElementAttributes extends GlobalAttributes, SizeOptions {
+  data: string;
+  form: string;
+  type: string;
+  usemap: string;
+}
+
+interface HTMLOListElementAttributes extends GlobalAttributes {
+  reversed: BooleanAttributeValue;
+  start: NumericAttributeValue;
+  type: ListStyleType;
+}
+
+interface HTMLOptGroupElementAttributes extends GlobalAttributes {
+  disabled: BooleanAttributeValue;
+  label: string;
+}
+
+interface HTMLOptionElementAttributes extends GlobalAttributes {
+  disabled: BooleanAttributeValue;
+  label: string;
+  selected: BooleanAttributeValue;
+  value: string;
+}
+
+interface HTMLOutputElementAttributes extends GlobalAttributes {
+  for: string;
+  form: string;
+  name: string;
+}
+
+interface HTMLProgressElementAttributes extends GlobalAttributes {
+  max: NumericAttributeValue;
+  value: NumericAttributeValue;
+}
+
+interface HTMLQuoteElementAttributes extends GlobalAttributes {
+  cite: string;
+}
+
+interface HTMLScriptElementAttributes extends GlobalAttributes, ExperimentalImportance {
+  async: BooleanAttributeValue;
+  crossorigin: CORSOptions;
+  defer: BooleanAttributeValue;
+  integrity: string;
+  nomodule: BooleanAttributeValue;
+  nonce: string;
+  referrerpolicy: ReferrerPolicyOptions;
+  src: string;
+  type: string;
+  blocking: string;
+}
+
+interface HTMLSelectElementAttributes extends GlobalAttributes {
+  autocomplete: AutoCompleteHints;
+  autofocus: BooleanAttributeValue;
+  disabled: BooleanAttributeValue;
+  form: string;
+  multiple: BooleanAttributeValue;
+  name: string;
+  required: BooleanAttributeValue;
+  size: NumericAttributeValue;
+}
+
+interface HTMLSlotElementAttributes extends GlobalAttributes {
+  name: string;
+}
+
+interface HTMLSourceElementAttributes extends GlobalAttributes, SizeOptions {
+  type: string;
+  src: string;
+  srcset: string;
+  sizes: string;
+  media: string;
+}
+
+interface HTMLStyleElementAttributes extends GlobalAttributes {
+  media: string;
+  nonce: string;
+  title: string;
+  blocking: string;
+}
+
+interface HTMLTDElementAttributes extends GlobalAttributes {
+  colspan: NumericAttributeValue;
+  headers: string;
+  rowspan: NumericAttributeValue;
+}
+
+interface HTMLTextAreaElementAttributes extends Omit<GlobalAttributes, "spellcheck"> {
+  autocomplete: AutoCompleteSwitch;
+  autofocus: BooleanAttributeValue;
+  cols: NumericAttributeValue;
+  disabled: BooleanAttributeValue;
+  form: string;
+  maxlength: NumericAttributeValue;
+  minlength: NumericAttributeValue;
+  name: string;
+  placeholder: string;
+  readonly: BooleanAttributeValue;
+  required: BooleanAttributeValue;
+  rows: NumericAttributeValue;
+  spellcheck: BooleanAttributeValue | "default";
+  wrap: EnumeratedValues<"hard" | "soft">;
+}
+
+interface HTMLTHElementAttributes extends GlobalAttributes {
+  abbr: string;
+  colspan: NumericAttributeValue;
+  headers: string;
+  rowspan: NumericAttributeValue;
+  scope: EnumeratedValues<"row" | "col" | "rowgroup" | "colgroup">;
+}
+
+interface HTMLTimeElementAttributes extends GlobalAttributes {
+  datetime: string;
+}
+
+interface HTMLTrackElementAttributes extends GlobalAttributes {
+  default: BooleanAttributeValue;
+  kind: EnumeratedValues<"subtitles" | "captions" | "descriptions" | "chapters" | "metadata">;
+  label: string;
+  src: string;
+  srclang: string;
+}
+
+interface HTMLVideoElementAttributes extends GlobalAttributes, SizeOptions, PlayerAttributes {
+  /**
+   * @experimental
+   */
+  autopictureinpicture: BooleanAttributeValue;
+  /**
+   * @experimental
+   */
+  disablepictureinpicture: BooleanAttributeValue;
+  playsinline: BooleanAttributeValue;
+  poster: string;
+}
+//#endregion
+
+//#region SVG shared attributes
+interface SVGCoreAttributes {
   id: string;
   lang: string;
   tabIndex: string;
@@ -593,14 +949,14 @@ type SVGCoreAttributes = {
    * Allow any attributes.
    */
   [key: string]: unknown;
-};
+}
 
-type StylingAttributes = {
+interface StylingAttributes {
   class: string;
   style: string;
-};
+}
 
-type PresentationAttributes = {
+interface PresentationAttributes {
   "clip-path": string;
   "clip-rule": string;
   color: string;
@@ -626,9 +982,9 @@ type PresentationAttributes = {
   transform: string;
   "vector-effect": string;
   visibility: string;
-};
+}
 
-type AnimationTimingAttributes = {
+interface AnimationTimingAttributes {
   begin: string;
   dur: string;
   end: string;
@@ -638,9 +994,9 @@ type AnimationTimingAttributes = {
   repeatCount: string;
   repeatDur: string;
   fill: string;
-};
+}
 
-type AnimationValueAttributes = {
+interface AnimationValueAttributes {
   calcMode: string;
   values: string;
   keyTimes: string;
@@ -648,12 +1004,12 @@ type AnimationValueAttributes = {
   from: string;
   to: string;
   by: string;
-};
+}
 
-type AnimationAdditionAttributes = {
+interface AnimationAdditionAttributes {
   additive: string;
   accumulate: string;
-};
+}
 interface DocumentEventAttributes
   extends GeneralAttributes<"onabort" | "onerror" | "onresize" | "onscroll" | "onunload">,
     FunctionalGlobalEventHandler {}
@@ -729,15 +1085,15 @@ interface GlobalEventAttributes
     >,
     FunctionalGlobalEventHandler {}
 
-type AnimationAttributeTargetAttributes = {
+interface AnimationAttributeTargetAttributes {
   /** @deprecated */
   attributeType: string;
   attributeName: string;
-};
+}
 
-type ConditionalProcessingAttributes = {
+interface ConditionalProcessingAttributes {
   systemLanguage: string;
-};
+}
 
 interface GraphicalEventAttributes
   extends GeneralAttributes<"onactivate" | "onfocusin" | "onfocusout">,
@@ -766,15 +1122,15 @@ type InOrIn2Attributes = EnumeratedValues<
   "SourceGraphic" | "SourceAlpha" | "BackgroundImage" | "BackgroundAlpha" | "FillPaint" | "StrokePaint"
 >;
 
-type SVGFilterAttributes = {
+interface SVGFilterAttributes {
   width: string;
   height: string;
   x: string;
   y: string;
   result: string;
-};
+}
 
-type TransferFunctionAttributes = {
+interface TransferFunctionAttributes {
   type: EnumeratedValues<"translate" | "scale" | "rotate" | "skewX" | "skewY">;
   tableValues: string;
   /** @deprecated */
@@ -782,11 +1138,615 @@ type TransferFunctionAttributes = {
   intercept: string;
   amplitude: string;
   exponent: string;
-};
+}
+//#endregion
+
+//#region SVG attributes
+interface SVGAElementAttributes
+  extends Omit<HTMLAnchorElementAttributes, "lang" | keyof GlobalAttributes>,
+    SVGCoreAttributes,
+    StylingAttributes,
+    ConditionalProcessingAttributes,
+    GlobalEventAttributes {}
+
+interface SVGAnimateElementAttributes
+  extends StylingAttributes,
+    AnimationTimingAttributes,
+    AnimationValueAttributes,
+    AnimationAdditionAttributes,
+    GlobalEventAttributes,
+    DocumentElementEventAttributes {}
+interface SVGAnimateMotionElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    AnimationTimingAttributes,
+    AnimationValueAttributes,
+    AnimationAdditionAttributes,
+    AnimationAttributeTargetAttributes,
+    GlobalEventAttributes,
+    DocumentElementEventAttributes {
+  keyPoints: string;
+  path: string;
+  rotate: string;
+}
+interface SVGAnimateTransformElementAttributes
+  extends ConditionalProcessingAttributes,
+    SVGCoreAttributes,
+    AnimationAttributeTargetAttributes,
+    AnimationTimingAttributes,
+    AnimationValueAttributes,
+    AnimationAdditionAttributes {
+  by: string;
+  from: string;
+  to: string;
+  type: EnumeratedValues<"translate" | "scale" | "rotate" | "skewX" | "skewY">;
+}
+interface SVGCircleElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    ConditionalProcessingAttributes,
+    PresentationAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  cx: string;
+  cy: string;
+  r: string;
+  pathLength: string;
+}
+interface SVGClipPathElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    ConditionalProcessingAttributes,
+    PresentationAttributes {
+  clipPathUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
+}
+interface SVGDefsElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    GlobalEventAttributes,
+    DocumentElementEventAttributes,
+    GraphicalEventAttributes {}
+interface SVGDescElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    GlobalEventAttributes,
+    DocumentElementEventAttributes {}
+interface SVGDiscardElementAttributes
+  extends ConditionalProcessingAttributes,
+    SVGCoreAttributes,
+    PresentationAttributes {
+  begin: string;
+  href: string;
+}
+interface SVGEllipseElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    ConditionalProcessingAttributes,
+    PresentationAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  cx: string;
+  cy: string;
+  rx: string;
+  ry: string;
+  pathLength: string;
+}
+interface SVGFEBlendElementAttributes
+  extends SVGCoreAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes,
+    StylingAttributes {
+  in: InOrIn2Attributes;
+  in2: InOrIn2Attributes;
+  mode: BlendMode;
+}
+interface SVGFEColorMatrixElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  in: InOrIn2Attributes;
+  type: EnumeratedValues<"translate" | "scale" | "rotate" | "skewX" | "skewY">;
+  values: string;
+}
+interface SVGFEComponentTransferElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  in: InOrIn2Attributes;
+}
+interface SVGFECompositeElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  in: InOrIn2Attributes;
+  in2: InOrIn2Attributes;
+  operator: EnumeratedValues<"over" | "in" | "out" | "atop" | "xor" | "lighter" | "arithmetic">;
+  k1: string;
+  k2: string;
+  k3: string;
+  k4: string;
+}
+interface SVGFEConvolveMatrixElementAttributes
+  extends SVGCoreAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes,
+    StylingAttributes {
+  in: InOrIn2Attributes;
+  order: string;
+  kernelMatrix: string;
+  divisor: string;
+  bias: string;
+  targetX: string;
+  targetY: string;
+  edgeMode: EnumeratedValues<"duplicate" | "wrap" | "none">;
+  /** @deprecated */
+  kernelUnitLength: string;
+  preserveAlpha: EnumeratedValues<"true" | "false">;
+}
+interface SVGFEDiffuseLightingElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  in: InOrIn2Attributes;
+  surfaceScale: string;
+  diffuseConstant: string;
+  /** @deprecated */
+  kernelUnitLength: string;
+}
+interface SVGFEDisplacementMapElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  in: InOrIn2Attributes;
+  in2: InOrIn2Attributes;
+  scale: string;
+  xChannelSelector: EnumeratedValues<"R" | "G" | "B" | "A">;
+  yChannelSelector: EnumeratedValues<"R" | "G" | "B" | "A">;
+}
+interface SVGFEDistantLightElementAttributes extends SVGCoreAttributes {
+  azimuth: string;
+  elevation: string;
+}
+interface SVGFEDropShadowElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    SVGFilterAttributes,
+    PresentationAttributes {
+  dx: string;
+  dy: string;
+  stdDeviation: string;
+}
+interface SVGFEFloodElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  "flood-color": string;
+  "flood-opacity": string;
+}
+interface SVGFEFuncAElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
+interface SVGFEFuncBElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
+interface SVGFEFuncGElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
+interface SVGFEFuncRElementAttributes extends SVGCoreAttributes, TransferFunctionAttributes {}
+interface SVGFEGaussianBlurElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  in: InOrIn2Attributes;
+  stdDeviation: string;
+  edgeMode: EnumeratedValues<"duplicate" | "wrap" | "none">;
+}
+interface SVGFEImageElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  preserveAspectRatio: string;
+  "xlink:href": string;
+}
+interface SVGFEMergeElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {}
+interface SVGFEMergeNodeElementAttributes extends SVGCoreAttributes {
+  in: InOrIn2Attributes;
+}
+interface SVGFEMorphologyElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  in: InOrIn2Attributes;
+  operator: EnumeratedValues<"over" | "in" | "out" | "atop" | "xor" | "lighter" | "arithmetic">;
+  radius: string;
+}
+interface SVGFEOffsetElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  in: InOrIn2Attributes;
+  dx: string;
+  dy: string;
+}
+interface SVGFEPointLightElementAttributes extends SVGCoreAttributes {
+  x: string;
+  y: string;
+  z: string;
+}
+interface SVGFESpecularLightingElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  in: InOrIn2Attributes;
+  surfaceScale: string;
+  speculatConstant: string;
+  specularExponent: string;
+  /** @deprecated */
+  kernelUnitLength: string;
+}
+interface SVGFESpotLightElementAttributes extends SVGCoreAttributes {
+  x: string;
+  y: string;
+  z: string;
+  pointsAtX: string;
+  pointsAtY: string;
+  pointsAtZ: string;
+  specularExponent: string;
+  limitingConeAngle: string;
+}
+interface SVGFETileElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  in: InOrIn2Attributes;
+}
+interface SVGFETurbulenceElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    SVGFilterAttributes {
+  baseFrequency: string;
+  numOctaves: string;
+  seed: string;
+  stitchTiles: EnumeratedValues<"noStitch" | "stitch">;
+  type: EnumeratedValues<"translate" | "scale" | "rotate" | "skewX" | "skewY">;
+}
+interface SVGFilterElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    Omit<SVGFilterAttributes, "result"> {
+  filterUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
+  primitiveUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
+  "xlink:href": string;
+}
+interface SVGForeignObjectElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    ConditionalProcessingAttributes,
+    PresentationAttributes,
+    Omit<SVGFilterAttributes, "result">,
+    GlobalEventAttributes,
+    GraphicalEventAttributes,
+    DocumentEventAttributes,
+    DocumentElementEventAttributes {}
+interface SVGGElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    ConditionalProcessingAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {}
+interface SVGImageElementAttributes
+  extends SVGCoreAttributes,
+    PresentationAttributes,
+    ConditionalProcessingAttributes,
+    Omit<SVGFilterAttributes, "result">,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  href: string;
+  "xlink:href": string;
+  preserveAspectRatio: string;
+  crossorigin: EnumeratedValues<"anonymous" | "use-credentials" | "">;
+}
+interface SVGLineElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    ConditionalProcessingAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  x1: string;
+  x2: string;
+  y1: string;
+  y2: string;
+  pathLength: string;
+}
+interface SVGLinearGradientElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    GlobalEventAttributes,
+    DocumentElementEventAttributes {
+  gradientUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
+  gradientTransform: string;
+  href: string;
+  spreadMethod: EnumeratedValues<"pad" | "reflect" | "repeat">;
+  x1: string;
+  x2: string;
+  /** @deprecated */
+  "xlink:href": string;
+  y1: string;
+  y2: string;
+}
+interface SVGMarkerElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    ConditionalProcessingAttributes,
+    PresentationAttributes {
+  markerHeight: string;
+  markerUnits: string;
+  markerWidth: string;
+  orient: string;
+  preserveAspectRatio: string;
+  refX: string;
+  refY: string;
+  viewBox: string;
+}
+interface SVGMaskElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    ConditionalProcessingAttributes,
+    PresentationAttributes {
+  width: string;
+  height: string;
+  maskContentUnits: EnumeratedValues<"userSpaceOnUse" | "userSpaceOnUse">;
+  maskUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
+  x: string;
+  y: string;
+}
+interface SVGMetadataElementAttributes extends SVGCoreAttributes, GlobalEventAttributes {}
+interface SVGMPathElementAttributes extends SVGCoreAttributes {
+  "xlink:href": string;
+}
+interface SVGPathElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    ConditionalProcessingAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  d: string;
+  pathLength: string;
+}
+interface SVGPatternElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    ConditionalProcessingAttributes,
+    PresentationAttributes {
+  width: string;
+  height: string;
+  href: string;
+  patternContentUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
+  patternTransform: string;
+  patternUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
+  preserveAspectRatio: string;
+  viewBox: string;
+  x: string;
+  y: string;
+}
+interface SVGPolygonElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    ConditionalProcessingAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  points: string;
+  pathLength: string;
+}
+interface SVGPolylineElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    ConditionalProcessingAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  points: string;
+  pathLength: string;
+}
+interface SVGRadialGradientElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    GlobalEventAttributes,
+    DocumentElementEventAttributes {
+  cx: string;
+  xy: string;
+  fr: string;
+  fx: string;
+  fy: string;
+  gradientUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
+  gradientTransform: string;
+  href: string;
+  r: string;
+  spreadMethod: string;
+  "xlink:href": string;
+}
+interface SVGRectElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    ConditionalProcessingAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  x: string;
+  y: string;
+  width: string;
+  height: string;
+  rx: string;
+  ry: string;
+  pathLength: string;
+}
+interface SVGSetElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    AnimationTimingAttributes,
+    AnimationAttributeTargetAttributes,
+    GlobalEventAttributes,
+    DocumentElementEventAttributes {
+  to: string;
+}
+interface SVGStopElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    GlobalEventAttributes,
+    DocumentElementEventAttributes {
+  /** @deprecated */
+  offset: string;
+  "stop-color": string;
+  "stop-opacity": string;
+}
+interface SVGSVGElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    ConditionalProcessingAttributes,
+    PresentationAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes,
+    DocumentEventAttributes,
+    DocumentElementEventAttributes {
+  viewBox: string;
+  xmlns: string;
+  width: string;
+  heigth: string;
+  preserveAspectRatio: string;
+  "xmlns:xlink": string;
+  x: string;
+  y: string;
+}
+interface SVGSwitchElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    ConditionalProcessingAttributes,
+    PresentationAttributes,
+    GraphicalEventAttributes {
+  transform: string;
+}
+interface SVGSymbolElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    GlobalEventAttributes,
+    DocumentElementEventAttributes,
+    GraphicalEventAttributes {
+  width: string;
+  height: string;
+  preserveAspectRatio: string;
+  refX: string;
+  refY: string;
+  viewBox: string;
+  x: string;
+  y: string;
+}
+interface SVGTextElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    ConditionalProcessingAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  "font-family": string;
+  "font-size": string;
+  "font-size-adjust": string;
+  "font-stretch": string;
+  "font-style": string;
+  "font-variant": string;
+  "font-weight": string;
+  x: string;
+  y: string;
+  dx: string;
+  dy: string;
+  rotate: string;
+  lengthAdjust: EnumeratedValues<"pacing" | "spacingAndGlyphs">;
+  textLength: string;
+}
+interface SVGTextPathElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    ConditionalProcessingAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  href: string;
+  lengthAdjust: EnumeratedValues<"pacing" | "spacingAndGlyphs">;
+  method: EnumeratedValues<"align" | "stretch">;
+  /** @experimental */
+  path: string;
+  /** @experimental */
+  side: EnumeratedValues<"left" | "right">;
+  spacing: EnumeratedValues<"auto" | "exact">;
+  startOffset: string;
+  textLength: string;
+}
+interface SVGTitleElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    GlobalEventAttributes,
+    DocumentElementEventAttributes {}
+interface SVGTSpanElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    ConditionalProcessingAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  x: string;
+  y: string;
+  dx: string;
+  dy: string;
+  rotate: string;
+  lengthAdjust: EnumeratedValues<"pacing" | "spacingAndGlyphs">;
+  textLength: string;
+}
+interface SVGUseElementAttributes
+  extends SVGCoreAttributes,
+    StylingAttributes,
+    PresentationAttributes,
+    ConditionalProcessingAttributes,
+    GlobalEventAttributes,
+    GraphicalEventAttributes {
+  href: string;
+  /** @deprecated  */
+  "xlink:href": string;
+  x: string;
+  y: string;
+  width: string;
+  height: string;
+}
+interface SVGViewElementAttributes extends SVGCoreAttributes, GlobalEventAttributes {
+  viewBox: string;
+  preserveAspectRatio: string;
+}
+
+//#endregion
 
 declare global {
   namespace JSX {
     type Element = Mountable<any>;
+    interface JSXTypeConfig {}
     interface ElementAttributesProperty {
       options: {};
     }
@@ -795,137 +1755,42 @@ declare global {
     }
 
     interface JSXHTMLElements {
-      a: Attributes<
-        GlobalAttributes & {
-          download: string;
-          href: string;
-          hreflang: string;
-          ping: string;
-          referrerpolicy: ReferrerPolicyOptions;
-          rel: string;
-          target: TargetOptions;
-          type: string;
-        },
-        HTMLAnchorElement
-      >;
+      a: Attributes<HTMLAnchorElementAttributes, HTMLAnchorElement>;
       abbr: Attributes<GlobalAttributes, HTMLElement>;
       address: Attributes<GlobalAttributes, HTMLElement>;
-      area: Attributes<
-        GlobalAttributes & {
-          alt: string;
-          coords: string;
-          download: string;
-          href: string;
-          /**
-           * @deprecated
-           */
-          hreflang: string;
-          referrerpolicy: ReferrerPolicyOptions;
-          rel: string;
-          shape: string;
-          target: TargetOptions;
-        },
-        HTMLAreaElement
-      >;
+      area: Attributes<HTMLAreaElementAttributes, HTMLAreaElement>;
       article: Attributes<GlobalAttributes, HTMLElement>;
       aside: Attributes<GlobalAttributes, HTMLElement>;
-      audio: Attributes<
-        GlobalAttributes &
-          PlayerAttributes & {
-            /**
-             * @experimental
-             */
-            disableremoteplayback: BooleanAttributeValue;
-          },
-        HTMLAudioElement
-      >;
+      audio: Attributes<HTMLAudioElementAttributes, HTMLAudioElement>;
       b: Attributes<GlobalAttributes, HTMLElement>;
       bdi: Attributes<GlobalAttributes, HTMLElement>;
       bdo: Attributes<GlobalAttributes, HTMLElement>;
       blockquote: Attributes<GlobalAttributes, HTMLQuoteElement>;
       br: Attributes<GlobalAttributes, HTMLBRElement>;
-      button: Attributes<
-        GlobalAttributes &
-          FormElementAttributes & {
-            type: EnumeratedValues<"submit" | "reset" | "button" | "menu">;
-          },
-        HTMLButtonElement
-      >;
-      canvas: Attributes<GlobalAttributes & SizeOptions, HTMLCanvasElement>;
+      button: Attributes<HTMLButtonElementAttributes, HTMLButtonElement>;
+      canvas: Attributes<HTMLCanvasElementAttributes, HTMLCanvasElement>;
       caption: Attributes<GlobalAttributes, HTMLTableCaptionElement>;
       cite: Attributes<GlobalAttributes, HTMLElement>;
       code: Attributes<GlobalAttributes, HTMLElement>;
-      col: Attributes<
-        GlobalAttributes & {
-          span: NumericAttributeValue;
-        },
-        HTMLTableColElement
-      >;
-      colgroup: Attributes<
-        GlobalAttributes & {
-          span: NumericAttributeValue;
-        },
-        HTMLTableColElement
-      >;
-      data: Attributes<
-        GlobalAttributes & {
-          value: string;
-        },
-        HTMLDataElement
-      >;
+      col: Attributes<HTMLTableColElementAttributes, HTMLTableColElement>;
+      colgroup: Attributes<HTMLTableColElementAttributes, HTMLTableColElement>;
+      data: Attributes<HTMLDataElementAttributes, HTMLDataElement>;
       datalist: Attributes<GlobalAttributes, HTMLDataListElement>;
       dd: Attributes<GlobalAttributes, HTMLElement>;
-      del: Attributes<GlobalAttributes & ModElementAttributes, HTMLModElement>;
-      details: Attributes<
-        GlobalAttributes & {
-          open: BooleanAttributeValue;
-        },
-        HTMLDetailsElement
-      >;
+      del: Attributes<HTMLModElementAttributes, HTMLModElement>;
+      details: Attributes<HTMLDetailsElementAttributes, HTMLDetailsElement>;
       dfn: Attributes<GlobalAttributes, HTMLElement>;
-      dialog: Attributes<
-        Omit<GlobalAttributes, "tabindex"> & {
-          open: BooleanAttributeValue;
-        },
-        HTMLDialogElement
-      >;
+      dialog: Attributes<HTMLDialogElementAttributes, HTMLDialogElement>;
       div: Attributes<GlobalAttributes, HTMLDivElement>;
       dl: Attributes<GlobalAttributes, HTMLDListElement>;
       dt: Attributes<GlobalAttributes, HTMLElement>;
       em: Attributes<GlobalAttributes, HTMLElement>;
-      embed: Attributes<
-        GlobalAttributes &
-          SizeOptions & {
-            src: string;
-            type: string;
-          },
-        HTMLEmbedElement
-      >;
-      fieldset: Attributes<
-        GlobalAttributes & {
-          disabled: BooleanAttributeValue;
-          form: string;
-          name: string;
-        },
-        HTMLFieldSetElement
-      >;
+      embed: Attributes<HTMLEmbedElementAttributes, HTMLEmbedElement>;
+      fieldset: Attributes<HTMLFieldSetElementAttributes, HTMLFieldSetElement>;
       figcaption: Attributes<GlobalAttributes, HTMLElement>;
       figure: Attributes<GlobalAttributes, HTMLElement>;
       footer: Attributes<GlobalAttributes, HTMLElement>;
-      form: Attributes<
-        GlobalAttributes & {
-          "accept-charset": string;
-          action: string;
-          autocomplete: AutoCompleteSwitch;
-          enctype: EncryptionTypes;
-          method: FormMethods;
-          name: string;
-          novalidate: BooleanAttributeValue;
-          rel: string;
-          target: TargetOptions;
-        },
-        HTMLFormElement
-      >;
+      form: Attributes<HTMLFormElementAttributes, HTMLFormElement>;
       h1: Attributes<GlobalAttributes, HTMLHeadingElement>;
       h2: Attributes<GlobalAttributes, HTMLHeadingElement>;
       h3: Attributes<GlobalAttributes, HTMLHeadingElement>;
@@ -937,1039 +1802,135 @@ declare global {
       hgroup: Attributes<GlobalAttributes, HTMLElement>;
       hr: Attributes<GlobalAttributes, HTMLElement>;
       i: Attributes<GlobalAttributes, HTMLElement>;
-      iframe: Attributes<
-        GlobalAttributes &
-          ExperimentalImportance &
-          SizeOptions & {
-            allow: string;
-            /**
-             * @deprecated
-             * Use allow="fullscreen" instead.
-             */
-            allowfullscreen: BooleanAttributeValue;
-            /**
-             * @deprecated
-             * Use allow="payment" instead.
-             */
-            allowpaymentrequest: BooleanAttributeValue;
-            /**
-             * @experimental
-             */
-            csp: string;
-
-            name: string;
-            referrerpolicy: ReferrerPolicyOptions;
-            sandbox: EnumeratedValues<
-              | "allow-downloads-without-user-activation"
-              | "allow-forms"
-              | "allow-modals"
-              | "allow-orientation-lock"
-              | "allow-pointer-lock"
-              | "allow-popups"
-              | "allow-popups-to-escape-sandbox"
-              | "allow-presentation"
-              | "allow-same-origin"
-              | "allow-scripts"
-              | "allow-storage-access-by-user-activation"
-              | "allow-top-navigation"
-              | "allow-top-navigation-by-user-activation"
-            >;
-            src: string;
-            srcdoc: string;
-          },
-        HTMLIFrameElement
+      iframe: Attributes<HTMLIFrameElementAttributes, HTMLIFrameElement>;
+      img: Attributes<HTMLImageElementAttributes, HTMLImageElement>;
+      input: Attributes<
+        JSXTypeConfig extends { strictInput: boolean } ? InputAttributes : HTMLInputElementAttributes,
+        HTMLInputElement
       >;
-      img: Attributes<
-        GlobalAttributes &
-          ExperimentalImportance &
-          SizeOptions & {
-            alt: string;
-            crossorigin: CORSOptions;
-            decoding: EnumeratedValues<"sync" | "async" | "auto">;
-            ismap: BooleanAttributeValue;
-            loading: EnumeratedValues<"eager" | "lazy">;
-            referrerpolicy: ReferrerPolicyOptions;
-            sizes: string;
-            src: string;
-            srcset: string;
-            usemap: string;
-          },
-        HTMLImageElement
-      >;
-      input: Attributes<GlobalAttributes & InputAttributes, HTMLInputElement>;
-      ins: Attributes<GlobalAttributes & ModElementAttributes, HTMLModElement>;
+      ins: Attributes<HTMLModElementAttributes, HTMLModElement>;
       kbd: Attributes<GlobalAttributes, HTMLElement>;
-      label: Attributes<GlobalAttributes & { for: string }, HTMLLabelElement>;
+      label: Attributes<HTMLLabelElementAttributes, HTMLLabelElement>;
       legend: Attributes<GlobalAttributes, HTMLElement>;
-      li: Attributes<
-        GlobalAttributes & {
-          value: NumericAttributeValue;
-          /**
-           * @deprecated
-           */
-          type: ListStyleType;
-        },
-        HTMLLIElement
-      >;
-
-      link: Attributes<
-        GlobalAttributes &
-          ExperimentalImportance & {
-            as: EnumeratedValues<
-              | "audio"
-              | "document"
-              | "embed"
-              | "fetch"
-              | "font"
-              | "image"
-              | "object"
-              | "script"
-              | "style"
-              | "track"
-              | "video"
-              | "worker"
-            >;
-            crossorigin: CORSOptions;
-            href: string;
-            hreflang: string;
-            imagesizes: string;
-            imagesrcset: string;
-            integrity: string;
-            media: string;
-            /**
-             * @experimental
-             */
-            prefetch: BooleanAttributeValue;
-            referrerpolicy: ReferrerPolicyOptions;
-            rel: string;
-            /**
-             * @experimental
-             */
-            sizes: string;
-            title: string;
-            type: string;
-            blocking: string;
-          },
-        HTMLLinkElement
-      >;
+      li: Attributes<HTMLLIElementAttributes, HTMLLIElement>;
+      link: Attributes<HTMLLinkElementAttributes, HTMLLinkElement>;
       main: Attributes<GlobalAttributes, HTMLElement>;
-      map: Attributes<
-        GlobalAttributes & {
-          name: string;
-        },
-        HTMLMapElement
-      >;
+      map: Attributes<HTMLMapElementAttributes, HTMLMapElement>;
       mark: Attributes<GlobalAttributes, HTMLElement>;
       menu: Attributes<GlobalAttributes, HTMLMenuElement>;
-      meter: Attributes<
-        GlobalAttributes & {
-          value: NumericAttributeValue;
-          min: NumericAttributeValue;
-          max: NumericAttributeValue;
-          low: NumericAttributeValue;
-          high: NumericAttributeValue;
-          optimum: NumericAttributeValue;
-        },
-        HTMLMeterElement
-      >;
+      meter: Attributes<HTMLMeterElementAttributes, HTMLMeterElement>;
       nav: Attributes<GlobalAttributes, HTMLElement>;
       noscript: Attributes<GlobalAttributes, HTMLElement>;
-      object: Attributes<
-        GlobalAttributes &
-          SizeOptions & {
-            data: string;
-            form: string;
-            type: string;
-            usemap: string;
-          },
-        HTMLObjectElement
-      >;
-      ol: Attributes<
-        GlobalAttributes & {
-          reversed: BooleanAttributeValue;
-          start: NumericAttributeValue;
-          type: ListStyleType;
-        },
-        HTMLOListElement
-      >;
-      optgroup: Attributes<
-        GlobalAttributes & {
-          disabled: BooleanAttributeValue;
-          label: string;
-        },
-        HTMLOptGroupElement
-      >;
-      option: Attributes<
-        GlobalAttributes & {
-          disabled: BooleanAttributeValue;
-          label: string;
-          selected: BooleanAttributeValue;
-          value: string;
-        },
-        HTMLOptionElement
-      >;
-      output: Attributes<
-        GlobalAttributes & {
-          for: string;
-          form: string;
-          name: string;
-        },
-        HTMLOutputElement
-      >;
+      object: Attributes<HTMLObjectElementAttributes, HTMLObjectElement>;
+      ol: Attributes<HTMLOListElementAttributes, HTMLOListElement>;
+      optgroup: Attributes<HTMLOptGroupElementAttributes, HTMLOptGroupElement>;
+      option: Attributes<HTMLOptionElementAttributes, HTMLOptionElement>;
+      output: Attributes<HTMLOutputElementAttributes, HTMLOutputElement>;
       p: Attributes<GlobalAttributes, HTMLParagraphElement>;
       picture: Attributes<GlobalAttributes, HTMLPictureElement>;
       pre: Attributes<GlobalAttributes, HTMLPreElement>;
-      progress: Attributes<
-        GlobalAttributes & {
-          max: NumericAttributeValue;
-          value: NumericAttributeValue;
-        },
-        HTMLProgressElement
-      >;
-      q: Attributes<
-        GlobalAttributes & {
-          cite: string;
-        },
-        HTMLQuoteElement
-      >;
+      progress: Attributes<HTMLProgressElementAttributes, HTMLProgressElement>;
+      q: Attributes<HTMLQuoteElementAttributes, HTMLQuoteElement>;
       rp: Attributes<GlobalAttributes, HTMLElement>;
       rt: Attributes<GlobalAttributes, HTMLElement>;
       ruby: Attributes<GlobalAttributes, HTMLElement>;
       s: Attributes<GlobalAttributes, HTMLElement>;
       samp: Attributes<GlobalAttributes, HTMLElement>;
-      script: Attributes<
-        GlobalAttributes &
-          ExperimentalImportance & {
-            async: BooleanAttributeValue;
-            crossorigin: CORSOptions;
-            defer: BooleanAttributeValue;
-            integrity: string;
-            nomodule: BooleanAttributeValue;
-            nonce: string;
-            referrerpolicy: ReferrerPolicyOptions;
-            src: string;
-            type: string;
-            blocking: string;
-          },
-        HTMLScriptElement
-      >;
+      script: Attributes<HTMLScriptElementAttributes, HTMLScriptElement>;
       section: Attributes<GlobalAttributes, HTMLElement>;
-      select: Attributes<
-        GlobalAttributes & {
-          autocomplete: AutoCompleteHints;
-          autofocus: BooleanAttributeValue;
-          disabled: BooleanAttributeValue;
-          form: string;
-          multiple: BooleanAttributeValue;
-          name: string;
-          required: BooleanAttributeValue;
-          size: NumericAttributeValue;
-        },
-        HTMLSelectElement
-      >;
-      slot: Attributes<
-        GlobalAttributes & {
-          name: string;
-        },
-        HTMLSlotElement
-      >;
+      select: Attributes<HTMLSelectElementAttributes, HTMLSelectElement>;
+      slot: Attributes<HTMLSlotElementAttributes, HTMLSlotElement>;
       small: Attributes<GlobalAttributes, HTMLElement>;
-      source: Attributes<
-        GlobalAttributes &
-          SizeOptions & {
-            type: string;
-            src: string;
-            srcset: string;
-            sizes: string;
-            media: string;
-          },
-        HTMLSourceElement
-      >;
+      source: Attributes<HTMLSourceElementAttributes, HTMLSourceElement>;
       span: Attributes<GlobalAttributes, HTMLSpanElement>;
       strong: Attributes<GlobalAttributes, HTMLElement>;
-      style: Attributes<
-        GlobalAttributes & {
-          media: string;
-          nonce: string;
-          title: string;
-          blocking: string;
-        },
-        HTMLStyleElement
-      >;
+      style: Attributes<HTMLStyleElementAttributes, HTMLStyleElement>;
       sub: Attributes<GlobalAttributes, HTMLElement>;
       summary: Attributes<GlobalAttributes, HTMLElement>;
       sup: Attributes<GlobalAttributes, HTMLElement>;
       table: Attributes<GlobalAttributes, HTMLTableElement>;
       tbody: Attributes<GlobalAttributes, HTMLTableSectionElement>;
-      td: Attributes<
-        GlobalAttributes & {
-          colspan: NumericAttributeValue;
-          headers: string;
-          rowspan: NumericAttributeValue;
-        },
-        HTMLTableCellElement
-      >;
+      td: Attributes<HTMLTDElementAttributes, HTMLTableCellElement>;
       template: Attributes<GlobalAttributes, HTMLTemplateElement>;
-      textarea: Attributes<
-        GlobalAttributes & {
-          autocomplete: AutoCompleteSwitch;
-          autofocus: BooleanAttributeValue;
-          cols: NumericAttributeValue;
-          disabled: BooleanAttributeValue;
-          form: string;
-          maxlength: NumericAttributeValue;
-          minlength: NumericAttributeValue;
-          name: string;
-          placeholder: string;
-          readonly: BooleanAttributeValue;
-          required: BooleanAttributeValue;
-          rows: NumericAttributeValue;
-          spellcheck: BooleanAttributeValue | "default";
-          wrap: EnumeratedValues<"hard" | "soft">;
-        },
-        HTMLTextAreaElement
-      >;
+      textarea: Attributes<HTMLTextAreaElementAttributes, HTMLTextAreaElement>;
       tfoot: Attributes<GlobalAttributes, HTMLTableSectionElement>;
-      th: Attributes<
-        GlobalAttributes & {
-          abbr: string;
-          colspan: NumericAttributeValue;
-          headers: string;
-          rowspan: NumericAttributeValue;
-          scope: EnumeratedValues<"row" | "col" | "rowgroup" | "colgroup">;
-        },
-        HTMLTableCellElement
-      >;
+      th: Attributes<HTMLTHElementAttributes, HTMLTableCellElement>;
       thead: Attributes<GlobalAttributes, HTMLTableSectionElement>;
-      time: Attributes<
-        GlobalAttributes & {
-          datetime: string;
-        },
-        HTMLTimeElement
-      >;
+      time: Attributes<HTMLTimeElementAttributes, HTMLTimeElement>;
       tr: Attributes<GlobalAttributes, HTMLTableRowElement>;
-      track: Attributes<
-        GlobalAttributes & {
-          default: BooleanAttributeValue;
-          kind: EnumeratedValues<"subtitles" | "captions" | "descriptions" | "chapters" | "metadata">;
-          label: string;
-          src: string;
-          srclang: string;
-        },
-        HTMLTrackElement
-      >;
+      track: Attributes<HTMLTrackElementAttributes, HTMLTrackElement>;
       u: Attributes<GlobalAttributes, HTMLElement>;
       ul: Attributes<GlobalAttributes, HTMLUListElement>;
       var: Attributes<GlobalAttributes, HTMLElement>;
-      video: Attributes<
-        GlobalAttributes &
-          SizeOptions &
-          PlayerAttributes & {
-            /**
-             * @experimental
-             */
-            autopictureinpicture: BooleanAttributeValue;
-
-            /**
-             * @experimental
-             */
-            disablepictureinpicture: BooleanAttributeValue;
-            /**
-             * @experimental
-             */
-            disableremoteplayback: BooleanAttributeValue;
-            playsinline: BooleanAttributeValue;
-            poster: string;
-          },
-        HTMLVideoElement
-      >;
+      video: Attributes<HTMLVideoElementAttributes, HTMLVideoElement>;
       wbr: Attributes<GlobalAttributes, HTMLElement>;
     }
-
     interface JSXSVGElements {
-      animate: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          AnimationTimingAttributes &
-          AnimationValueAttributes &
-          AnimationAdditionAttributes &
-          GlobalEventAttributes &
-          DocumentElementEventAttributes,
-        SVGAnimateElement
-      >;
-      animateMotion: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          AnimationTimingAttributes &
-          AnimationValueAttributes &
-          AnimationAdditionAttributes &
-          AnimationAttributeTargetAttributes & {
-            keyPoints: string;
-            path: string;
-            rotate: string;
-          } & GlobalEventAttributes &
-          DocumentElementEventAttributes,
-        SVGAnimateMotionElement
-      >;
-      animateTransform: Attributes<
-        ConditionalProcessingAttributes &
-          SVGCoreAttributes &
-          AnimationAttributeTargetAttributes &
-          AnimationTimingAttributes &
-          AnimationValueAttributes &
-          AnimationAdditionAttributes & {
-            by: string;
-            from: string;
-            to: string;
-            type: EnumeratedValues<"translate" | "scale" | "rotate" | "skewX" | "skewY">;
-          },
-        SVGAnimateTransformElement
-      >;
-      circle: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          ConditionalProcessingAttributes &
-          PresentationAttributes & {
-            cx: string;
-            cy: string;
-            r: string;
-            pathLength: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGCircleElement
-      >;
-      clipPath: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          ConditionalProcessingAttributes &
-          PresentationAttributes & { clipPathUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox"> },
-        SVGClipPathElement
-      >;
-      defs: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          GlobalEventAttributes &
-          DocumentElementEventAttributes &
-          GraphicalEventAttributes,
-        SVGDefsElement
-      >;
-      desc: Attributes<
-        SVGCoreAttributes & StylingAttributes & GlobalEventAttributes & DocumentElementEventAttributes,
-        SVGDescElement
-      >;
+      animate: Attributes<SVGAnimateElementAttributes, SVGAnimateElement>;
+      animateMotion: Attributes<SVGAnimateMotionElementAttributes, SVGAnimateMotionElement>;
+      animateTransform: Attributes<SVGAnimateTransformElementAttributes, SVGAnimateTransformElement>;
+      circle: Attributes<SVGCircleElementAttributes, SVGCircleElement>;
+      clipPath: Attributes<SVGClipPathElementAttributes, SVGClipPathElement>;
+      defs: Attributes<SVGDefsElementAttributes, SVGDefsElement>;
+      desc: Attributes<SVGDescElementAttributes, SVGDescElement>;
       /** @experimental */
-      discard: Attributes<
-        ConditionalProcessingAttributes &
-          SVGCoreAttributes &
-          PresentationAttributes & {
-            begin: string;
-            href: string;
-          },
-        HTMLElement
-      >;
-      ellipse: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          ConditionalProcessingAttributes &
-          PresentationAttributes & {
-            cx: string;
-            cy: string;
-            rx: string;
-            ry: string;
-            pathLength: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGEllipseElement
-      >;
-      feblend: Attributes<
-        SVGCoreAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes &
-          StylingAttributes & {
-            in: InOrIn2Attributes;
-            in2: InOrIn2Attributes;
-            mode: BlendMode;
-          },
-        SVGFEBlendElement
-      >;
-      feColorMatrix: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            in: InOrIn2Attributes;
-            type: EnumeratedValues<"translate" | "scale" | "rotate" | "skewX" | "skewY">;
-            values: string;
-          },
-        SVGFEColorMatrixElement
-      >;
-      feComponentTransfer: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            in: InOrIn2Attributes;
-          },
-        SVGFEComponentTransferElement
-      >;
-      feComposite: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            in: InOrIn2Attributes;
-            in2: InOrIn2Attributes;
-            operator: EnumeratedValues<"over" | "in" | "out" | "atop" | "xor" | "lighter" | "arithmetic">;
-            k1: string;
-            k2: string;
-            k3: string;
-            k4: string;
-          },
-        SVGFECompositeElement
-      >;
-      feConvolveMatrix: Attributes<
-        SVGCoreAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes &
-          StylingAttributes & {
-            in: InOrIn2Attributes;
-            order: string;
-            kernelMatrix: string;
-            divisor: string;
-            bias: string;
-            targetX: string;
-            targetY: string;
-            edgeMode: EnumeratedValues<"duplicate" | "wrap" | "none">;
-            /** @deprecated */
-            kernelUnitLength: string;
-            preserveAlpha: EnumeratedValues<"true" | "false">;
-          },
-        SVGFEConvolveMatrixElement
-      >;
-      feDiffuseLighting: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            in: InOrIn2Attributes;
-            surfaceScale: string;
-            diffuseConstant: string;
-            /** @deprecated */
-            kernelUnitLength: string;
-          },
-        SVGFEDiffuseLightingElement
-      >;
-      feDisplacementMap: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            in: InOrIn2Attributes;
-            in2: InOrIn2Attributes;
-            scale: string;
-            xChannelSelector: EnumeratedValues<"R" | "G" | "B" | "A">;
-            yChannelSelector: EnumeratedValues<"R" | "G" | "B" | "A">;
-          },
-        SVGFEDisplacementMapElement
-      >;
-      feDistantLight: Attributes<
-        SVGCoreAttributes & {
-          azimuth: string;
-          elevation: string;
-        },
-        SVGFEDistantLightElement
-      >;
-      feDropShadow: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          SVGFilterAttributes &
-          PresentationAttributes & {
-            dx: string;
-            dy: string;
-            stdDeviation: string;
-          },
-        SVGFEDropShadowElement
-      >;
-      feFlood: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            "flood-color": string;
-            "flood-opacity": string;
-          },
-        SVGFEFloodElement
-      >;
-      feFuncA: Attributes<SVGCoreAttributes & TransferFunctionAttributes, SVGFEFuncAElement>;
-      feFuncB: Attributes<SVGCoreAttributes & TransferFunctionAttributes, SVGFEFuncBElement>;
-      feFuncG: Attributes<SVGCoreAttributes & TransferFunctionAttributes, SVGFEFuncGElement>;
-      feFuncR: Attributes<SVGCoreAttributes & TransferFunctionAttributes, SVGFEFuncRElement>;
-      feGaussianBlur: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            in: InOrIn2Attributes;
-            stdDeviation: string;
-            edgeMode: EnumeratedValues<"duplicate" | "wrap" | "none">;
-          },
-        SVGFEGaussianBlurElement
-      >;
-      feImage: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            preserveAspectRatio: string;
-            "xlink:href": string;
-          },
-        SVGFEImageElement
-      >;
-      feMerge: Attributes<
-        SVGCoreAttributes & StylingAttributes & PresentationAttributes & SVGFilterAttributes,
-        SVGFEMergeElement
-      >;
-      feMergeNode: Attributes<
-        SVGCoreAttributes & {
-          in: InOrIn2Attributes;
-        },
-        SVGFEMergeElement
-      >;
-      feMorphology: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            in: InOrIn2Attributes;
-            operator: EnumeratedValues<"over" | "in" | "out" | "atop" | "xor" | "lighter" | "arithmetic">;
-            radius: string;
-          },
-        SVGFEMorphologyElement
-      >;
-      feOffset: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            in: InOrIn2Attributes;
-            dx: string;
-            dy: string;
-          },
-        SVGFEOffsetElement
-      >;
-      fePointLight: Attributes<
-        SVGCoreAttributes & {
-          x: string;
-          y: string;
-          z: string;
-        },
-        SVGFEPointLightElement
-      >;
-      feSpecularLighting: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            in: InOrIn2Attributes;
-            surfaceScale: string;
-            speculatConstant: string;
-            specularExponent: string;
-            /** @deprecated */
-            kernelUnitLength: string;
-          },
-        SVGFESpecularLightingElement
-      >;
-      feSpotLight: Attributes<
-        SVGCoreAttributes & {
-          x: string;
-          y: string;
-          z: string;
-          pointsAtX: string;
-          pointsAtY: string;
-          pointsAtZ: string;
-          specularExponent: string;
-          limitingConeAngle: string;
-        },
-        SVGFESpotLightElement
-      >;
-      feTile: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            in: InOrIn2Attributes;
-          },
-        SVGFETileElement
-      >;
-      feTurbulence: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          SVGFilterAttributes & {
-            baseFrequency: string;
-            numOctaves: string;
-            seed: string;
-            stitchTiles: EnumeratedValues<"noStitch" | "stitch">;
-            type: EnumeratedValues<"translate" | "scale" | "rotate" | "skewX" | "skewY">;
-          },
-        SVGFETurbulenceElement
-      >;
-      filter: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          Omit<SVGFilterAttributes, "result"> & {
-            filterUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
-            primitiveUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
-            "xlink:href": string;
-          },
-        SVGFETurbulenceElement
-      >;
-      foreignObject: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          ConditionalProcessingAttributes &
-          PresentationAttributes &
-          Omit<SVGFilterAttributes, "result"> &
-          GlobalEventAttributes &
-          GraphicalEventAttributes &
-          DocumentEventAttributes &
-          DocumentElementEventAttributes,
-        SVGForeignObjectElement
-      >;
-      g: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          ConditionalProcessingAttributes &
-          GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGGElement
-      >;
-      image: Attributes<
-        SVGCoreAttributes &
-          PresentationAttributes &
-          ConditionalProcessingAttributes &
-          Omit<SVGFilterAttributes, "result"> & {
-            href: string;
-            "xlink:href": string;
-            preserveAspectRatio: string;
-            crossorigin: EnumeratedValues<"anonymous" | "use-credentials" | "">;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGImageElement
-      >;
-      line: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          ConditionalProcessingAttributes & {
-            x1: string;
-            x2: string;
-            y1: string;
-            y2: string;
-            pathLength: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGLineElement
-      >;
-      linearGradient: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes & {
-            gradientUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
-            gradientTransform: string;
-            href: string;
-            spreadMethod: EnumeratedValues<"pad" | "reflect" | "repeat">;
-            x1: string;
-            x2: string;
-            /** @deprecated */
-            "xlink:href": string;
-            y1: string;
-            y2: string;
-          } & GlobalEventAttributes &
-          DocumentElementEventAttributes,
-        SVGLinearGradientElement
-      >;
-      marker: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          ConditionalProcessingAttributes &
-          PresentationAttributes & {
-            markerHeight: string;
-            markerUnits: string;
-            markerWidth: string;
-            orient: string;
-            preserveAspectRatio: string;
-            refX: string;
-            refY: string;
-            viewBox: string;
-          },
-        SVGMarkerElement
-      >;
-      mask: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          ConditionalProcessingAttributes &
-          PresentationAttributes & {
-            width: string;
-            height: string;
-            maskContentUnits: EnumeratedValues<"userSpaceOnUse" | "userSpaceOnUse">;
-            maskUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
-            x: string;
-            y: string;
-          },
-        SVGMaskElement
-      >;
-      metadata: Attributes<SVGCoreAttributes & GlobalEventAttributes, SVGMetadataElement>;
-      mpath: Attributes<
-        SVGCoreAttributes & {
-          "xlink:href": string;
-        },
-        SVGMPathElement
-      >;
-      path: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          ConditionalProcessingAttributes & {
-            d: string;
-            pathLength: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGPathElement
-      >;
-      pattern: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          ConditionalProcessingAttributes &
-          PresentationAttributes & {
-            width: string;
-            height: string;
-            href: string;
-            patternContentUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
-            patternTransform: string;
-            patternUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
-            preserveAspectRatio: string;
-            viewBox: string;
-            x: string;
-            y: string;
-          },
-        SVGPatternElement
-      >;
-      polygon: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          ConditionalProcessingAttributes & {
-            points: string;
-            pathLength: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGPolygonElement
-      >;
-      polyline: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          ConditionalProcessingAttributes & {
-            points: string;
-            pathLength: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGPolylineElement
-      >;
-      radialGradient: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes & {
-            cx: string;
-            xy: string;
-            fr: string;
-            fx: string;
-            fy: string;
-            gradientUnits: EnumeratedValues<"userSpaceOnUse" | "objectBoundingBox">;
-            gradientTransform: string;
-            href: string;
-            r: string;
-            spreadMethod: string;
-            "xlink:href": string;
-          } & GlobalEventAttributes &
-          DocumentElementEventAttributes,
-        SVGRadialGradientElement
-      >;
-      rect: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          ConditionalProcessingAttributes & {
-            x: string;
-            y: string;
-            width: string;
-            height: string;
-            rx: string;
-            ry: string;
-            pathLength: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGRectElement
-      >;
-      set: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          AnimationTimingAttributes &
-          AnimationAttributeTargetAttributes & {
-            to: string;
-          } & GlobalEventAttributes &
-          DocumentElementEventAttributes,
-        SVGSetElement
-      >;
-      stop: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes & {
-            /** @deprecated */
-            offset: string;
-            "stop-color": string;
-            "stop-opacity": string;
-          } & GlobalEventAttributes &
-          DocumentElementEventAttributes,
-        SVGStopElement
-      >;
-      svg: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          ConditionalProcessingAttributes &
-          PresentationAttributes & {
-            viewBox: string;
-            xmlns: string;
-            width: string;
-            heigth: string;
-            preserveAspectRatio: string;
-            "xmlns:xlink": string;
-            x: string;
-            y: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes &
-          DocumentEventAttributes &
-          DocumentElementEventAttributes,
-        SVGElement
-      >;
-      switch: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          ConditionalProcessingAttributes &
-          PresentationAttributes & {
-            transform: string;
-          } & GraphicalEventAttributes,
-        SVGSwitchElement
-      >;
-      symbol: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes & {
-            width: string;
-            height: string;
-            preserveAspectRatio: string;
-            refX: string;
-            refY: string;
-            viewBox: string;
-            x: string;
-            y: string;
-          } & GlobalEventAttributes &
-          DocumentElementEventAttributes &
-          GraphicalEventAttributes,
-        SVGSymbolElement
-      >;
-      text: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          ConditionalProcessingAttributes & {
-            "font-family": string;
-            "font-size": string;
-            "font-size-adjust": string;
-            "font-stretch": string;
-            "font-style": string;
-            "font-variant": string;
-            "font-weight": string;
-            x: string;
-            y: string;
-            dx: string;
-            dy: string;
-            rotate: string;
-            lengthAdjust: EnumeratedValues<"pacing" | "spacingAndGlyphs">;
-            textLength: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGTextElement
-      >;
-      textPath: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          ConditionalProcessingAttributes & {
-            href: string;
-            lengthAdjust: EnumeratedValues<"pacing" | "spacingAndGlyphs">;
-            method: EnumeratedValues<"align" | "stretch">;
-            /** @experimental */
-            path: string;
-            /** @experimental */
-            side: EnumeratedValues<"left" | "right">;
-            spacing: EnumeratedValues<"auto" | "exact">;
-            startOffset: string;
-            textLength: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGTextPathElement
-      >;
+      discard: Attributes<SVGDiscardElementAttributes, SVGElement>;
+      ellipse: Attributes<SVGEllipseElementAttributes, SVGEllipseElement>;
+      feblend: Attributes<SVGFEBlendElementAttributes, SVGFEBlendElement>;
+      feColorMatrix: Attributes<SVGFEColorMatrixElementAttributes, SVGFEColorMatrixElement>;
+      feComponentTransfer: Attributes<SVGFEComponentTransferElementAttributes, SVGFEComponentTransferElement>;
+      feComposite: Attributes<SVGFECompositeElementAttributes, SVGFECompositeElement>;
+      feConvolveMatrix: Attributes<SVGFEConvolveMatrixElementAttributes, SVGFEConvolveMatrixElement>;
+      feDiffuseLighting: Attributes<SVGFEDiffuseLightingElementAttributes, SVGFEDiffuseLightingElement>;
+      feDisplacementMap: Attributes<SVGFEDisplacementMapElementAttributes, SVGFEDisplacementMapElement>;
+      feDistantLight: Attributes<SVGFEDistantLightElementAttributes, SVGFEDistantLightElement>;
+      feDropShadow: Attributes<SVGFEDropShadowElementAttributes, SVGFEDropShadowElement>;
+      feFlood: Attributes<SVGFEFloodElementAttributes, SVGFEFloodElement>;
+      feFuncA: Attributes<SVGFEFuncAElementAttributes, SVGFEFuncAElement>;
+      feFuncB: Attributes<SVGFEFuncBElementAttributes, SVGFEFuncBElement>;
+      feFuncG: Attributes<SVGFEFuncGElementAttributes, SVGFEFuncGElement>;
+      feFuncR: Attributes<SVGFEFuncRElementAttributes, SVGFEFuncRElement>;
+      feGaussianBlur: Attributes<SVGFEGaussianBlurElementAttributes, SVGFEGaussianBlurElement>;
+      feImage: Attributes<SVGFEImageElementAttributes, SVGFEImageElement>;
+      feMerge: Attributes<SVGFEMergeElementAttributes, SVGFEMergeElement>;
+      feMergeNode: Attributes<SVGFEMergeNodeElementAttributes, SVGFEMergeElement>;
+      feMorphology: Attributes<SVGFEMorphologyElementAttributes, SVGFEMorphologyElement>;
+      feOffset: Attributes<SVGFEOffsetElementAttributes, SVGFEOffsetElement>;
+      fePointLight: Attributes<SVGFEPointLightElementAttributes, SVGFEPointLightElement>;
+      feSpecularLighting: Attributes<SVGFESpecularLightingElementAttributes, SVGFESpecularLightingElement>;
+      feSpotLight: Attributes<SVGFESpotLightElementAttributes, SVGFESpotLightElement>;
+      feTile: Attributes<SVGFETileElementAttributes, SVGFETileElement>;
+      feTurbulence: Attributes<SVGFETurbulenceElementAttributes, SVGFETurbulenceElement>;
+      filter: Attributes<SVGFilterElementAttributes, SVGFilterElement>;
+      foreignObject: Attributes<SVGForeignObjectElementAttributes, SVGForeignObjectElement>;
+      g: Attributes<SVGGElementAttributes, SVGGElement>;
+      image: Attributes<SVGImageElementAttributes, SVGImageElement>;
+      line: Attributes<SVGLineElementAttributes, SVGLineElement>;
+      linearGradient: Attributes<SVGLinearGradientElementAttributes, SVGLinearGradientElement>;
+      marker: Attributes<SVGMarkerElementAttributes, SVGMarkerElement>;
+      mask: Attributes<SVGMaskElementAttributes, SVGMaskElement>;
+      metadata: Attributes<SVGMetadataElementAttributes, SVGMetadataElement>;
+      mpath: Attributes<SVGMPathElementAttributes, SVGMPathElement>;
+      path: Attributes<SVGPathElementAttributes, SVGPathElement>;
+      pattern: Attributes<SVGPatternElementAttributes, SVGPatternElement>;
+      polygon: Attributes<SVGPolygonElementAttributes, SVGPolygonElement>;
+      polyline: Attributes<SVGPolylineElementAttributes, SVGPolylineElement>;
+      radialGradient: Attributes<SVGRadialGradientElementAttributes, SVGRadialGradientElement>;
+      rect: Attributes<SVGRectElementAttributes, SVGRectElement>;
+      set: Attributes<SVGSetElementAttributes, SVGSetElement>;
+      stop: Attributes<SVGStopElementAttributes, SVGStopElement>;
+      svg: Attributes<SVGSVGElementAttributes, SVGSVGElement>;
+      switch: Attributes<SVGSwitchElementAttributes, SVGSwitchElement>;
+      symbol: Attributes<SVGSymbolElementAttributes, SVGSymbolElement>;
+      text: Attributes<SVGTextElementAttributes, SVGTextElement>;
+      textPath: Attributes<SVGTextPathElementAttributes, SVGTextPathElement>;
       /**
        * `<title>` is only considered to be used in SVG.
        */
-      title: Attributes<
-        SVGCoreAttributes & StylingAttributes & GlobalEventAttributes & DocumentElementEventAttributes,
-        SVGTitleElement
-      >;
-      tspan: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          ConditionalProcessingAttributes & {
-            x: string;
-            y: string;
-            dx: string;
-            dy: string;
-            rotate: string;
-            lengthAdjust: EnumeratedValues<"pacing" | "spacingAndGlyphs">;
-            textLength: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGTSpanElement
-      >;
-      use: Attributes<
-        SVGCoreAttributes &
-          StylingAttributes &
-          PresentationAttributes &
-          ConditionalProcessingAttributes & {
-            href: string;
-            /** @deprecated  */
-            "xlink:href": string;
-            x: string;
-            y: string;
-            width: string;
-            height: string;
-          } & GlobalEventAttributes &
-          GraphicalEventAttributes,
-        SVGUseElement
-      >;
-      view: Attributes<
-        SVGCoreAttributes & {
-          viewBox: string;
-          preserveAspectRatio: string;
-        } & GlobalEventAttributes,
-        SVGViewElement
-      >;
+      title: Attributes<SVGTitleElementAttributes, SVGTitleElement>;
+      tspan: Attributes<SVGTSpanElementAttributes, SVGTSpanElement>;
+      use: Attributes<SVGUseElementAttributes, SVGUseElement>;
+      view: Attributes<SVGViewElementAttributes, SVGViewElement>;
     }
 
     interface IntrinsicElements extends JSXHTMLElements, JSXSVGElements {}
