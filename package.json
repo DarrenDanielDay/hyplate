@@ -89,7 +89,7 @@
       "browser": "./dist/store.browser.esm.min.js",
       "node": "./dist/store.js",
       "import": "./dist/store.js",
-      "default": "./dist/storee.js"
+      "default": "./dist/store.js"
     },
     "./template": {
       "types": "./dist/template.d.ts",
