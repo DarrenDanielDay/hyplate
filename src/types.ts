@@ -447,7 +447,161 @@ export interface HTMLGlobalEventAttributes {
   onwaiting: string;
 }
 
-export interface GlobalAttributes extends HTMLGlobalEventAttributes {
+//#region ARIA
+export type AriaWidgetRoles =
+  | "button"
+  | "checkbox"
+  | "gridcell"
+  | "link"
+  | "menuitem"
+  | "menuitemcheckbox"
+  | "menuitemradio"
+  | "option"
+  | "progressbar"
+  | "radio"
+  | "scrollbar"
+  | "searchbox"
+  | "separator"
+  | "slider"
+  | "spinbutton"
+  | "switch"
+  | "tab"
+  | "tabpanel"
+  | "textbox"
+  | "treeitem";
+export type AriaCompositeRoles =
+  | "combobox"
+  | "grid"
+  | "listbox"
+  | "menu"
+  | "menubar"
+  | "radiogroup"
+  | "tablist"
+  | "tree"
+  | "treegrid";
+export type AriaDocumentStructureRoles =
+  | "application"
+  | "article"
+  | "cell"
+  | "columnheader"
+  | "definition"
+  | "directory"
+  | "document"
+  | "feed"
+  | "figure"
+  | "group"
+  | "heading"
+  | "img"
+  | "list"
+  | "listitem"
+  | "math"
+  | "none"
+  | "note"
+  | "presentation"
+  | "row"
+  | "rowgroup"
+  | "rowheader"
+  | "separator"
+  | "table"
+  | "term"
+  | "toolbar"
+  | "tooltip";
+export type AriaLandmarkRoles =
+  | "banner"
+  | "complementary"
+  | "contentinfo"
+  | "form"
+  | "main"
+  | "navigation"
+  | "region"
+  | "search";
+export type AriaLiveRegionRoles = "alert" | "log" | "marquee" | "status" | "timer";
+export type AriaWindowRoles = "alertdialog" | "dialog";
+export type AriaRoles = EnumeratedValues<
+  | AriaWidgetRoles
+  | AriaCompositeRoles
+  | AriaDocumentStructureRoles
+  | AriaLandmarkRoles
+  | AriaLiveRegionRoles
+  | AriaWindowRoles
+>;
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Attributes
+ */
+export interface AriaStatesAndProperties {
+  "aria-activedescendant": string;
+  "aria-atomic": BooleanAttributeValue;
+  "aria-autocomplete": EnumeratedValues<"none" | "inline" | "list" | "both">;
+  "aria-busy": BooleanAttributeValue;
+  "aria-checked": BooleanAttributeValue | EnumeratedValues<"mixed">;
+  "aria-colcount": NumericAttributeValue;
+  "aria-colindex": NumericAttributeValue;
+  "aria-colspan": NumericAttributeValue;
+  "aria-controls": string;
+  "aria-current": BooleanAttributeValue | EnumeratedValues<"page" | "step" | "location" | "date" | "time">;
+  "aria-describedby": string;
+  "aria-details": string;
+  "aria-disabled": BooleanAttributeValue;
+  /**
+   * @deprecated
+   */
+  "aria-dropeffect": EnumeratedValues<"none" | "copy" | "execute" | "link" | "move" | "popup">;
+  "aria-errormessage": string;
+  "aria-expanded": BooleanAttributeValue;
+  "aria-flowto": string;
+  /**
+   * @deprecated
+   */
+  "aria-grabbed": BooleanAttributeValue;
+  "aria-haspopup": BooleanAttributeValue | EnumeratedValues<"menu" | "listbox" | "tree" | "grid" | "dialog">;
+  "aria-hidden": BooleanAttributeValue;
+  "aria-invalid": BooleanAttributeValue | EnumeratedValues<"grammar" | "spelling">;
+  "aria-keyshortcuts": string;
+  "aria-label": string;
+  "aria-labelledby": string;
+  "aria-level": NumericAttributeValue;
+  "aria-live": EnumeratedValues<"off" | "assertive" | "polite">;
+  "aria-modal": BooleanAttributeValue;
+  "aria-multiline": BooleanAttributeValue;
+  "aria-multiselectable": BooleanAttributeValue;
+  "aria-orientation": EnumeratedValues<"horizontal" | "vertical">;
+  "aria-owns": string;
+  "aria-placeholder": string;
+  "aria-posinset": NumericAttributeValue;
+  "aria-pressed": BooleanAttributeValue | EnumeratedValues<"mixed">;
+  "aria-readonly": BooleanAttributeValue;
+  "aria-relevant": EnumeratedValues<
+    | "additions"
+    | "additions removals"
+    | "additions text"
+    | "all"
+    | "removals"
+    | "removals additions"
+    | "removals text"
+    | "text"
+    | "text additions"
+    | "text removals"
+  >;
+  "aria-required": BooleanAttributeValue;
+  "aria-roledescription": string;
+  "aria-rowcount": NumericAttributeValue;
+  "aria-rowindex": NumericAttributeValue;
+  "aria-rowspan": NumericAttributeValue;
+  "aria-selected": BooleanAttributeValue;
+  "aria-setsize": NumericAttributeValue;
+  "aria-sort": EnumeratedValues<"none" | "ascending" | "descending" | "other">;
+  "aria-valuemax": NumericAttributeValue;
+  "aria-valuemin": NumericAttributeValue;
+  "aria-valuenow": NumericAttributeValue;
+  "aria-valuetext": string;
+}
+export interface AriaAttributes extends AriaStatesAndProperties {
+  role: AriaRoles;
+}
+//#endregion
+
+export interface GlobalAttributes extends HTMLGlobalEventAttributes, AriaAttributes {
   accesskey: GeneralAttributeType;
   autocapitalize: EnumeratedValues<"off" | "none" | "on" | "sentences" | "words" | "characters">;
   autofocus: BooleanAttributeValue;
@@ -473,80 +627,7 @@ export interface GlobalAttributes extends HTMLGlobalEventAttributes {
   lang: string;
   nonce: string;
   part: GeneralAttributeType;
-  //#region ARIA role
-  role: EnumeratedValues<
-    | "alert"
-    | "alertdialog"
-    | "application"
-    | "article"
-    | "banner"
-    | "button"
-    | "cell"
-    | "checkbox"
-    | "columnheader"
-    | "combobox"
-    | "complementary"
-    | "contentinfo"
-    | "definition"
-    | "dialog"
-    | "directory"
-    | "document"
-    | "feed"
-    | "figure"
-    | "form"
-    | "grid"
-    | "gridcell"
-    | "group"
-    | "heading"
-    | "img"
-    | "link"
-    | "list"
-    | "listbox"
-    | "listitem"
-    | "log"
-    | "main"
-    | "marquee"
-    | "math"
-    | "menu"
-    | "menubar"
-    | "menuitem"
-    | "menuitemcheckbox"
-    | "menuitemradio"
-    | "meter"
-    | "navigation"
-    | "none"
-    | "note"
-    | "option"
-    | "presentation"
-    | "progressbar"
-    | "radio"
-    | "radiogroup"
-    | "region"
-    | "row"
-    | "rowgroup"
-    | "rowheader"
-    | "scrollbar"
-    | "search"
-    | "searchbox"
-    | "separator"
-    | "slider"
-    | "spinbutton"
-    | "status"
-    | "switch"
-    | "tab"
-    | "table"
-    | "tablist"
-    | "tabpanel"
-    | "term"
-    | "textbox"
-    | "timer"
-    | "toolbar"
-    | "tooltip"
-    | "tree"
-    | "treegrid"
-    | "treeitem"
-  >;
-  //#endregion
+  role: AriaRoles;
   /**
    * `slot` is handled. Do not use.
    */
@@ -1125,12 +1206,14 @@ export interface TransferFunctionAttributes {
 export interface SVGAElementAttributes
   extends Omit<HTMLAnchorElementAttributes, keyof GlobalAttributes>,
     SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
     SVGGlobalEventAttributes {}
 
 export interface SVGAnimateElementAttributes
-  extends StylingAttributes,
+  extends SVGCoreAttributes,
+    StylingAttributes,
     AnimationTimingAttributes,
     AnimationValueAttributes,
     AnimationAdditionAttributes,
@@ -1163,6 +1246,7 @@ export interface SVGAnimateTransformElementAttributes
 }
 export interface SVGCircleElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
     PresentationAttributes,
@@ -1201,6 +1285,7 @@ export interface SVGDiscardElementAttributes
 }
 export interface SVGEllipseElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
     PresentationAttributes,
@@ -1413,6 +1498,7 @@ export interface SVGFilterElementAttributes
 }
 export interface SVGForeignObjectElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
     PresentationAttributes,
@@ -1423,6 +1509,7 @@ export interface SVGForeignObjectElementAttributes
     DocumentElementEventAttributes {}
 export interface SVGGElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
@@ -1442,6 +1529,7 @@ export interface SVGImageElementAttributes
 }
 export interface SVGLineElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
@@ -1472,6 +1560,7 @@ export interface SVGLinearGradientElementAttributes
 }
 export interface SVGMarkerElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
     PresentationAttributes {
@@ -1502,6 +1591,7 @@ export interface SVGMPathElementAttributes extends SVGCoreAttributes {
 }
 export interface SVGPathElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
@@ -1528,6 +1618,7 @@ export interface SVGPatternElementAttributes
 }
 export interface SVGPolygonElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
@@ -1538,6 +1629,7 @@ export interface SVGPolygonElementAttributes
 }
 export interface SVGPolylineElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
@@ -1566,6 +1658,7 @@ export interface SVGRadialGradientElementAttributes
 }
 export interface SVGRectElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
@@ -1601,6 +1694,7 @@ export interface SVGStopElementAttributes
 }
 export interface SVGSVGElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     ConditionalProcessingAttributes,
     PresentationAttributes,
@@ -1627,6 +1721,7 @@ export interface SVGSwitchElementAttributes
 }
 export interface SVGSymbolElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     PresentationAttributes,
     SVGGlobalEventAttributes,
@@ -1643,6 +1738,7 @@ export interface SVGSymbolElementAttributes
 }
 export interface SVGTextElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
@@ -1665,6 +1761,7 @@ export interface SVGTextElementAttributes
 }
 export interface SVGTextPathElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
@@ -1688,6 +1785,7 @@ export interface SVGTitleElementAttributes
     DocumentElementEventAttributes {}
 export interface SVGTSpanElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
@@ -1703,6 +1801,7 @@ export interface SVGTSpanElementAttributes
 }
 export interface SVGUseElementAttributes
   extends SVGCoreAttributes,
+    AriaAttributes,
     StylingAttributes,
     PresentationAttributes,
     ConditionalProcessingAttributes,
