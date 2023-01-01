@@ -71,9 +71,11 @@ export type Handler<T extends EventTarget, E extends Extract<keyof EventMap<T>, 
 
 export type Events<T extends EventTarget> = Extract<keyof EventMap<T>, string>;
 
-export type Alphabet<S = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", U = never> = S extends `${infer C}${infer R}` ? Alphabet<R, U | C> : U
+export type Alphabet<S = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", U = never> = S extends `${infer C}${infer R}`
+  ? Alphabet<R, U | C>
+  : U;
 
-export type EventPattern = `on${Alphabet}${string}`
+export type EventPattern = `on${Alphabet}${string}`;
 
 export type EventHandlerOptions = boolean | EventListenerOptions;
 
@@ -176,6 +178,13 @@ export type AttachFunc = (el: Node) => Element;
 export type GetRange = () => readonly [Node, Node] | undefined | void;
 
 export type Rendered<E extends ExposeBase> = [unmount: CleanUpFunc, exposed: E, range: GetRange];
+
+export type BindingHost<T extends Element> = {
+  attr<P extends keyof AttributesMap<T>>(name: P, subscribable: Subscribable<AttributesMap<T>[P]>): BindingHost<T>;
+  content(fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]): BindingHost<T>;
+  event<E extends Events<T>>(name: E, handler: Handler<T, E>, options?: boolean | EventListenerOptions): BindingHost<T>;
+  text(subscribable: Subscribable<TextInterpolation>): BindingHost<T>;
+};
 
 //#region JSX types
 type ArrayOr<T> = T | T[];
