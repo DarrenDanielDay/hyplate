@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "module": "ESNext",
+    "target": "ESNext",
+    "composite": true,
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "moduleResolution": "NodeNext"
+  },
+  "include": ["./start.js"]
+}

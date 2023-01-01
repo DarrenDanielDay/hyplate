@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "isolatedModules": true,
+    "module": "ESNext",
+    "target": "ESNext",
+    "allowJs": false,
+    "sourceMap": true,
+    "preserveWatchOutput": true,
+    "moduleResolution": "NodeNext",
+    "jsx": "react-jsx",
+    "jsxImportSource": "hyplate"
+  },
+  "include": ["src"]
+}

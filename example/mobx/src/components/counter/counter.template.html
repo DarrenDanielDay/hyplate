@@ -1,0 +1,15 @@
+<template #counterTemplate>
+  <button #btn>add count</button>
+  <div #countMsg></div>
+  <div #doubleMsg></div>
+  <style>
+    @import url("../../styles/button.css");
+    /* Add some style to the custom element. */
+    :host {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</template>
