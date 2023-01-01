@@ -19,8 +19,9 @@ import type {
   PropsBase,
   Later,
   Subscribable,
+  ObjectEventHandler,
 } from "./types.js";
-import { applyAll, isFunction, noop, push, __DEV__ } from "./util.js";
+import { applyAll, isFunction, isObject, noop, push, __DEV__ } from "./util.js";
 
 const addChild = (child: JSXChild, attach: AttachFunc) => {
   if (child instanceof Node) {
@@ -66,6 +67,7 @@ const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
 };
 const pattern = /^on[A-Z]/;
 const isEventAttribute = (name: string) => pattern.test(name);
+const isObjectEventHandler = (v: unknown): v is ObjectEventHandler<any> => isObject(v) && "handleEvent" in v;
 
 let currentElementFactory: (name: string) => Element = element;
 
@@ -92,7 +94,7 @@ export const jsx = (
       for (const [key, value] of Object.entries(attributes)) {
         if (isSubscribable(value)) {
           push(cleanups, bindAttr(el, key, value as Subscribable<AttributeInterpolation>));
-        } else if (isFunction(value) && isEventAttribute(key)) {
+        } else if ((isFunction(value) || isObjectEventHandler(value)) && isEventAttribute(key)) {
           const host = listen(el);
           push(cleanups, host(key.slice(2).toLowerCase() as never, value));
         } else {

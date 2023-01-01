@@ -3,7 +3,7 @@ import { appendChild, element } from "../dist/core";
 import { If, Show } from "../dist/directive";
 import { Fragment, jsx, jsxRef, jsxs } from "../dist/jsx-runtime";
 import { source } from "../dist/store";
-import type { AttachFunc, FunctionalComponent, Mountable } from "../dist/types";
+import type { AttachFunc, FunctionalComponent, Mountable, ObjectEventHandler } from "../dist/types";
 import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
 describe("jsx-runtime.ts", () => {
@@ -171,7 +171,7 @@ describe("jsx-runtime.ts", () => {
       warnSpy.mockRestore();
     });
     //*/
-    it("should bind inline event handler", () => {
+    it("should bind functional event handler", () => {
       const handler = import.meta.jest.fn();
       const mountable: Mountable<HTMLButtonElement> = <button onClick={handler}></button>;
       const [cleanup, button] = mountable(attach);
@@ -183,6 +183,18 @@ describe("jsx-runtime.ts", () => {
       cleanup();
       button.click();
       expect(handler).toBeCalledTimes(2);
+    });
+    it("should bind object event handler", () => {
+      const handleEvent = import.meta.jest.fn();
+      const handler: ObjectEventHandler<MouseEvent> = {
+        handleEvent,
+      };
+      const buttonRef = jsxRef<HTMLButtonElement>();
+      (<button ref={buttonRef} onClick={handler}></button>)(attach);
+      const button = buttonRef.current!;
+      expect(button).toBeTruthy();
+      button.click();
+      expect(handleEvent).toBeCalledTimes(1);
     });
     it("should render nodes", () => {
       const mountable = (
