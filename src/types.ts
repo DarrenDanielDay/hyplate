@@ -60,6 +60,7 @@ export type FunctionalEventHanlder<T extends EventTarget, E extends Event> = (th
 
 export interface ObjectEventHandler<E extends Event> {
   handleEvent(event: E): void;
+  options?: EventHandlerOptions;
 }
 
 export type Handler<T extends EventTarget, E extends Extract<keyof EventMap<T>, string>> =
@@ -68,10 +69,24 @@ export type Handler<T extends EventTarget, E extends Extract<keyof EventMap<T>, 
 
 export type Events<T extends EventTarget> = Extract<keyof EventMap<T>, string>;
 
+export type EventHandlerOptions = boolean | EventListenerOptions;
+
+declare global {
+  /**
+   * Currently `lib.dom.d.ts` does not have the following definitions.
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#parameters
+   */
+  interface EventListenerOptions {
+    once?: boolean;
+    passive?: boolean;
+    signal?: AbortSignal;
+  }
+}
+
 export type EventHost<T extends EventTarget> = <E extends Events<T>>(
   name: E,
   handler: Handler<T, E>,
-  options?: boolean | EventListenerOptions
+  options?: EventHandlerOptions
 ) => CleanUpFunc;
 
 export interface Hooks {

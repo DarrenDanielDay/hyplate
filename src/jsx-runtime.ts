@@ -67,7 +67,8 @@ const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
 };
 const pattern = /^on[A-Z]/;
 const isEventAttribute = (name: string) => pattern.test(name);
-const isObjectEventHandler = (v: unknown): v is ObjectEventHandler<any> => isObject(v) && "handleEvent" in v;
+const isObjectEventHandler = (v: unknown): v is ObjectEventHandler<any> =>
+  isObject(v) && "handleEvent" in v && isFunction(v.handleEvent);
 
 let currentElementFactory: (name: string) => Element = element;
 
@@ -91,14 +92,21 @@ export const jsx = (
         ref.current = el;
       }
       const [cleanups] = children != null ? renderChild(children, appendChild(el)) : [[]];
+      const host = listen(el);
       for (const [key, value] of Object.entries(attributes)) {
         if (isSubscribable(value)) {
           push(cleanups, bindAttr(el, key, value as Subscribable<AttributeInterpolation>));
-        } else if ((isFunction(value) || isObjectEventHandler(value)) && isEventAttribute(key)) {
-          const host = listen(el);
-          push(cleanups, host(key.slice(2).toLowerCase() as never, value));
         } else {
-          attr(el, key, value as AttributeInterpolation);
+          if (isEventAttribute(key)) {
+            const event = key.slice(2).toLowerCase();
+            if (isFunction(value)) {
+              push(cleanups, host(event, value));
+            } else if (isObjectEventHandler(value)) {
+              push(cleanups, host(event, value, value.options));
+            }
+          } else {
+            attr(el, key, value as AttributeInterpolation);
+          }
         }
       }
       push(cleanups, () => remove(el));
