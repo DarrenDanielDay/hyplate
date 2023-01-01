@@ -1,6 +1,4 @@
-import { bindText, interpolation } from "hyplate/binding";
-import { appendChild } from "hyplate/core";
-import { useCleanUp, useEvent } from "hyplate/hooks";
+import { useBinding } from "hyplate/toolkit";
 import { computed, makeAutoObservable } from "mobx";
 
 import { counterTemplate } from "./counter.template.js";
@@ -25,23 +23,16 @@ class CounterState {
   }
 }
 
-export const Counter = counterTemplate(({ name }: CounterProps, ctx) => {
+export const Counter = counterTemplate(({ name }: CounterProps, { refs: { btn, countMsg, doubleMsg } }) => {
   const state = new CounterState();
 
-  useEvent(ctx.refs.btn)("click", () => {
+  useBinding(btn).event("click", () => {
     state.addCount();
   });
 
-  const unbindText = interpolation`${name} clicked ${computed(() => state.count)} times.`(
-    appendChild(ctx.refs.countMsg)
-  );
-  useCleanUp(unbindText);
+  useBinding(countMsg).content`${name} clicked ${computed(() => state.count)} times.`;
 
-  const unbindDoubleText = bindText(
-    ctx.refs.doubleMsg,
-    computed(() => `The double of count is ${state.doubleCount}`)
-  );
-  useCleanUp(unbindDoubleText);
+  useBinding(doubleMsg).text(computed(() => `The double of count is ${state.doubleCount}`));
 
   return {
     clearCount() {
