@@ -21,7 +21,7 @@ export const enableBuiltinStore = () => {
   configureBinding(watch, isQuery);
 };
 
-const [enterScope, quitScope, currentScope] = scopes<(src: Query<unknown>) => void>();
+const [enterScope, quitScope, currentScope] = /* #__PURE__ */ scopes<(src: Query<unknown>) => void>();
 
 const useDepScope = (): [Set<Query<unknown>>, CleanUpFunc] => {
   const deps = new Set<Query<unknown>>();
@@ -54,7 +54,7 @@ export const source = <T extends unknown>(val: T, differ: Differ = defaultDiffer
   return src;
 };
 
-const subscriptions = new WeakMap<Query<unknown>, Set<Subscriber<any>>>();
+const subscriptions = /* #__PURE__ */ new WeakMap<Query<unknown>, Set<Subscriber<any>>>();
 if (__DEV__) {
   Object.assign(globalThis, { __SUBSCRIPTIONS__: subscriptions });
 }

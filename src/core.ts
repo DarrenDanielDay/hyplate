@@ -12,7 +12,7 @@ import { comment } from "./internal.js";
 
 const doc = document;
 
-export const element = doc.createElement.bind(doc);
+export const element = /* #__PURE__ */ doc.createElement.bind(doc);
 
 export const svg: <K extends keyof SVGElementTagNameMap>(name: K) => SVGElementTagNameMap[K] = (name) =>
   doc.createElementNS("http://www.w3.org/2000/svg", name);

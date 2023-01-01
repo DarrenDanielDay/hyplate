@@ -7,31 +7,25 @@
  */
 import type { ParseSelector } from "typed-query-selector/parser.js";
 import { listen, anchor, select } from "./core.js";
-import type {
-  AttachFunc,
-  CleanUpFunc,
-  EventHost,
-  ExposeBase,
-  Hooks,
-  Mountable,
-} from "./types.js";
+import type { AttachFunc, CleanUpFunc, EventHost, ExposeBase, Hooks, Mountable } from "./types.js";
 import { once, scopes } from "./util.js";
 
 /**
  * @internal
  */
-export const [enterHooks, quitHooks, _resolveHooks] = scopes<Hooks>();
+export const [enterHooks, quitHooks, _resolveHooks] = /* #__PURE__ */ scopes<Hooks>();
 
 const resolveHooks = (): Hooks => {
   let currentHooks = _resolveHooks();
   if (!currentHooks) {
-    throw new Error(`Invalid hook call. Hooks can only be called inside the setup function of template-based component.`);
+    throw new Error(
+      `Invalid hook call. Hooks can only be called inside the setup function of template-based component.`
+    );
   }
   return currentHooks;
 };
-type CreateHooksResult = [Hooks, CleanUpFunc];
 
-export const createHooks = ({ host, parent }: { host: ParentNode; parent: Element }): CreateHooksResult => {
+export const createHooks = ({ host, parent }: { host: ParentNode; parent: Element }): [Hooks, CleanUpFunc] => {
   const cleanups = new Set<CleanUpFunc>();
   const effect = (cleanup: CleanUpFunc): CleanUpFunc => {
     const wrapped = once(() => {
