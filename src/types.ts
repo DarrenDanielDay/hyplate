@@ -69,6 +69,10 @@ export type Handler<T extends EventTarget, E extends Extract<keyof EventMap<T>, 
 
 export type Events<T extends EventTarget> = Extract<keyof EventMap<T>, string>;
 
+export type Alphabet<S = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", U = never> = S extends `${infer C}${infer R}` ? Alphabet<R, U | C> : U
+
+export type EventPattern = `on${Alphabet}${string}`
+
 export type EventHandlerOptions = boolean | EventListenerOptions;
 
 declare global {
@@ -1980,6 +1984,10 @@ declare global {
     } & ElementAttributes<E> &
       JSX.IntrinsicAttributes &
       JSXEventHandlerAttributes<E> & {
+        /**
+         * Custom event handlers.
+         */
+        [event: EventPattern]: Handler<globalThis.Element, string>;
         /**
          * Allow any custom attributes.
          */
