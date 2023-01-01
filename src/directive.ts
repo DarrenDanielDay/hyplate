@@ -55,7 +55,10 @@ const createIfDirective = <Test, T extends ExposeBase, F extends ExposeBase = vo
   };
 };
 const nilRendered: Rendered<void> = [noop, void 0, noop];
-const nil: Mountable<void> = () => nilRendered;
+/**
+ * Use `nil` for render nothing.
+ */
+export const nil: Mountable<void> = () => nilRendered;
 
 /**
  * The `If` directive for conditional rendering.
