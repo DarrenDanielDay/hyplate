@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "postinstall": "npm run build:hyplate",
-    "start": "concurrently npm:start:*",
+    "start": "concurrently \"npm:start:*\"",
     "start:tsc": "tsc -w",
     "start:hyplate": "node ./scripts/start.js",
     "start:parcel": "parcel ./src/index.html",
