@@ -19,7 +19,7 @@ import type {
 import { noop } from "./util.js";
 import { withCommentRange } from "./internal.js";
 import { before, moveRange } from "./core.js";
-import  { subscribe } from "./binding.js";
+import { subscribe } from "./binding.js";
 
 const createIfDirective = <Test, T extends ExposeBase, F extends ExposeBase = void>(
   condition: Subscribable<Test>,
@@ -63,11 +63,7 @@ const nil: Mountable<void> = () => nilRendered;
 export const If = <Test, T extends ExposeBase, F extends ExposeBase = void>({
   condition,
   children,
-}: Props<
-  { condition: Subscribable<Test> },
-  { then: ConditionalMountable<Test, T>; else?: Mountable<F> },
-  Subscribable<T | F | void>
->) => {
+}: Props<{ condition: Subscribable<Test> }, { then: ConditionalMountable<Test, T>; else?: Mountable<F> }, void>) => {
   if (!children) {
     return warned("Invalid usage of 'If'. Must provide children.", nil);
   }
@@ -83,7 +79,7 @@ export const Show = <Test, T extends ExposeBase, F extends ExposeBase = void>({
   when,
   children,
   fallback,
-}: Props<{ when: Subscribable<Test>; fallback?: Mountable<F> }, ConditionalMountable<Test, T>, Subscribable<T | F | void>>) => {
+}: Props<{ when: Subscribable<Test>; fallback?: Mountable<F> }, ConditionalMountable<Test, T>, void>) => {
   if (!children) {
     return warned("Invalid usage of 'Show'. Must provide children.", nil);
   }
