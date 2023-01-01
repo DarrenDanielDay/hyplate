@@ -6,9 +6,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { bindAttr, bindText, interpolation } from "./binding.js";
-import { appendChild } from "./core.js";
+import { appendChild, listen } from "./core.js";
 import { useCleanUpCollector } from "./hooks.js";
-import type { AttributesMap, Differ, Subscribable, TextInterpolation } from "./types.js";
+import type { AttributesMap, Differ, Events, Handler, Subscribable, TextInterpolation } from "./types.js";
 import { isObject } from "./util.js";
 
 export const alwaysDifferent: Differ = () => false;
@@ -26,13 +26,29 @@ export const deepDiffer: Differ = (a, b) => {
   return aKeys.every((key) => bKeys.has(key) && deepDiffer(Reflect.get(a, key), Reflect.get(b, key)));
 };
 
-export const useBind = <E extends Element>(el: E) => {
+export const useBind = <T extends Element>(el: T) => {
   const registerCleanUp = useCleanUpCollector();
-  return {
-    text: (subscribable: Subscribable<TextInterpolation>) => registerCleanUp(bindText(el, subscribable)),
-    attr: <P extends keyof AttributesMap<E>>(name: P, subscribable: Subscribable<AttributesMap<E>[P]>) =>
-      registerCleanUp(bindAttr(el, name, subscribable)),
-    content: (fragments: TemplateStringsArray, ...bindings: (TextInterpolation | Subscribable<TextInterpolation>)[]) =>
-      registerCleanUp(interpolation(fragments, ...bindings)(appendChild(el))),
+  const eventHost = listen(el);
+  const bindings = {
+    attr: <P extends keyof AttributesMap<T>>(name: P, subscribable: Subscribable<AttributesMap<T>[P]>) => {
+      registerCleanUp(bindAttr(el, name, subscribable));
+      return bindings;
+    },
+    content: (
+      fragments: TemplateStringsArray,
+      ...bindings: (TextInterpolation | Subscribable<TextInterpolation>)[]
+    ) => {
+      registerCleanUp(interpolation(fragments, ...bindings)(appendChild(el)));
+      return bindings;
+    },
+    event: <E extends Events<T>>(name: E, handler: Handler<T, E>, options?: boolean | EventListenerOptions) => {
+      registerCleanUp(eventHost(name, handler, options));
+      return bindings;
+    },
+    text: (subscribable: Subscribable<TextInterpolation>) => {
+      registerCleanUp(bindText(el, subscribable));
+      return bindings;
+    },
   };
+  return bindings;
 };

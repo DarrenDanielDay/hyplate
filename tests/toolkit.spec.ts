@@ -56,8 +56,12 @@ describe("toolkit.ts", () => {
       expect(el.textContent).toBe(`Using useBind().content 0 1`);
       binding.text(source("Now changed"));
       expect(el.textContent).toBe("Now changed");
-      cleanups.forEach((c) => c());
+      const handler = import.meta.jest.fn();
+      binding.event("click", handler);
+      el.click();
+      expect(handler).toBeCalledTimes(1);
       quitHooks();
+      cleanups.forEach((c) => c());
     });
   });
 });
