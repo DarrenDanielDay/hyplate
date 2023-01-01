@@ -18,7 +18,6 @@ import type {
   Props,
   PropsBase,
   Later,
-  Subscribable,
   ObjectEventHandler,
 } from "./types.js";
 import { applyAll, isFunction, isObject, noop, push, __DEV__ } from "./util.js";
@@ -95,7 +94,7 @@ export const jsx = (
       const host = listen(el);
       for (const [key, value] of Object.entries(attributes)) {
         if (isSubscribable(value)) {
-          push(cleanups, bindAttr(el, key, value as Subscribable<AttributeInterpolation>));
+          push(cleanups, bindAttr(el, key, value));
         } else {
           if (isEventAttribute(key)) {
             const event = key.slice(2).toLowerCase();

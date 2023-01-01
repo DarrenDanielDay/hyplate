@@ -8,7 +8,7 @@
 import { bindAttr, bindText, interpolation } from "./binding.js";
 import { appendChild, listen } from "./core.js";
 import { useCleanUpCollector } from "./hooks.js";
-import type { AttributesMap, Differ, Events, Handler, Subscribable, TextInterpolation } from "./types.js";
+import type { AttributesMap, BindingPattern, Differ, Events, Handler, Subscribable, TextInterpolation } from "./types.js";
 import { isObject } from "./util.js";
 
 export const alwaysDifferent: Differ = () => false;
@@ -36,7 +36,7 @@ export const useBind = <T extends Element>(el: T) => {
     },
     content: (
       fragments: TemplateStringsArray,
-      ...bindings: (TextInterpolation | Subscribable<TextInterpolation>)[]
+      ...bindings: (BindingPattern<TextInterpolation>)[]
     ) => {
       registerCleanUp(interpolation(fragments, ...bindings)(appendChild(el)));
       return bindings;

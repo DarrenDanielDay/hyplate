@@ -3,6 +3,7 @@ import type {
   AttachFunc,
   AttributeInterpolation,
   AttributesMap,
+  BindingPattern,
   CleanUpFunc,
   Subscribable,
   SubscribableTester,
@@ -47,7 +48,7 @@ export const bindText = (node: Node, subscribable: Subscribable<TextInterpolatio
 
 export const interpolation = (
   fragments: TemplateStringsArray,
-  ...bindings: (TextInterpolation | Subscribable<TextInterpolation>)[]
+  ...bindings: (BindingPattern<TextInterpolation>)[]
 ) => {
   const fragmentsLength = fragments.length;
   const bindingsLength = bindings.length;
