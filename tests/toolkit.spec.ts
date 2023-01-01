@@ -1,5 +1,5 @@
 import { element } from "../dist/core";
-import { alwaysDifferent, deepDiffer, useBind } from "../dist/toolkit";
+import { alwaysDifferent, deepDiffer, useBinding } from "../dist/toolkit";
 // @ts-expect-error internal exports
 import { enterHooks, quitHooks } from "../dist/hooks";
 import type { CleanUpFunc } from "../dist/types";
@@ -38,7 +38,7 @@ describe("toolkit.ts", () => {
     });
     it("should call hooks", () => {
       expect(() => {
-        useBind(element("div"));
+        useBinding(element("div"));
       }).toThrow(/invalid hook call/i);
     });
     it("should register cleanup", () => {
@@ -49,7 +49,7 @@ describe("toolkit.ts", () => {
       });
       enterHooks({ useCleanUpCollector: () => cleanUpCollector });
       const el = element("div");
-      const binding = useBind(el);
+      const binding = useBinding(el);
       binding.attr("id", source("aaa"));
       expect(el.id).toBe("aaa");
       binding.content`Using useBind().content ${0} ${source(1)}`;
