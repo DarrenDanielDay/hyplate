@@ -26,7 +26,7 @@ export const deepDiffer: Differ = (a, b) => {
   return aKeys.every((key) => bKeys.has(key) && deepDiffer(Reflect.get(a, key), Reflect.get(b, key)));
 };
 
-export const useBind = <T extends Element>(el: T): BindingHost<T> => {
+export const useBinding = <T extends Element>(el: T): BindingHost<T> => {
   const registerCleanUp = useCleanUpCollector();
   const eventHost = listen(el);
   const bindings: BindingHost<T> = {
