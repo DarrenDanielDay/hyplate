@@ -1,11 +1,12 @@
 import { replaced } from "../dist/template.js";
 import count from "./components/count/count.template";
-import { useCleanUp, useEvent, useChildView } from "../dist/hooks.js";
+import { useCleanUp, useChildView } from "../dist/hooks.js";
 import { enableBuiltinStore, query, source } from "../dist/store.js";
 import { For, Show } from "../dist/directive.js";
 import { listen as bindEvent, appendChild, select, anchor, seqAfter } from "../dist/core.js";
 import { jsxRef } from "../dist/jsx-runtime.js";
 import { bindAttr, interpolation as text } from "../dist/binding.js";
+import { useBinding } from "../dist/toolkit.js";
 
 enableBuiltinStore();
 function main() {
@@ -32,7 +33,7 @@ function main() {
     useCleanUp(text`double of count: ${double}`(appendChild(anchor(document.body, "double"))));
     const disabled = query(() => count.val % 2 === 1);
     useCleanUp(bindAttr(oddDisabledBtn, "disabled", disabled));
-    useEvent(addButton)("click", () => {
+    useBinding(addButton).event("click", () => {
       console.log("click!");
       count.set(count.val + 1);
     });

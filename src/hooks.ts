@@ -5,8 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { listen } from "./core.js";
-import type { AttachFunc, CleanUpFunc, EventHost, ExposeBase, Hooks, Mountable } from "./types.js";
+import type { AttachFunc, CleanUpFunc, ExposeBase, Hooks, Mountable } from "./types.js";
 import { once, scopes } from "./util.js";
 
 /**
@@ -60,12 +59,4 @@ export const useChildView =
 
 export const useCleanUp = (cleanup: CleanUpFunc) => resolveHooks().useCleanUpCollector()(cleanup);
 
-export const useEvent = <T extends EventTarget>(target: T): EventHost<T> => {
-  const eventHost = listen(target);
-  const effect = resolveHooks().useCleanUpCollector();
-  return (name, handler, options) => {
-    const cleanup = effect(eventHost(name, handler, options));
-    return cleanup;
-  };
-};
 
