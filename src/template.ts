@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { access, appendChild, before, clone, element, insertSlot, remove } from "./core.js";
+import { access, appendChild, before, clone, element, insertSlot, moveRange, remove } from "./core.js";
 import { createHooks, enterHooks, quitHooks } from "./hooks.js";
 import type {
   CleanUpFunc,
@@ -15,7 +15,6 @@ import type {
   TemplateContext,
 } from "./types.js";
 import { applyAll, isFunction, objectEntriesMap, once, patch, push } from "./util.js";
-import { withCommentRange } from "./internal.js";
 
 export const template = (input: string | HTMLTemplateElement): HTMLTemplateElement =>
   input instanceof HTMLTemplateElement ? input : patch(element("template"), { innerHTML: input });
@@ -40,7 +39,7 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
       const slots = props.children;
       // @ts-expect-error dynamic created element
       const owner: HyplateElement<unknown> = element(elementTag);
-      const parent = attach(owner);
+      attach(owner);
       const shadow = owner.attachShadow({ mode: "open" });
       const fragment = clone(t.content);
       const context = contextFactory?.(fragment)!;
@@ -50,20 +49,17 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
           if (slotInput == null) {
             continue;
           }
-          const element = document.createElement(slotTag);
+          const slot = element(slotTag);
           if (isFunction(slotInput)) {
-            const [cleanupSlot] = slotInput(appendChild(element));
+            const [cleanupSlot] = slotInput(appendChild(slot));
             push(localCleanups, cleanupSlot);
           } else {
-            appendChild(element)(slotInput);
+            appendChild(slot)(slotInput);
           }
-          insertSlot(owner, name, element);
+          insertSlot(owner, name, slot);
         }
       }
-      const [hooks, cleanupHooks] = createHooks({
-        host: shadow,
-        parent,
-      });
+      const [hooks, cleanupHooks] = createHooks();
       enterHooks(hooks);
       const exposed = setup?.(props as never, context) as never;
       quitHooks();
@@ -91,19 +87,15 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
 // @ts-expect-error generic overload
 export const replaced: FunctionalComponentTemplateFactory = (input, contextFactory) => {
   const t = template(input);
-  return (setup, name) => {
-    const componentName = templateName(name);
+  return (setup) => {
     return (options) => (attach) => {
       const localCleanups: CleanUpFunc[] = [];
       const slots = options.children;
-      const [cleanupComment, [begin, end, clearRange]] = withCommentRange(componentName);
       const fragment = clone(t.content);
       const context = contextFactory?.(fragment)!;
-      attach(begin);
-      const host = attach(fragment);
-      attach(end);
+
       if (slots) {
-        const fragmentSlots = host.querySelectorAll("slot");
+        const fragmentSlots = fragment.querySelectorAll("slot");
         for (const slot of fragmentSlots) {
           const slotInput = slots[slot.name as keyof typeof slots];
           if (slotInput == null) {
@@ -119,14 +111,14 @@ export const replaced: FunctionalComponentTemplateFactory = (input, contextFacto
           remove(slot);
         }
       }
-      const [hooks, cleanupHooks] = createHooks({ host, parent: host });
+      const begin = fragment.firstChild;
+      const end = fragment.lastChild;
+      attach(fragment);
+      const [hooks, cleanupHooks] = createHooks();
       enterHooks(hooks);
       const exposed = setup?.(options as never, context) as never;
       quitHooks();
-      const cleanupView = () => {
-        clearRange();
-        cleanupComment();
-      };
+      const cleanupView = () => moveRange(begin, end)(remove);
       const unmount = once(() => {
         cleanupHooks();
         applyAll(localCleanups)();

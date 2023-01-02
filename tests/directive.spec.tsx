@@ -18,7 +18,7 @@ describe("directive.ts", () => {
     beforeEach(() => {
       container = document.createElement("div");
       document.body.appendChild(container);
-      attach = appendChild<HTMLDivElement>(container);
+      attach = appendChild(container);
     });
     afterEach(() => {
       container.remove();
@@ -127,7 +127,7 @@ describe("directive.ts", () => {
     beforeEach(() => {
       container = document.createElement("div");
       document.body.appendChild(container);
-      attach = appendChild<HTMLDivElement>(container);
+      attach = appendChild(container);
     });
     afterEach(() => {
       container.remove();
@@ -159,7 +159,7 @@ describe("directive.ts", () => {
       container = document.createElement("div");
       document.body.appendChild(container);
       renderChild = import.meta.jest.fn(renderChildImpl);
-      attach = appendChild<HTMLDivElement>(container);
+      attach = appendChild(container);
     });
     afterEach(() => {
       container.remove();

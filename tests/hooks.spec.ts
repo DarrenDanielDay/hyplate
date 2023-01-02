@@ -1,8 +1,6 @@
-import { replaced, shadowed } from "../dist/template";
-import { useAnchor, useChildView, useCleanUpCollector, useEvent, useHost, useParent, useRef } from "../dist/hooks";
-import { after, appendChild } from "../dist/core";
-import type { AttachFunc, Rendered } from "../dist/types";
-import { noop } from "../dist/util";
+import { replaced } from "../dist/template";
+import { useCleanUpCollector } from "../dist/hooks";
+import { appendChild } from "../dist/core";
 describe("hooks.ts", () => {
   describe("basic hooks", () => {
     beforeEach(() => {
@@ -13,9 +11,11 @@ describe("hooks.ts", () => {
     });
     it("should emit error when calling hooks outside setup", () => {
       expect(() => {
-        useHost();
+        useCleanUpCollector();
       }).toThrow(/invalid hook call/i);
     });
+    /*
+    // These APIs are deleted because of the concept changed.
     it("should return elements for shadowed", () => {
       const App = shadowed(``)(() => {
         const host = useHost();
@@ -37,6 +37,7 @@ describe("hooks.ts", () => {
       const [cleanup] = App({})(appendChild(document.body));
       cleanup();
     });
+    //*/
     it("should call registered cleanup on component unmount", () => {
       const cleanupMock = import.meta.jest.fn();
       const App = replaced(``)(() => {
@@ -47,7 +48,8 @@ describe("hooks.ts", () => {
       expect(cleanupMock).toBeCalledTimes(1);
     });
   });
-
+  /*
+  // These APIs are deleted because of the concept changed.
   describe("advanced hooks", () => {
     beforeEach(() => {
       document.body.innerHTML = "";
@@ -91,4 +93,5 @@ describe("hooks.ts", () => {
       expect(handler).toBeCalledTimes(2);
     });
   });
+  //*/
 });

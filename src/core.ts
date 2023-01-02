@@ -58,24 +58,30 @@ export const listen =
   };
 
 export const appendChild =
-  <T>(host: Node) =>
-  (node: Node) => (host.appendChild(node), host as T);
+  (host: Node): AttachFunc =>
+  (node) =>
+    host.appendChild(node);
 
-export const before = (element: ChildNode) => (node: Node) => (element.before(node), element.parentElement!);
+export const before =
+  (element: ChildNode): AttachFunc =>
+  (node: Node) =>
+    element.before(node);
 
-export const after = (element: ChildNode) => (node: Node) => (element.after(node), element.parentElement!);
+export const after =
+  (element: ChildNode): AttachFunc =>
+  (node: Node) =>
+    element.after(node);
 
-export const seqAfter = (element: ChildNode) => {
+export const seqAfter = (element: ChildNode): AttachFunc => {
   const begin = comment(" sequence after begin ");
   const end = comment(" sequence after end ");
   const append = after(element);
   append(begin);
   append(end);
-  const insert = before(end);
-  return insert;
+  return before(end);
 };
 
-export const remove = (node: ChildNode) => node.remove();
+export const remove = (node: Node) => node.parentNode?.removeChild(node);
 
 export const moveRange = (begin: Node | null, end: Node | null) => (attach: AttachFunc) => {
   const targets: Node[] = [];

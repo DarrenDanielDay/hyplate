@@ -1,6 +1,6 @@
 import { replaced } from "../dist/template.js";
 import count from "./components/count/count.template";
-import { useCleanUp, useEvent, useRef, useAnchor, useChildView } from "../dist/hooks.js";
+import { useCleanUp, useEvent, useChildView } from "../dist/hooks.js";
 import { enableBuiltinStore, query, source } from "../dist/store.js";
 import { For, Show } from "../dist/directive.js";
 import { listen as bindEvent, appendChild, select, anchor, seqAfter } from "../dist/core.js";
@@ -26,10 +26,10 @@ function main() {
   const App = replaced<"world">(t1)(({ user }: { user: string }) => {
     const count = source(0);
     const double = query(() => count.val * 2);
-    const addButton = useRef("button.add-btn");
-    const oddDisabledBtn = useAnchor("odd-disabled") as HTMLButtonElement;
+    const addButton = select("button.add-btn");
+    const oddDisabledBtn = anchor(document.body, "odd-disabled");
     useCleanUp(text`${user} clicked ${count} times.`(appendChild(addButton)));
-    useCleanUp(text`double of count: ${double}`(appendChild(useAnchor("double"))));
+    useCleanUp(text`double of count: ${double}`(appendChild(anchor(document.body, "double"))));
     const disabled = query(() => count.val % 2 === 1);
     useCleanUp(bindAttr(oddDisabledBtn, "disabled", disabled));
     useEvent(addButton)("click", () => {

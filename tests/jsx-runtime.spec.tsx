@@ -55,7 +55,7 @@ describe("jsx-runtime.ts", () => {
     beforeEach(() => {
       container = document.createElement("div");
       document.body.appendChild(container);
-      attach = appendChild<HTMLDivElement>(container);
+      attach = appendChild(container);
     });
     afterEach(() => {
       container.remove();

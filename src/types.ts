@@ -102,14 +102,6 @@ export interface Hooks {
    * Get the cleanup collector function.
    */
   useCleanUpCollector(): (cleanup: CleanUpFunc) => CleanUpFunc;
-  /**
-   * Get the hosting element of the component instance.
-   */
-  useHost(): ParentNode;
-  /**
-   * Get the parent element of the component instance.
-   */
-  useParent(): Element;
 }
 
 export interface HyplateElement<T> extends HTMLElement {
@@ -173,7 +165,7 @@ export { type FunctionalComponent as FC };
 /**
  * Accept a node, attach it to the DOM tree and return its parentNode.
  */
-export type AttachFunc = (el: Node) => Element;
+export type AttachFunc = (el: Node) => void;
 
 export type GetRange = () => readonly [Node, Node] | undefined | void;
 
