@@ -104,6 +104,24 @@ describe("store.ts", () => {
       expect(fn).toBeCalledTimes(4);
       cleanup();
     });
+    it("should not evaluate selector with no subscription", () => {
+      const src = source(0);
+      const evaluate = import.meta.jest.fn(() => src.val * 2);
+      const doubleSrc = query(evaluate);
+      src.set(1);
+      expect(evaluate).toBeCalledTimes(0);
+      const watcher = import.meta.jest.fn();
+      const unwatch = watch(doubleSrc, watcher);
+      expect(evaluate).toBeCalledTimes(1);
+      expect(watcher).toBeCalledTimes(1);
+      src.set(2);
+      expect(evaluate).toBeCalledTimes(2);
+      expect(watcher).toBeCalledTimes(2);
+      unwatch();
+      src.set(3);
+      expect(evaluate).toBeCalledTimes(2);
+      expect(watcher).toBeCalledTimes(2);
+    })
   });
   describe("dispatch", () => {
     it("should continue to dispatch when some subscribers emitted errors", () => {
