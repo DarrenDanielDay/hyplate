@@ -3,5 +3,6 @@ dist
 .parcel-cache
 src/**/*.js
 src/**/*.js.map
-src/**/*.template.*
-!src/**/*.template.html
+src/**/*.template.*.css
+src/**/*.template.d.ts
+src/**/*.template.d.ts.map

@@ -5,12 +5,15 @@
   "description": "An hyplate example app with parcel.",
   "type": "module",
   "scripts": {
-    "postinstall": "npm run build:hyplate",
-    "start": "concurrently \"npm:start:*\"",
+    "postinstall": "npm-run-all build:hyplate build:tsc",
+    "start:code-sandbox": "concurrently npm:start:hyplate npm:start:tsc npm:start:parcel",
+    "start:stackblitz": "concurrently npm:start:hyplate npm:start:snowpack",
     "start:tsc": "tsc -w",
     "start:hyplate": "node ./scripts/start.js",
+    "start:snowpack": "snowpack dev",
     "start:parcel": "parcel ./src/index.html",
-    "build": "npm run build:hyplate && npm run build:parcel",
+    "build": "npm-run-all build:hyplate build:tsc build:parcel",
+    "build:tsc": "tsc",
     "build:hyplate": "node ./scripts/start.js --build",
     "build:parcel": "parcel build ./src/index.html"
   },
@@ -22,8 +25,10 @@
     "chokidar": "^3.5.3",
     "concurrently": "^7.6.0",
     "glob": "^8.0.3",
+    "npm-run-all": "^4.1.5",
     "parcel": "^2.8.2",
     "parcel-resolver-esm-exports": "^0.1.0",
+    "snowpack": "^3.8.8",
     "typescript": "^4.9.4"
   },
   "dependencies": {
