@@ -46,6 +46,11 @@ export interface TranspileOptions {
    */
   externalStyles: false | "link" | "import";
   /**
+   * The template factory function name, whether `shadowed` or `replaced`.
+   * @default "shadowed"
+   */
+  factory: TemplateFactory;
+  /**
    * Define how to process CSS code in templates. By default the transpiler leaves the content as what it is,
    * even the blanks and tabs in template HTML.
    * @param style the style tag (AST object) with element attributes info
@@ -75,6 +80,21 @@ export interface TranspileOptions {
    * @default "resolve"
    */
   relativeURLs: false | "resolve" | "import";
+}
+
+export interface EmitOptions {
+  /**
+   * Defines how to read a file.
+   */
+  readFile: (file: string) => Promise<string>;
+  /**
+   * Defines how to write a file.
+   */
+  writeFile: (file: string, content: string) => Promise<void>;
+  /**
+   * Defines the path resolve system.
+   */
+  path: typeof import("path");
 }
 
 export interface ViewRef {

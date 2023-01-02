@@ -14,13 +14,13 @@ import type {
   ExtractedNode,
   OutputWithSourceMap,
   Template,
-  TemplateFactory,
   TemplateInfo,
   TranspileOptions,
 } from "./types.js";
 
 export const defaultTranspileOptions = Object.freeze<TranspileOptions>({
   externalStyles: "link",
+  factory: "shadowed",
   processInlineCSS: (style, _template) => style.body?.map((n) => (n as IText).value).join("") ?? "",
   relativeURLs: "resolve",
 });
@@ -39,12 +39,8 @@ const REPLACED = "r";
 const BASE_URL = "b";
 const TO_URL = "u";
 
-export const transpile = (
-  templates: ChildTemplates,
-  file: string,
-  factory: TemplateFactory = "shadowed"
-): OutputWithSourceMap[] => {
-  const { externalStyles, processInlineCSS, relativeURLs } = transpilerOptions;
+export const transpile = (templates: ChildTemplates, file: string): OutputWithSourceMap[] => {
+  const { externalStyles, factory, processInlineCSS, relativeURLs } = transpilerOptions;
   const source = sourceName(file);
   // Currently generated JavaScript file have no symbol mapping.
   const sourcemap = new SourceMapGenerator({

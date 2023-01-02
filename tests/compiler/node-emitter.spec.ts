@@ -8,6 +8,9 @@ describe("node-emitter.ts", () => {
       } catch (error) {}
     });
     it("should write 4 files", async () => {
+      await emit("./tests/file-tests/example/example.template.html", true);
+    });
+    it("should write 0 files", async () => {
       await emit("./tests/file-tests/example/example.template.html");
     });
   });

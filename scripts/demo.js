@@ -2,7 +2,7 @@
 import G from "glob";
 import { promisify } from "util";
 import { resolve } from "path";
-import { emit } from "../dist/compiler/index.js";
+import { emit } from "../dist/compiler/node-emitter.js";
 import ts from "typescript";
 import { watch } from "fs";
 const watchTypeScriptProject = () => {

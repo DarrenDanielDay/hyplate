@@ -60,6 +60,10 @@
       "import": "./dist/compiler/index.js",
       "default": "./dist/compiler/index.js"
     },
+    "./compiler-node": {
+      "types": "./dist/compiler/node-emitter.d.ts",
+      "node": "./dist/compiler/node-emitter.js"
+    },
     "./core": {
       "types": "./dist/core.d.ts",
       "browser": "./dist/core.browser.esm.min.js",
