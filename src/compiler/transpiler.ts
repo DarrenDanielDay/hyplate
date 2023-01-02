@@ -224,7 +224,7 @@ ${Object.entries(template.children)
   const code = `\
 ${importCode}
 ${usedToURL ? toURLCode : ""}${createSetupCode}${exportCode}
-//# sourceMappingURL=${replaceExt(file.split("/").at(-1)!, ".js.map")}`;
+//# sourceMappingURL=${replaceExt(source, ".js.map")}`;
   return [
     {
       code: {

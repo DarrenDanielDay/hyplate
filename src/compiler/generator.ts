@@ -55,6 +55,7 @@ export const generateDeclaration = (templates: ChildTemplates, path: string): Ou
 };
 
 export const generateDTS = (templates: ChildTemplates, path: string) => {
+  const source = sourceName(path);
   const importCode = `import type {ContextSetupFactory as F,TemplateContext as C, SlotContent as S} from "hyplate/types";`;
   const declarations = Object.values(templates)
     .map((template) => dtsCodeTemplate(template))
@@ -66,7 +67,7 @@ export const generateDTS = (templates: ChildTemplates, path: string) => {
 ${importCode}
 ${declarations}
 ${exportsCode}
-//# sourceMappingURL=${replaceExt(path.split("/").at(-1)!, ".d.ts.map")}
+//# sourceMappingURL=${replaceExt(source, ".d.ts.map")}
 `;
   return code;
 };
@@ -74,7 +75,7 @@ ${exportsCode}
 export const generateDTSMap = (templates: ChildTemplates, path: string): string => {
   let line = 0;
   let indent = 0;
-  const source = path.split("/").at(-1)!;
+  const source = sourceName(path);
   const sourcemap = new SourceMapGenerator({
     file: `${replaceExt(source, ".d.ts")}`,
     sourceRoot: "",
