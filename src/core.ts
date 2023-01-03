@@ -63,13 +63,13 @@ export const appendChild =
     host.appendChild(node);
 
 export const before =
-  (element: ChildNode): AttachFunc =>
-  (node: Node) =>
-    element.before(node);
+  (anchorNode: Node): AttachFunc =>
+  (node) =>
+    anchorNode.parentNode!.insertBefore(node, anchorNode);
 
 export const after =
   (element: ChildNode): AttachFunc =>
-  (node: Node) =>
+  (node) =>
     element.after(node);
 
 export const seqAfter = (element: ChildNode): AttachFunc => {

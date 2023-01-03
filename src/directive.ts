@@ -149,7 +149,6 @@ export const For = <T extends unknown>({
           const nextPos = e2 + 1;
           const anchor = newNodes[nextPos]?.[1]?.[2]()?.[1] ?? end;
           for (; i <= e2; i++) {
-            // @ts-expect-error skip before check
             const attach = before(anchor);
             const node = newNodes[i]!;
             node[1] = children(node[0])(attach);
@@ -209,7 +208,6 @@ export const For = <T extends unknown>({
           const nextIndex = s2 + i;
           const nextChild = newNodes[nextIndex]!;
           const anchor = newNodes[nextIndex + 1]?.[1]![2]()?.[0] ?? end;
-          // @ts-expect-error skip before check
           const attach = before(anchor);
           if (newIndexToOldIndexMap[i] === 0) {
             nextChild[1] = children(nextChild[0])(attach);
