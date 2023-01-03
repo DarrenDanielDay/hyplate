@@ -20,7 +20,7 @@ import type {
   Later,
   ObjectEventHandler,
 } from "./types.js";
-import { applyAll, isFunction, isObject, noop, push, __DEV__ } from "./util.js";
+import { applyAll, fori, isFunction, isObject, noop, push, __DEV__ } from "./util.js";
 
 const addChild = (child: JSXChild, attach: AttachFunc) => {
   if (child instanceof Node) {
@@ -56,9 +56,9 @@ const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
   };
   const cleanups: CleanUpFunc[] = [];
   if (Array.isArray(children)) {
-    for (const child of children) {
+    fori(children, (child) => {
       push(cleanups, addChild(child, attach));
-    }
+    });
   } else {
     push(cleanups, addChild(children, attach));
   }
@@ -92,7 +92,9 @@ export const jsx = (
       }
       const [cleanups] = children != null ? renderChild(children, appendChild(el)) : [[]];
       const host = listen(el);
-      for (const [key, value] of Object.entries(attributes)) {
+      for (const key in attributes) {
+        // @ts-expect-error for-in key access
+        const value = attributes[key];
         if (isSubscribable(value)) {
           push(cleanups, bindAttr(el, key, value));
         } else {

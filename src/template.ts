@@ -14,7 +14,7 @@ import type {
   HyplateElement,
   TemplateContext,
 } from "./types.js";
-import { applyAll, isFunction, objectEntriesMap, once, patch, push } from "./util.js";
+import { applyAll, fori, isFunction, once, patch, push } from "./util.js";
 
 export const template = (input: string | HTMLTemplateElement): HTMLTemplateElement =>
   input instanceof HTMLTemplateElement ? input : patch(element("template"), { innerHTML: input });
@@ -67,12 +67,6 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
         value: exposed,
       });
       const cleanupView = () => {
-        for (const child of Array.from(shadow.childNodes)) {
-          remove(child);
-        }
-        for (const child of Array.from(owner.childNodes)) {
-          remove(child);
-        }
         remove(owner);
       };
       const unmount = once(() => {
@@ -96,10 +90,10 @@ export const replaced: FunctionalComponentTemplateFactory = (input, contextFacto
 
       if (slots) {
         const fragmentSlots = fragment.querySelectorAll("slot");
-        for (const slot of fragmentSlots) {
+        fori(fragmentSlots, (slot) => {
           const slotInput = slots[slot.name as keyof typeof slots];
           if (slotInput == null) {
-            continue;
+            return;
           }
           const attach = before(slot);
           if (isFunction(slotInput)) {
@@ -109,7 +103,7 @@ export const replaced: FunctionalComponentTemplateFactory = (input, contextFacto
             attach(slotInput);
           }
           remove(slot);
-        }
+        });
       }
       const begin = fragment.firstChild;
       const end = fragment.lastChild;
@@ -136,7 +130,13 @@ export const basedOnURL = (url: string) => (path: string) => {
 export const contextFactory = (
   paths: Record<string, number[]>
 ): ContextFactory<TemplateContext<Record<string, ParentNode | undefined>>> => {
-  return (fragment) => ({
-    refs: objectEntriesMap(paths, ([, value]) => access(fragment, value)),
-  });
+  const refs: Record<string, ParentNode | undefined> = {};
+  return (fragment) => {
+    for (let k in paths) {
+      refs[k] = access(fragment, paths[k]);
+    }
+    return {
+      refs: { ...refs },
+    };
+  };
 };

@@ -92,7 +92,7 @@ interface ForProps<T extends unknown> {
   /**
    * The iterable query.
    */
-  of: Subscribable<Iterable<T>>;
+  of: Subscribable<ArrayLike<T>>;
 }
 
 /**
@@ -119,8 +119,8 @@ export const For = <T extends unknown>({
     attach(end);
     const cleanup = subscribe(of, (newOf) => {
       const newNodes: HNode[] = [];
-      for (const item of newOf) {
-        newNodes.push([item, void 0]);
+      for (let i = 0, l = newOf.length; i < l; i++) {
+        newNodes.push([newOf[i], void 0]);
       }
       let i = 0;
       const l2 = newNodes.length;

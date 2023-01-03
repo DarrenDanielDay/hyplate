@@ -41,11 +41,7 @@ export const pop = <T extends unknown>(arr: T[]) => arr.pop();
 
 export const noop = () => {};
 
-export const applyAll = (cleanups: Iterable<() => void>) => () => {
-  for (const cleanup of cleanups) {
-    cleanup();
-  }
-};
+export const applyAll = (cleanups: (() => void)[]) => () => fori(cleanups, (element) => element());
 
 export const isString = (v: unknown): v is string => typeof v === "string";
 
@@ -77,3 +73,7 @@ export const warned = <T extends unknown>(msg: string, value: T) => {
 
 export const objectEntriesMap = <T, R>(obj: Record<string, T>, mapper: ([k, v]: [string, T]) => R) =>
   Object.fromEntries(Object.entries(obj).map(([key, value]) => [key, mapper([key, value])]));
+
+export const fori = <T extends unknown>(arrayLike: ArrayLike<T>, callback: (element: T) => void) => {
+  for (let i = 0, l = arrayLike.length; i < l; i++) callback(arrayLike[i]);
+};

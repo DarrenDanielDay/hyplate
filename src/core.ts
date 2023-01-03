@@ -7,7 +7,7 @@
  */
 import type { ParseSelector } from "typed-query-selector/parser.js";
 import type { AttachFunc, AttributeInterpolation, EventHost, TextInterpolation } from "./types.js";
-import { isString, push } from "./util.js";
+import { fori, isString, push } from "./util.js";
 import { comment } from "./internal.js";
 
 const doc = document;
@@ -91,14 +91,12 @@ export const moveRange = (begin: Node | null, end: Node | null) => (attach: Atta
   if (end) {
     push(targets, end);
   }
-  for (const node of targets) {
-    attach(node);
-  }
+  fori(targets, attach);
 };
 
 export const access = (node: ParentNode, path: number[]): ParentNode | undefined => {
-  for (const i of path) {
-    node = node.children[i];
+  for (let i = 0, l = path.length; i < l; i++) {
+    node = node.children[path[i]];
     if (!node) {
       break;
     }

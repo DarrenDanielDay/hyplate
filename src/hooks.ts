@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import type { AttachFunc, CleanUpFunc, ExposeBase, Hooks, Mountable } from "./types.js";
-import { once, scopes } from "./util.js";
+import { applyAll, push, scopes } from "./util.js";
 
 /**
  * @internal
@@ -24,28 +24,17 @@ const resolveHooks = (): Hooks => {
 };
 
 export const createHooks = (): [Hooks, CleanUpFunc] => {
-  const cleanups = new Set<CleanUpFunc>();
-  const effect = (cleanup: CleanUpFunc): CleanUpFunc => {
-    const wrapped = once(() => {
-      cleanups.delete(wrapped);
-      cleanup();
-    });
-    cleanups.add(wrapped);
-    return wrapped;
+  const cleanups: CleanUpFunc[] = [];
+  const register = (cleanup: CleanUpFunc): void => {
+    push(cleanups, cleanup);
   };
-  const useCleanUpCollector: Hooks["useCleanUpCollector"] = () => effect;
+  const useCleanUpCollector: Hooks["useCleanUpCollector"] = () => register;
   const hooks: Hooks = {
     useCleanUpCollector,
   };
-  const cleanup = () => {
-    for (const cleanup of [...cleanups]) {
-      cleanup();
-    }
-    cleanups.clear();
-  };
+  const cleanup = applyAll(cleanups);
   return [hooks, cleanup];
 };
-
 
 export const useCleanUpCollector: Hooks["useCleanUpCollector"] = () => resolveHooks().useCleanUpCollector();
 
@@ -58,5 +47,3 @@ export const useChildView =
   };
 
 export const useCleanUp = (cleanup: CleanUpFunc) => resolveHooks().useCleanUpCollector()(cleanup);
-
-

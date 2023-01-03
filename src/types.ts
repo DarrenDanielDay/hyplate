@@ -100,8 +100,9 @@ export type EventHost<T extends EventTarget> = <E extends Events<T>>(
 export interface Hooks {
   /**
    * Get the cleanup collector function.
+   * The cleanup collector registers the cleanup function as part of the component cleanup.
    */
-  useCleanUpCollector(): (cleanup: CleanUpFunc) => CleanUpFunc;
+  useCleanUpCollector(): (cleanup: CleanUpFunc) => void;
 }
 
 export interface HyplateElement<T> extends HTMLElement {
