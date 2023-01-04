@@ -33,6 +33,9 @@ describe("toolkit.ts", () => {
     beforeAll(() => {
       setHyplateStore();
     });
+    afterEach(() => {
+      document.body.innerHTML = "";
+    });
     afterAll(() => {
       resetBinding();
     });
@@ -49,6 +52,7 @@ describe("toolkit.ts", () => {
       });
       enterHooks({ useCleanUpCollector: () => cleanUpCollector });
       const el = element("div");
+      document.body.appendChild(el);
       const binding = useBinding(el);
       binding.attr("id", source("aaa"));
       expect(el.id).toBe("aaa");
@@ -60,8 +64,13 @@ describe("toolkit.ts", () => {
       binding.event("click", handler);
       el.click();
       expect(handler).toBeCalledTimes(1);
+      binding.delegate("click", handler);
+      el.click();
+      expect(handler).toBeCalledTimes(3);
       quitHooks();
       cleanups.forEach((c) => c());
+      el.click();
+      expect(handler).toBeCalledTimes(3);
     });
   });
 });

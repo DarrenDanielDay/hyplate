@@ -58,7 +58,12 @@ export type EventMap<T extends EventTarget> = T extends HTMLElement
   ? XMLHttpRequestEventMap
   : never;
 
-export type FunctionalEventHanlder<T extends EventTarget, E extends Event> = (this: T, e: E) => any;
+export type EventType<T extends EventTarget, E extends Extract<keyof EventMap<T>, string>> = Extract<
+  EventMap<T>[E],
+  Event
+>;
+
+export type FunctionalEventHanlder<T extends EventTarget, E extends Event> = (this: T, e: E) => void;
 
 export interface ObjectEventHandler<E extends Event> {
   handleEvent(event: E): void;
@@ -66,7 +71,7 @@ export interface ObjectEventHandler<E extends Event> {
 }
 
 export type Handler<T extends EventTarget, E extends Extract<keyof EventMap<T>, string>> =
-  | FunctionalEventHanlder<T, Extract<EventMap<T>[E], Event>>
+  | FunctionalEventHanlder<T, EventType<T, E>>
   | ObjectEventHandler<Extract<EventMap<T>[E], Event>>;
 
 export type Events<T extends EventTarget> = Extract<keyof EventMap<T>, string>;
@@ -89,12 +94,24 @@ declare global {
     passive?: boolean;
     signal?: AbortSignal;
   }
+  /**
+   * @internal
+   * This is the internal type declaration for mixin properties.
+   */
+  interface EventTarget {
+    [handler: `_${string}`]: FunctionalEventHanlder<EventTarget, Event>;
+  }
 }
 
 export type EventHost<T extends EventTarget> = <E extends Events<T>>(
   name: E,
   handler: Handler<T, E>,
   options?: EventHandlerOptions
+) => CleanUpFunc;
+
+export type DelegateHost<T extends Element> = <E extends Events<T>>(
+  event: E,
+  handler: FunctionalEventHanlder<T, EventType<T, E>>
 ) => CleanUpFunc;
 
 export interface Hooks {
@@ -175,6 +192,7 @@ export type Rendered<E extends ExposeBase> = [unmount: CleanUpFunc, exposed: E, 
 export type BindingHost<T extends Element> = {
   attr<P extends keyof AttributesMap<T>>(name: P, subscribable: Subscribable<AttributesMap<T>[P]>): BindingHost<T>;
   content(fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]): BindingHost<T>;
+  delegate<E extends Events<T>>(name: E, handler: FunctionalEventHanlder<T, EventType<T, E>>): BindingHost<T>;
   event<E extends Events<T>>(name: E, handler: Handler<T, E>, options?: boolean | EventListenerOptions): BindingHost<T>;
   text(subscribable: Subscribable<TextInterpolation>): BindingHost<T>;
 };

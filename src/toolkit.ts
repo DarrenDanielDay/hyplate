@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { bindAttr, bindText, interpolation } from "./binding.js";
-import { appendChild, listen } from "./core.js";
+import { appendChild, delegate, listen } from "./core.js";
 import { useCleanUpCollector } from "./hooks.js";
 import type { BindingHost, Differ } from "./types.js";
 import { isObject } from "./util.js";
@@ -29,6 +29,7 @@ export const deepDiffer: Differ = (a, b) => {
 export const useBinding = <T extends Element>(el: T): BindingHost<T> => {
   const registerCleanUp = useCleanUpCollector();
   const eventHost = listen(el);
+  const delegateHost = delegate(el);
   const bindings: BindingHost<T> = {
     attr: (name, subscribable) => {
       registerCleanUp(bindAttr(el, name, subscribable));
@@ -36,6 +37,10 @@ export const useBinding = <T extends Element>(el: T): BindingHost<T> => {
     },
     content: (fragments, ...bindingPatterns) => {
       registerCleanUp(interpolation(fragments, ...bindingPatterns)(appendChild(el)));
+      return bindings;
+    },
+    delegate: (name, handler) => {
+      registerCleanUp(delegateHost(name, handler));
       return bindings;
     },
     event: (name, handler, options?) => {

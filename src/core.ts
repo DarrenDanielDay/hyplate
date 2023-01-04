@@ -6,8 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 import type { ParseSelector } from "typed-query-selector/parser.js";
-import type { AttachFunc, AttributeInterpolation, EventHost, TextInterpolation } from "./types.js";
-import { fori, isString, push } from "./util.js";
+import type { AttachFunc, AttributeInterpolation, DelegateHost, EventHost, TextInterpolation } from "./types.js";
+import { err, fori, isString, push } from "./util.js";
 import { comment } from "./internal.js";
 
 const doc = document;
@@ -56,6 +56,38 @@ export const listen =
       target.removeEventListener(name, handler, options);
     };
   };
+
+let delegatedEvents: Set<string> | undefined;
+
+export const delegate =
+  <T extends Element>(el: T): DelegateHost<T> =>
+  (event, handler) => {
+    if (!(delegatedEvents ??= new Set<string>()).has(event)) {
+      delegatedEvents.add(event);
+      doc.addEventListener(event, globalDelegateEventHandler);
+    }
+    const handlerProperty = `_$${event}` as const;
+    // @ts-expect-error event type & element type are not validated
+    el[handlerProperty] = handler;
+    return () => {
+      delete el[handlerProperty];
+    };
+  };
+
+const globalDelegateEventHandler = (e: Event) => {
+  const eventHandlerProperty = `_$${e.type}` as const;
+  const targets = e.composedPath();
+  fori(targets, (target) => {
+    const handler = target[eventHandlerProperty];
+    if (handler != null) {
+      try {
+        handler.call(target, e);
+      } catch (error) {
+        err(error);
+      }
+    }
+  });
+};
 
 export const appendChild =
   (host: Node): AttachFunc =>

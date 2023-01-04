@@ -17,7 +17,8 @@ import {
   select,
   seqAfter,
   svg,
-  text
+  text,
+  delegate,
 } from "../dist/core";
 import { template } from "../dist/template";
 
@@ -163,6 +164,47 @@ describe("core.ts", () => {
       cleanup();
       buttonElement.click();
       expect(fn).toBeCalledTimes(2);
+    });
+  });
+
+  describe("delegate", () => {
+    afterEach(() => {
+      document.body.innerHTML = "";
+    });
+    it("should bind delegated event", () => {
+      const fn = import.meta.jest.fn();
+      const buttonElement = document.createElement("button");
+      document.body.appendChild(buttonElement);
+      const cleanup = delegate(buttonElement)("click", fn);
+      buttonElement.click();
+      expect(fn).toBeCalledTimes(1);
+      buttonElement.click();
+      expect(fn).toBeCalledTimes(2);
+      cleanup();
+      buttonElement.click();
+      expect(fn).toBeCalledTimes(2);
+    });
+    it("should continue and error when error happens", () => {
+      const fn = import.meta.jest.spyOn(console, "error");
+      fn.mockImplementation(() => {});
+      const buttonElement = document.createElement("button");
+      const container = document.createElement("div");
+      container.appendChild(buttonElement);
+      document.body.appendChild(container);
+      const callSequence: string[] = [];
+      delegate(buttonElement)("click", () => {
+        callSequence.push("button");
+        throw new Error("");
+      });
+      delegate(container)("click", () => {
+        callSequence.push("container");
+      });
+      buttonElement.click();
+      // And the handlers should be invoked in the same order like bubbling.
+      expect(callSequence).toStrictEqual(["button", "container"]);
+      expect(fn).toBeCalledTimes(1);
+      fn.mockReset();
+      fn.mockRestore();
     });
   });
 
