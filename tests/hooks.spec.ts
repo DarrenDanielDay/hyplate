@@ -1,6 +1,8 @@
 import { replaced } from "../dist/template";
-import { useCleanUpCollector } from "../dist/hooks";
-import { appendChild } from "../dist/core";
+import { useChildView, useCleanUpCollector } from "../dist/hooks";
+import { after, anchor, appendChild } from "../dist/core";
+import { noop } from "../dist/util";
+import type { Rendered } from "../dist/types";
 describe("hooks.ts", () => {
   describe("basic hooks", () => {
     beforeEach(() => {
@@ -48,8 +50,6 @@ describe("hooks.ts", () => {
       expect(cleanupMock).toBeCalledTimes(1);
     });
   });
-  /*
-  // These APIs are deleted because of the concept changed.
   describe("advanced hooks", () => {
     beforeEach(() => {
       document.body.innerHTML = "";
@@ -57,13 +57,15 @@ describe("hooks.ts", () => {
     afterEach(() => {
       document.body.innerHTML = "";
     });
+
     it("should create and destroy child view", () => {
       const childViewDestroy = import.meta.jest.fn();
       const childFactory = import.meta.jest.fn((): Rendered<void> => {
         return [childViewDestroy, undefined, noop];
       });
-      const App = replaced(`<div><p #p1>1</p><p #p2></p></div>`)(() => {
-        const p2 = useAnchor("p2")!;
+      const App = replaced(`<div><p #p1>1</p><p #p2></p></div>`, (f) => ({
+        p2: anchor(f, "p2")!,
+      }))((_, { p2 }) => {
         useChildView(childFactory)(after(p2));
       });
       const [cleanup] = App({})(appendChild(document.body));
@@ -72,6 +74,8 @@ describe("hooks.ts", () => {
       cleanup();
       expect(childViewDestroy).toBeCalledTimes(1);
     });
+    /*
+    // The `useEvent` is deleted because of the concept changed.
     it("should add event listener and remove it", () => {
       const handler = import.meta.jest.fn();
       const App = replaced(`<div>
@@ -92,6 +96,6 @@ describe("hooks.ts", () => {
       button.click();
       expect(handler).toBeCalledTimes(2);
     });
+    //*/
   });
-  //*/
 });
