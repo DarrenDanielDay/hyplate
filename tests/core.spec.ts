@@ -17,7 +17,7 @@ import {
   select,
   seqAfter,
   svg,
-  text,
+  content,
   delegate,
 } from "../dist/core";
 import { template } from "../dist/template";
@@ -71,7 +71,7 @@ describe("core.ts", () => {
   describe("text content", () => {
     it("should insert text content", () => {
       const span = document.createElement("span");
-      text(span, "the content");
+      content(span, "the content");
       expect(span.textContent).toBe("the content");
     });
   });

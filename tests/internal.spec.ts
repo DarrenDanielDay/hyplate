@@ -4,13 +4,13 @@ import { setMode } from "../dist/util";
 describe("internal.ts", () => {
   describe("comment", () => {
     it("should create comment", () => {
-      expect(comment()).toBeInstanceOf(Comment);
+      expect(comment("")).toBeInstanceOf(Comment);
     });
 
     it("should create comment with content", () => {
       expect(comment("message").textContent).toBe("message");
     });
-    it("should ", () => {
+    it("should create empty comment", () => {
       setMode(false);
       expect(comment("message").textContent).toBe("");
       setMode(true);

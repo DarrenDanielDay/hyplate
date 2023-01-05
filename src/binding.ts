@@ -1,4 +1,4 @@
-import { attr, remove, text } from "./core.js";
+import { attr, remove, content, text } from "./core.js";
 import type {
   AttachFunc,
   AttributeInterpolation,
@@ -44,12 +44,9 @@ export const resetBinding = () => {
 };
 
 export const bindText = (node: Node, subscribable: Subscribable<TextInterpolation>) =>
-  subscribe(subscribable, (content) => text(node, content));
+  subscribe(subscribable, (text) => content(node, text));
 
-export const interpolation = (
-  fragments: TemplateStringsArray,
-  ...bindings: (BindingPattern<TextInterpolation>)[]
-) => {
+export const interpolation = (fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]) => {
   const fragmentsLength = fragments.length;
   const bindingsLength = bindings.length;
   if (__DEV__) {
@@ -68,7 +65,7 @@ export const interpolation = (
     const flushBuf = () => {
       const textContent = buf.join("");
       if (textContent) {
-        const textNode = new Text(textContent);
+        const textNode = text(textContent);
         push(effects, () => remove(textNode));
         attach(textNode);
       }
@@ -79,8 +76,11 @@ export const interpolation = (
       const expression = bindings[i]!;
       if (isSubscribable(expression)) {
         flushBuf();
-        const dynamicText = new Text();
-        push(effects, bindText(dynamicText, expression));
+        const dynamicText = text("");
+        push(
+          effects,
+          subscribe(expression, (value) => (dynamicText.data = `${value}`))
+        );
         push(effects, () => remove(dynamicText));
         attach(dynamicText);
       } else {

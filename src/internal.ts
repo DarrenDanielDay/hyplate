@@ -8,7 +8,8 @@
 import { remove } from "./core.js";
 import type { CleanUpFunc, Rendered } from "./types.js";
 import { __DEV__ } from "./util.js";
-export const comment = (message?: string) => new Comment(__DEV__ ? message : "");
+
+export const comment = (message: string) => document.createComment(__DEV__ ? message : "");
 
 export const withCommentRange = (message: string): Rendered<[begin: Comment, end: Comment, clear: CleanUpFunc]> => {
   const begin = comment(` ${message} begin `);

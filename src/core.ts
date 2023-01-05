@@ -14,6 +14,8 @@ const doc = document;
 
 export const element = /* #__PURE__ */ doc.createElement.bind(doc);
 
+export const text = /* #__PURE__ */ doc.createTextNode.bind(doc);
+
 export const svg: <K extends keyof SVGElementTagNameMap>(name: K) => SVGElementTagNameMap[K] = (name) =>
   doc.createElementNS("http://www.w3.org/2000/svg", name);
 
@@ -24,7 +26,7 @@ export const clone = <N extends Node>(node: N): N => node.cloneNode(true) as N;
 export const attr = (element: Element, name: string, value: AttributeInterpolation) =>
   value == null || value === false ? element.removeAttribute(name) : element.setAttribute(name, `${value}`);
 
-export const text = (node: Node, content: TextInterpolation) => (node.textContent = `${content}`);
+export const content = (node: Node, content: TextInterpolation) => (node.textContent = `${content}`);
 
 export const select: {
   <S extends string>(host: ParentNode, selecor: S): ParseSelector<S> | null;
