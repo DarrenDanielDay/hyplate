@@ -82,6 +82,12 @@
       "import": "./dist/hooks.js",
       "default": "./dist/hooks.js"
     },
+    "./identifiers": {
+      "types": "./dist/identifiers.d.ts",
+      "browser": "./dist/identifiers.browser.esm.min.js",
+      "import": "./dist/identifiers.js",
+      "default": "./dist/identifiers.js"
+    },
     "./jsx-runtime": {
       "types": "./dist/jsx-runtime.d.ts",
       "browser": "./dist/jsx-runtime.browser.esm.min.js",

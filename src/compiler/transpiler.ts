@@ -8,7 +8,7 @@
 import type { IAttribute, ITag, IText } from "html5parser";
 import { SourceMapGenerator } from "source-map";
 import { objectEntriesMap } from "../util.js";
-import { createObjLikeExp, mergedOptions, replaceExt, sourceName, str } from "./shared.js";
+import { createObjLikeExp, mergedOptions, replaceExt, sourceName, str, tabs } from "./shared.js";
 import type {
   ChildTemplates,
   ExtractedNode,
@@ -16,9 +16,11 @@ import type {
   Template,
   TemplateInfo,
   TranspileOptions,
+  ViewRef,
 } from "./types.js";
 
 export const defaultTranspileOptions = Object.freeze<TranspileOptions>({
+  accessBy: "node",
   externalStyles: "link",
   factory: "shadowed",
   processInlineCSS: (style, _template) => style.body?.map((n) => (n as IText).value).join("") ?? "",
@@ -34,13 +36,15 @@ export const configureTranspiler = (options: Partial<TranspileOptions>) => {
 };
 
 const FACTORY = "f";
-const CONTEXT_FACTORY = "c";
+const FRAGMENT = "d";
+const FIRST_CHILD = "c";
+const NEXT_SIBLIING = "n";
 const REPLACED = "r";
 const BASE_URL = "b";
 const TO_URL = "u";
 
 export const transpile = (templates: ChildTemplates, file: string): OutputWithSourceMap[] => {
-  const { externalStyles, factory, processInlineCSS, relativeURLs } = transpilerOptions;
+  const { accessBy, externalStyles, factory, processInlineCSS, relativeURLs } = transpilerOptions;
   const source = sourceName(file);
   // Currently generated JavaScript file have no symbol mapping.
   const sourcemap = new SourceMapGenerator({
@@ -169,15 +173,17 @@ export const transpile = (templates: ChildTemplates, file: string): OutputWithSo
     const templateInfo = templateMap[id]!;
     const { template } = templateInfo;
     const isGlobal = templateInfo.path.length === 1;
+    const [getRefsCode, refsExpr] = transpileReference(template, 2);
     return `\
 // ${templateInfo.path.map((anchor) => `[#${anchor}]`).join(" ")}
 const ${id} = ${isGlobal ? FACTORY : "r"}(
   \`${transpileTemplate(id)}\`,
-  ${CONTEXT_FACTORY}(${createObjLikeExp(
-      objectEntriesMap(template.refs, ([, value]) => str(value.path)),
-      1,
-      ","
-    )}),
+  (${FRAGMENT}) => {
+    ${getRefsCode}
+    return {
+      refs: ${refsExpr},
+    }
+  },
 );
 ${Object.entries(template.children)
   .map(
@@ -185,6 +191,126 @@ ${Object.entries(template.children)
 `
   )
   .join("")}`;
+  };
+  const transpileReference = (template: Template, indent: number): [declarations: string, expr: string] => {
+    const indexer: Record<
+      TranspileOptions["accessBy"],
+      {
+        [K in keyof ViewRef]: ViewRef[K] extends number[] ? K : never;
+      }[keyof ViewRef]
+    > = {
+      element: "path",
+      node: "indexes",
+    };
+    const indexBy = indexer[accessBy];
+    const variables: {
+      /**
+       * The variable id.
+       */
+      id: number;
+      /**
+       * The previous referenced variable id. 0 for the fragment.
+       */
+      previous: number;
+      /**
+       * Whether the prevous node is the parent node.
+       */
+      fromParent: boolean;
+      /**
+       * The count of `nextSibling`.
+       */
+      count: number;
+    }[] = [];
+    const refs: Record<string, number> = {};
+    let currentId = 0;
+    const refEntries = Object.entries(template.refs).sort(([, { [indexBy]: a }], [, { [indexBy]: b }]) => {
+      let i = 0,
+        la = a.length,
+        lb = b.length;
+      let result = 0;
+      for (; i < la && i < lb; i++) {
+        const ea = a[i],
+          eb = b[i];
+        if (ea !== eb) {
+          // Actually it's always negative, and the `sort` is unnecessary,
+          // because `Object.entries` ensures the keys are return in the inserting order.
+          result = ea - eb;
+          break;
+        }
+      }
+      return result;
+    });
+    const indexMatrix = refEntries.map(([, value]) => value[indexBy]);
+    const resolveNode = (
+      row: number,
+      column: number,
+      previousId: number,
+      parentMaxColumn: number,
+      fromParent: boolean,
+      parentIndex: number
+    ): [resolvedId: number, columnBound: number, startingIndex: number] => {
+      currentId++;
+      const id = currentId;
+      const indexes = indexMatrix[column]!;
+      const fragmentIndex = indexes[row]!;
+      // Get the same parents prefixes.
+      let maxColumn = column;
+      while (maxColumn < parentMaxColumn && indexMatrix[maxColumn]![row] === fragmentIndex) {
+        maxColumn++;
+      }
+      variables.push({
+        id,
+        previous: previousId,
+        fromParent,
+        count: fromParent ? fragmentIndex : fragmentIndex - parentIndex,
+      });
+      const nextRow = row + 1;
+      if (nextRow === indexes.length) {
+        // The last index represents the reference node.
+        refs[refEntries[column]![0]] = currentId;
+      }
+      // Resolve its children.
+      previousId = id;
+      let startingIndex = fragmentIndex;
+      for (let nextChildColumn = column; nextChildColumn < maxColumn; ) {
+        const indexes = indexMatrix[nextChildColumn]!;
+        if (nextRow >= indexes.length) {
+          nextChildColumn++;
+        } else {
+          [previousId, nextChildColumn, startingIndex] = resolveNode(
+            nextRow,
+            nextChildColumn,
+            previousId,
+            maxColumn,
+            previousId === id,
+            startingIndex
+          );
+        }
+      }
+      return [id, maxColumn, fragmentIndex];
+    };
+    if (indexMatrix.length) {
+      resolveNode(0, 0, currentId, indexMatrix.length, true, 0);
+    }
+    const nodeVar = (n: number) => `_$node${n}`;
+    const declarations = `const ${nodeVar(0)} = ${FRAGMENT}${variables.length ? "," : ""}
+    ${variables.map(
+      ({ id, previous, count, fromParent }) =>
+        `${nodeVar(id)} = ${nodeVar(previous)}${fromParent ? `[${FIRST_CHILD}]` : ""}${`[${NEXT_SIBLIING}]`.repeat(
+          count
+        )}`
+    ).join(`,
+${tabs(indent)}`)};`;
+    return [
+      declarations,
+      `${createObjLikeExp(
+        objectEntriesMap(refs, ([, value]) => {
+          return nodeVar(value);
+        }),
+        indent + 1,
+        ","
+      )}`,
+    ];
   };
   const addtionalImportStatements: string[] = [];
   const addSideEffectImport = (url: string) => {
@@ -211,9 +337,19 @@ ${Object.entries(template.children)
   const toURLCode = `const ${TO_URL}=${BASE_URL}(import.meta.url);
 `;
   const createSetupCode = emitIdSequence.map((id) => jsCodeTemplate(id)).join("");
-  const importCode = `import {${factory} as ${FACTORY},replaced as ${REPLACED},contextFactory as ${CONTEXT_FACTORY},basedOnURL as ${BASE_URL}}from"hyplate/template";${addtionalImportStatements
-    .map((s) => "\n" + s)
-    .join("")}`;
+  //#region imports
+  const templateImport = `import{${factory} as ${FACTORY},replaced as ${REPLACED}${
+    usedToURL ? `,basedOnURL as ${BASE_URL}` : ""
+  }}from"hyplate/template";`;
+  type Identifiers = keyof typeof import("../identifiers.js");
+  const accessorNames: Record<TranspileOptions["accessBy"], [firstChild: Identifiers, nextSibling: Identifiers]> = {
+    node: ["firstChild", "nextSibling"],
+    element: ["firstElementChild", "nextElementSibling"],
+  };
+  const [firstChild, nextSibling] = accessorNames[accessBy];
+  const identifierImport = `import{${firstChild} as ${FIRST_CHILD},${nextSibling} as ${NEXT_SIBLIING}}from"hyplate/identifiers"`;
+  const importCode = `${templateImport}${identifierImport}${addtionalImportStatements.map((s) => "\n" + s).join("")}`;
+  //#endregion
   const exportCode = `export {${Object.keys(templates)
     .map((key, i) => `_${i} as ${key}`)
     .join(",")}};`;

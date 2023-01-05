@@ -1,4 +1,4 @@
-import { configureParser as configure, parse } from "../../dist/compiler/parser";
+import { configureParser as configure, configureParser, parse } from "../../dist/compiler/parser";
 import type { ParsedNode, ViewSlots } from "../../dist/compiler/types";
 describe("parser.ts", () => {
   describe("when `preserveEmptyTextNodes` is true", () => {
@@ -338,18 +338,27 @@ describe("parser.ts", () => {
     });
   });
   describe("anchor refs", () => {
-    it("should transform with path", () => {
+    beforeEach(() => {
+      configureParser({
+        preserveEmptyTextNodes: false,
+      });
+    });
+    it("should transform with path & indexes", () => {
       const templates = parse(`
 <template>
   <div></div>
   <div class="toolbar">
+    some text here
     <button #ok>confirm</button>
+    some text here
     <button #cancel>cancel</button>
   </div>
 </template>
 `);
       expect(templates.default.refs.ok.path).toStrictEqual([1, 0]);
+      expect(templates.default.refs.ok.indexes).toStrictEqual([1, 1]);
       expect(templates.default.refs.cancel.path).toStrictEqual([1, 1]);
+      expect(templates.default.refs.cancel.indexes).toStrictEqual([1, 3]);
     });
     it("should infer anchor element type", () => {
       const templates = parse(`

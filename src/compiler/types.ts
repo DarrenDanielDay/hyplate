@@ -30,6 +30,13 @@ export interface TemplateOptions {
 
 export interface TranspileOptions {
   /**
+   * The way to access element.
+   * When configured to `node`, the element refs will be get by `firstChild` and `nextSibling`.
+   * When configured to `element`, the element refs will be get by `firstElementChild` and `nextElementSibling`.
+   * @default "node"
+   */
+  accessBy: "node" | "element";
+  /**
    * Define how to transpile inline style elements as external files.
    *
    * When configured to `false`, the style element will be kept inline.
@@ -111,6 +118,10 @@ export interface ViewRef {
    * Index of `children`. Must be index of an element array.
    */
   path: number[];
+  /**
+   * Indexes of `childNodes`. Must be index of a node array.
+   */
+  indexes: number[];
   /**
    * Position of the anchor attribute.
    */

@@ -109,14 +109,22 @@ const createTemplate = (templateNode: ITag, isGlobal?: boolean): Template => {
   const refs: ViewRefs = {};
   const slots: ViewSlots = {};
   const path: number[] = [];
+  const indexes: number[] = [];
   const enterBody = () => {
+    indexes.push(-1);
     path.push(-1);
   };
   const exitBody = () => {
+    indexes.pop();
     path.pop();
   };
   let svgScopeCount = 0;
+  const nextNode = () => {
+    const i = indexes.length - 1;
+    indexes[i]++;
+  };
   const nextElement = () => {
+    nextNode();
     const i = path.length - 1;
     path[i]++;
   };
@@ -140,6 +148,7 @@ const createTemplate = (templateNode: ITag, isGlobal?: boolean): Template => {
           type: "text",
           content: text,
         });
+        nextNode();
       }
       return;
     }
@@ -151,6 +160,7 @@ const createTemplate = (templateNode: ITag, isGlobal?: boolean): Template => {
         type: "text",
         content: currentSource.slice(node.start, node.end),
       });
+      nextNode();
     }
     const isSvg = isSVG(node);
     if (isSvg) {
@@ -191,9 +201,9 @@ ${node.open.value}`);
     }
     nextElement();
     if (isStyle(node)) {
-      // Style elements are extracted just for processing their contents, 
+      // Style elements are extracted just for processing their contents,
       // and there must be a corresponding element in the template.
-      // So the index cursor should be move to next.
+      // So the index cursor should be moved to next.
       styles.push({
         index: nodes.length,
         node,
@@ -207,6 +217,7 @@ ${node.open.value}`);
       const tag = node.name;
       refs[ref] = {
         path: [...path],
+        indexes: [...indexes],
         el: (svgScopeCount ? SVGTagTypeMapping[tag] : HTMLTagTypeMapping[tag]) ?? "Element",
         tag,
         position: currentLocator(anchorRefAttr.start),
