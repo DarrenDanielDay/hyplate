@@ -33,3 +33,5 @@ export const withCommentRange = (message: string): Rendered<[begin: Comment, end
     () => [begin, end],
   ];
 };
+
+export const $$HyplateSubscribers: unique symbol = "_$subs" as never;

@@ -148,8 +148,8 @@ export const For = <T extends unknown>({
         if (i <= e2) {
           const nextPos = e2 + 1;
           const anchor = newNodes[nextPos]?.[1]?.[2]()?.[1] ?? end;
+          const attach = before(anchor);
           for (; i <= e2; i++) {
-            const attach = before(anchor);
             const node = newNodes[i]!;
             node[1] = children(node[0])(attach);
           }

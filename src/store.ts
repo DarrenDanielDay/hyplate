@@ -8,8 +8,9 @@
 
 import { applyAll, compare, err, __DEV__ } from "./util.js";
 import type { CleanUpFunc, Differ, Query, Source, Subscriber } from "./types.js";
-import { once, scopes } from "./util.js";
+import { scopes } from "./util.js";
 import { configureBinding } from "./binding.js";
+import { $$HyplateSubscribers } from "./internal.js";
 
 let defaultDiffer: Differ = compare;
 export const setDiffer = (differ: Differ | undefined | null) => {
@@ -21,76 +22,50 @@ export const enableBuiltinStore = () => {
   configureBinding(watch, isQuery);
 };
 
-const [enterScope, quitScope, currentScope] = /* #__PURE__ */ scopes<(src: Query<unknown>) => void>();
+const [enterScope, quitScope, currentScope] = /* #__PURE__ */ scopes<Set<Query<any>>>();
 
 const useDepScope = (): [Set<Query<unknown>>, CleanUpFunc] => {
   const deps = new Set<Query<unknown>>();
-  enterScope((src) => {
-    deps.add(src);
-  });
-  return [
-    deps,
-    () => {
-      quitScope();
-    },
-  ];
+  enterScope(deps);
+  return [deps, quitScope];
 };
 
 export const source = <T extends unknown>(val: T, differ: Differ = defaultDiffer): Source<T> => {
+  const subscribers = new Set<Subscriber<T>>();
   const src: Source<T> = {
+    [$$HyplateSubscribers]: subscribers,
     get val() {
-      currentScope()?.(src);
+      currentScope()?.add(src);
       return val;
+    },
+    sub(subscriber) {
+      subscribers.add(subscriber);
+      return () => {
+        subscribers.delete(subscriber);
+      };
     },
     set(newVal) {
       if (differ(val, newVal)) {
         return;
       }
       val = newVal;
-      dispatch(src, newVal);
+      dispatch(subscribers, newVal);
     },
   };
-  subscriptions.set(src, null);
   return src;
 };
 
-const subscriptions = /* #__PURE__ */ new WeakMap<Query<unknown>, Set<Subscriber<any>> | null>();
-const onEmptiedCallbacks = /* #__PURE__ */ new WeakMap<Query<unknown>, CleanUpFunc>();
-if (__DEV__) {
-  Object.assign(globalThis, { __SUBSCRIPTIONS__: subscriptions });
-}
-
 export const isQuery = (obj: unknown): obj is Query<unknown> =>
-  // @ts-expect-error contravariance
-  subscriptions.has(obj);
+  // @ts-expect-error unknown key access
+  obj && !!obj[$$HyplateSubscribers];
 
-const subscribe = <T extends unknown>(query: Query<T>, subscriber: Subscriber<T>): CleanUpFunc => {
-  let subscribers = subscriptions.get(query);
-  if (!subscribers) {
-    subscribers = new Set([subscriber]);
-    subscriptions.set(query, subscribers);
-  }
-  subscribers.add(subscriber);
-  return once(() => {
-    if (subscribers!.size === 1) {
-      subscriptions.delete(query);
-      onEmptiedCallbacks.get(query)?.();
-    } else {
-      subscribers!.delete(subscriber);
-    }
-  });
-};
 export const watch = <T extends unknown>(query: Query<T>, subscriber: Subscriber<T>): CleanUpFunc => {
-  const unsubscribe = subscribe(query, subscriber);
+  const unsubscribe = query.sub(subscriber);
   subscriber(query.val);
   return unsubscribe;
 };
 
-export const dispatch = <T extends unknown>(src: Query<unknown>, newVal: T) => {
-  const subscribers = subscriptions.get(src);
-  if (!subscribers) {
-    return;
-  }
+const dispatch = <T extends unknown>(subscribers: Set<Subscriber<T>>, newVal: T) => {
   [...subscribers].forEach((sub) => {
     try {
       sub(newVal);
@@ -101,17 +76,28 @@ export const dispatch = <T extends unknown>(src: Query<unknown>, newVal: T) => {
 };
 
 export const query = <T extends unknown>(selector: () => T, differ: Differ = defaultDiffer): Query<T> => {
+  const subscribers = new Set<Subscriber<T>>();
   const q: Query<T> = {
+    [$$HyplateSubscribers]: subscribers,
     get val() {
       lazyEvaluate();
       return current!;
+    },
+    sub(subscriber) {
+      subscribers.add(subscriber);
+      return () => {
+        subscribers.delete(subscriber);
+        if (!subscribers.size) {
+          applyAll(teardowns)();
+        }
+      };
     },
   };
   let dirty = true;
   let current: T | null = null;
   let teardowns: CleanUpFunc[] = [];
   const lazyEvaluate = () => {
-    currentScope()?.(q);
+    currentScope()?.add(q);
     if (!dirty) {
       return;
     }
@@ -120,7 +106,7 @@ export const query = <T extends unknown>(selector: () => T, differ: Differ = def
     current = selector();
     cleanupDepScope();
     applyAll(teardowns)();
-    teardowns = [...newDeps].map((dep) => subscribe(dep, queryDispatch));
+    teardowns = [...newDeps].map((dep) => dep.sub(queryDispatch));
   };
   const queryDispatch = () => {
     dirty = true;
@@ -129,9 +115,7 @@ export const query = <T extends unknown>(selector: () => T, differ: Differ = def
     if (differ(last, current)) {
       return;
     }
-    dispatch(q, current!);
+    dispatch(subscribers, current!);
   };
-  subscriptions.set(q, null);
-  onEmptiedCallbacks.set(q, () => applyAll(teardowns)());
   return q;
 };

@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-
+import type { $$HyplateSubscribers } from "./internal.js";
 /**
  * `NaN` cannot represented in TypeScript types.
  * @see https://developer.mozilla.org/en-US/docs/Glossary/Falsy
@@ -26,6 +26,14 @@ export type SubscribeFunc = <T>(subscribable: Subscribable<T>, subscriber: Subsc
 export type SubscribableTester = (value: unknown) => value is Subscribable<unknown>;
 
 export interface Query<T extends unknown> {
+  /**
+   * @internal
+   */
+  [$$HyplateSubscribers]: Set<Subscriber<T>>;
+  /**
+   * @internal
+   */
+  sub: (subscriber: Subscriber<T>) => CleanUpFunc;
   readonly val: T;
 }
 
