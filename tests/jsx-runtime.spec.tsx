@@ -1,6 +1,7 @@
 import { resetBinding } from "../dist/binding";
 import { appendChild, element } from "../dist/core";
 import { If, Show } from "../dist/directive";
+import { unmount } from "../dist/internal";
 import { Fragment, jsx, jsxRef, jsxs } from "../dist/jsx-runtime";
 import { source } from "../dist/store";
 import type { AttachFunc, FunctionalComponent, Mountable, ObjectEventHandler } from "../dist/types";
@@ -203,9 +204,9 @@ describe("jsx-runtime.ts", () => {
           <span>bbb</span>
         </>
       );
-      const [cleanup] = mountable(attach);
+      const rendered = mountable(attach);
       expect(container.textContent).toBe("aaabbb");
-      cleanup();
+      unmount(rendered);
       expect(container.textContent).toBe("");
     });
     it("should render empty fragment", () => {

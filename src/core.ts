@@ -6,7 +6,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 import type { ParseSelector } from "typed-query-selector/parser.js";
-import type { AttachFunc, AttributeInterpolation, DelegateHost, EventHost, TextInterpolation } from "./types.js";
+import type {
+  AttachFunc,
+  AttributeInterpolation,
+  DelegateHost,
+  EventHost,
+  GetRange,
+  TextInterpolation,
+} from "./types.js";
 import { err, fori, isString, push } from "./util.js";
 import { comment } from "./internal.js";
 
@@ -115,7 +122,7 @@ export const seqAfter = (element: ChildNode): AttachFunc => {
   return before(end);
 };
 
-export const remove = (node: Node) => node.parentNode?.removeChild(node);
+export const remove: AttachFunc = (node: Node) => node.parentNode?.removeChild(node);
 
 export const moveRange = (begin: Node | null, end: Node | null) => (attach: AttachFunc) => {
   const targets: Node[] = [];
@@ -126,6 +133,13 @@ export const moveRange = (begin: Node | null, end: Node | null) => (attach: Atta
     push(targets, end);
   }
   fori(targets, attach);
+};
+
+export const removeRange = (getRange: GetRange) => {
+  const range = getRange();
+  if (range) {
+    moveRange(range[0], range[1])(remove);
+  }
 };
 
 export const access = (node: ParentNode, path: number[]): ParentNode | undefined => {

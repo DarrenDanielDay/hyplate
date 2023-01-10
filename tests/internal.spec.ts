@@ -18,17 +18,15 @@ describe("internal.ts", () => {
   });
   describe("with comment range", () => {
     it("should create a comment range", () => {
-      const container = document.createElement("div");
-      const [cleanup, [begin, end, clear], getRange] = withCommentRange("test");
+      const container = element("div");
+      const [begin, end, clear] = withCommentRange("test");
       container.append(begin, end);
       const attach = before(end);
       attach(new Text("text 1"));
       attach(new Text("text 2"));
-      expect(getRange()).toStrictEqual([begin, end]);
       expect(container.textContent).toBe("text 1text 2");
       clear();
       expect(container.textContent).toBe("");
-      cleanup();
     });
   });
 });

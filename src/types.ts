@@ -205,6 +205,15 @@ export type BindingHost<T extends Element> = {
   text(subscribable: Subscribable<TextInterpolation>): BindingHost<T>;
 };
 
+//#region directives
+export interface ForProps<T extends unknown> {
+  /**
+   * The iterable query.
+   */
+  of: Subscribable<ArrayLike<T>>;
+}
+//#endregion
+
 //#region JSX types
 type ArrayOr<T> = T | T[];
 

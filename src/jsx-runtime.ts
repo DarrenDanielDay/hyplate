@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { bindAttr, interpolation, isSubscribable } from "./binding.js";
-import { appendChild, attr, listen, docFragment, element, remove, svg } from "./core.js";
+import { appendChild, attr, listen, docFragment, element, svg } from "./core.js";
 import type {
   JSXChildNode,
   FunctionalComponent,
@@ -25,9 +25,7 @@ import { applyAll, fori, isFunction, isObject, noop, push, __DEV__ } from "./uti
 const addChild = (child: JSXChild, attach: AttachFunc) => {
   if (child instanceof Node) {
     attach(child);
-    return () => {
-      remove(child as ChildNode);
-    };
+    return noop;
   }
   if (isFunction(child)) {
     return child(attach)[0];
@@ -110,12 +108,11 @@ export const jsx = (
           }
         }
       }
-      push(cleanups, () => remove(el));
       attach(el);
       if (isSvg) {
         currentElementFactory = lastElementFactory;
       }
-      return [applyAll(cleanups), el, () => [el, el]];
+      return [cleanups.length ? applyAll(cleanups) : noop, el, () => [el, el]];
     };
   }
   const { ref, ...otherProps } = props;

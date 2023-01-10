@@ -1,6 +1,7 @@
 import { resetBinding } from "../dist/binding";
 import { appendChild } from "../dist/core";
 import { If, Show, For } from "../dist/directive";
+import { unmount } from "../dist/internal";
 import { jsxRef } from "../dist/jsx-runtime";
 import { query, source } from "../dist/store";
 import type { AttachFunc, Query, Source } from "../dist/types";
@@ -32,9 +33,9 @@ describe("directive.ts", () => {
           }}
         </If>
       );
-      const [cleanup] = mountable(attach);
+      const rendered = mountable(attach);
       expect(container.textContent).toBe("then");
-      cleanup();
+      unmount(rendered);
       expect(container.textContent).toBe("");
     });
     it("should destroy view when data of `that` changed to falsy", () => {

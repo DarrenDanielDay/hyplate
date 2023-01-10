@@ -1,4 +1,4 @@
-import { attr, remove, content, text } from "./core.js";
+import { attr, content, text } from "./core.js";
 import type {
   AttachFunc,
   AttributeInterpolation,
@@ -66,7 +66,6 @@ export const interpolation = (fragments: TemplateStringsArray, ...bindings: Bind
       const textContent = buf.join("");
       if (textContent) {
         const textNode = text(textContent);
-        push(effects, () => remove(textNode));
         attach(textNode);
       }
       buf.length = 0;
@@ -81,7 +80,6 @@ export const interpolation = (fragments: TemplateStringsArray, ...bindings: Bind
           effects,
           subscribe(expression, (value) => (dynamicText.data = `${value}`))
         );
-        push(effects, () => remove(dynamicText));
         attach(dynamicText);
       } else {
         push(buf, `${expression}`);
