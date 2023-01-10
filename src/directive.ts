@@ -11,13 +11,14 @@ import type {
   CleanUpFunc,
   ConditionalMountable,
   ExposeBase,
+  ForProps,
   Mountable,
   Props,
   Rendered,
   Subscribable,
 } from "./types.js";
 import { noop } from "./util.js";
-import { withCommentRange } from "./internal.js";
+import { unmount, withCommentRange } from "./internal.js";
 import { before, moveRange } from "./core.js";
 import { subscribe } from "./binding.js";
 
@@ -27,7 +28,7 @@ const createIfDirective = <Test, T extends ExposeBase, F extends ExposeBase = vo
   falseResult?: Mountable<F>
 ): Mountable<void> => {
   return (attach) => {
-    const [clearCommentRange, [begin, end, clear], getRange] = withCommentRange("if/show directive");
+    const [begin, end, clearRange] = withCommentRange("if/show directive");
     attach(begin);
     attach(end);
     const attachContent: AttachFunc = before(end);
@@ -35,7 +36,7 @@ const createIfDirective = <Test, T extends ExposeBase, F extends ExposeBase = vo
     const unsubscribe = subscribe(condition, (newValue) => {
       const shouldReRender = !!newValue;
       lastAttached?.();
-      clear();
+      clearRange();
       if (shouldReRender) {
         // @ts-expect-error truty check
         [lastAttached] = trueResult(attachContent, newValue);
@@ -47,10 +48,9 @@ const createIfDirective = <Test, T extends ExposeBase, F extends ExposeBase = vo
       () => {
         unsubscribe();
         lastAttached?.();
-        clearCommentRange();
       },
       void 0,
-      getRange,
+      () => [begin, end],
     ];
   };
 };
@@ -88,13 +88,14 @@ export const Show = <Test, T extends ExposeBase, F extends ExposeBase = void>({
   }
   return createIfDirective(when, children, fallback);
 };
-interface ForProps<T extends unknown> {
-  /**
-   * The iterable query.
-   */
-  of: Subscribable<ArrayLike<T>>;
-}
-
+/**
+ * @internal
+ */
+type HNode<T> = [item: T, rendered: Rendered<any> | undefined];
+const unmountHNode = (node: HNode<any>) => {
+  const rendered = node[1]!;
+  unmount(rendered);
+};
 /**
  * The `for` directive for list rendering.
  *
@@ -112,13 +113,12 @@ export const For = <T extends unknown>({
     }
   }
   return (attach): Rendered<void> => {
-    type HNode = [item: T, rendered: Rendered<any> | undefined];
-    let nodes: HNode[] = [];
-    const [unmount, [begin, end, removeRange], move] = withCommentRange("for directive");
+    let nodes: HNode<T>[] = [];
+    const [begin, end, removeRange] = withCommentRange("for directive");
     attach(begin);
     attach(end);
     const cleanup = subscribe(of, (newOf) => {
-      const newNodes: HNode[] = [];
+      const newNodes: HNode<T>[] = [];
       for (let i = 0, l = newOf.length; i < l; i++) {
         newNodes.push([newOf[i], void 0]);
       }
@@ -156,7 +156,7 @@ export const For = <T extends unknown>({
         }
       } else if (i > e2) {
         for (; i <= e1; i++) {
-          nodes[i][1]![0]();
+          unmountHNode(nodes[i]);
         }
       } else {
         const s1 = i;
@@ -185,12 +185,12 @@ export const For = <T extends unknown>({
         for (i = s1; i <= e1; i++) {
           const prevChild = nodes[i]!;
           if (patched >= toBePatched) {
-            prevChild[1]![0]();
+            unmountHNode(prevChild);
             continue;
           }
           const newIndex = mapItemToNewIndex.get(prevChild[0]);
           if (newIndex == null) {
-            prevChild[1]![0]();
+            unmountHNode(prevChild);
           } else {
             newIndexToOldIndexMap[newIndex - s2] = i + 1;
             if (newIndex >= maxNewIndexSoFar) {
@@ -229,10 +229,9 @@ export const For = <T extends unknown>({
       () => {
         cleanup();
         removeRange();
-        unmount();
       },
       undefined,
-      move,
+      () => [begin, end],
     ];
   };
 };

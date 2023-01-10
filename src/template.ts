@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { access, appendChild, before, clone, element, insertSlot, moveRange, remove } from "./core.js";
+import { access, appendChild, before, clone, element, insertSlot, remove } from "./core.js";
 import { createHooks, enterHooks, quitHooks } from "./hooks.js";
 import type {
   CleanUpFunc,
@@ -66,13 +66,9 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
       Object.defineProperty(owner, "exposed", {
         value: exposed,
       });
-      const cleanupView = () => {
-        remove(owner);
-      };
       const unmount = once(() => {
         cleanupHooks();
         applyAll(localCleanups)();
-        cleanupView();
       });
       return [unmount, exposed, () => [owner, owner]];
     };
@@ -112,11 +108,9 @@ export const replaced: FunctionalComponentTemplateFactory = (input, contextFacto
       enterHooks(hooks);
       const exposed = setup?.(options as never, context) as never;
       quitHooks();
-      const cleanupView = () => moveRange(begin, end)(remove);
       const unmount = once(() => {
         cleanupHooks();
         applyAll(localCleanups)();
-        cleanupView();
       });
       return [unmount, exposed, () => [begin, end]];
     };

@@ -1,4 +1,5 @@
 import { appendChild } from "../dist/core";
+import { unmount } from "../dist/internal";
 import { basedOnURL, contextFactory, replaced, shadowed, template } from "../dist/template";
 import type { HyplateElement, Mountable } from "../dist/types";
 import { noop } from "../dist/util";
@@ -17,6 +18,9 @@ describe("template.ts", () => {
   });
   describe("shallowed", () => {
     beforeEach(() => {
+      document.body.innerHTML = "";
+    });
+    afterEach(() => {
       document.body.innerHTML = "";
     });
     it("should create shadow root", () => {
@@ -82,58 +86,59 @@ describe("template.ts", () => {
       const App = replaced<"slot1">(`<span>1</span><span>2</span><slot name="slot1"></slot>`)();
       const slotContent = document.createElement("span");
       slotContent.textContent = "3";
-      const [cleanup, , getRange] = App({
+      const rendered = App({
         children: {
           slot1: slotContent,
         },
       })(appendChild(document.body));
+      const [, , getRange] = rendered;
       expect(document.body.textContent).toBe("123");
       expect(getRange()).toStrictEqual([document.body.firstChild, document.body.lastChild]);
-      cleanup();
+      unmount(rendered);
     });
     it("should replace slot with given fragment", () => {
       const App = replaced<"slot1">(`<span>1</span><span>2</span><slot name="slot1"></slot>`)();
       const slotContent = document.createDocumentFragment();
       slotContent.appendChild(new Text("3"));
       slotContent.appendChild(new Text("4"));
-      const [cleanup] = App({
+      const rendered = App({
         children: {
           slot1: slotContent,
         },
       })(appendChild(document.body));
       expect(document.body.textContent).toBe("1234");
-      cleanup();
+      unmount(rendered);
     });
     it("should replace slot with given fragment", () => {
       const App = replaced<"slot1">(`<span>1</span><span>2</span><slot name="slot1"></slot>`)();
       const slotContent = document.createDocumentFragment();
       slotContent.appendChild(new Text("3"));
       slotContent.appendChild(new Text("4"));
-      const [cleanup] = App({
+      const rendered = App({
         children: {
           slot1: slotContent,
         },
       })(appendChild(document.body));
       expect(document.body.textContent).toBe("1234");
-      cleanup();
+      unmount(rendered);
     });
     it("should replace slot with given mountable", () => {
       const App = replaced<"slot1">(`<span>1</span><span>2</span><slot name="slot1"></slot>`)();
       const cleanupSlot = import.meta.jest.fn();
-      const [cleanup] = App({
+      const rendered = App({
         children: {
           slot1: () => [cleanupSlot, undefined, () => {}],
         },
       })(appendChild(document.body));
       expect(document.body.textContent).toBe("12");
-      cleanup();
+      unmount(rendered);
       expect(cleanupSlot).toBeCalledTimes(1);
     });
     it("should skip slot replacement when slot content not provided", () => {
       const App = replaced<"slot1">(`<span>1</span><span>2</span><slot name="slot1">fallback</slot>`)();
-      const [cleanup] = App({ children: {} })(appendChild(document.body));
+      const rendered = App({ children: {} })(appendChild(document.body));
       expect(document.body.textContent).toBe("12fallback");
-      cleanup();
+      unmount(rendered);
     });
   });
   describe("based on url", () => {

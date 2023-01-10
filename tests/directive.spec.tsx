@@ -1,6 +1,7 @@
 import { resetBinding } from "../dist/binding";
 import { appendChild } from "../dist/core";
 import { If, Show, For } from "../dist/directive";
+import { unmount } from "../dist/internal";
 import { jsxRef } from "../dist/jsx-runtime";
 import { query, source } from "../dist/store";
 import type { AttachFunc, Query, Source } from "../dist/types";
@@ -32,9 +33,9 @@ describe("directive.ts", () => {
           }}
         </If>
       );
-      const [cleanup] = mountable(attach);
+      const rendered = mountable(attach);
       expect(container.textContent).toBe("then");
-      cleanup();
+      unmount(rendered);
       expect(container.textContent).toBe("");
     });
     it("should destroy view when data of `that` changed to falsy", () => {
@@ -184,10 +185,10 @@ describe("directive.ts", () => {
       warnSpy.mockRestore();
     });
     it("should render list", () => {
-      const [cleanup] = (<For of={list}>{(item: Item) => <span>{item.val}</span>}</For>)(attach);
+      const rendered = (<For of={list}>{(item: Item) => <span>{item.val}</span>}</For>)(attach);
       expect(container.children.length).toBe(10);
       expect(container.textContent).toBe("0123456789");
-      cleanup();
+      unmount(rendered);
     });
     it("should perform insert", () => {
       (<For of={list}>{renderChild}</For>)(attach);

@@ -5,33 +5,32 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { remove } from "./core.js";
+import { removeRange } from "./core.js";
 import type { CleanUpFunc, Rendered } from "./types.js";
 import { __DEV__ } from "./util.js";
 
 export const comment = (message: string) => document.createComment(__DEV__ ? message : "");
 
-export const withCommentRange = (message: string): Rendered<[begin: Comment, end: Comment, clear: CleanUpFunc]> => {
+export const withCommentRange = (message: string): [begin: Comment, end: Comment, clearRange: CleanUpFunc] => {
   const begin = comment(` ${message} begin `);
   const end = comment(` ${message} end `);
   return [
+    begin,
+    end,
     () => {
-      remove(begin);
-      remove(end);
+      const range = new Range();
+      range.setStart(begin, begin.length);
+      range.setEnd(end, 0);
+      range.deleteContents();
+      range.detach();
     },
-    [
-      begin,
-      end,
-      () => {
-        const range = new Range();
-        range.setStart(begin, begin.length);
-        range.setEnd(end, 0);
-        range.deleteContents();
-        range.detach();
-      },
-    ],
-    () => [begin, end],
   ];
+};
+
+export const unmount = (rendered: Rendered<any>) => {
+  const [cleanup, , getRange] = rendered;
+  cleanup();
+  removeRange(getRange);
 };
 
 export const $$HyplateSubscribers: unique symbol = "_$subs" as never;
