@@ -33,7 +33,7 @@ export interface Query<T extends unknown> {
   /**
    * @internal
    */
-  sub: (subscriber: Subscriber<T>) => CleanUpFunc;
+  sub(subscriber: Subscriber<T>): CleanUpFunc;
   readonly val: T;
 }
 

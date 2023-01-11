@@ -30,29 +30,30 @@ const useDepScope = (): [Set<Query<unknown>>, CleanUpFunc] => {
   return [deps, quitScope];
 };
 
+class SourceImpl<T extends unknown> implements Source<T> {
+  [$$HyplateSubscribers] = new Set<Subscriber<T>>();
+  constructor(private _val: T, private _differ: Differ) {}
+  get val() {
+    currentScope()?.add(this);
+    return this._val;
+  }
+  sub(subscriber: Subscriber<T>): CleanUpFunc {
+    this[$$HyplateSubscribers].add(subscriber);
+    return () => {
+      this[$$HyplateSubscribers].delete(subscriber);
+    };
+  }
+  set(newVal: T): void {
+    if (this._differ(this._val, newVal)) {
+      return;
+    }
+    this._val = newVal;
+    dispatch(this[$$HyplateSubscribers], newVal);
+  }
+}
+
 export const source = <T extends unknown>(val: T, differ: Differ = defaultDiffer): Source<T> => {
-  const subscribers = new Set<Subscriber<T>>();
-  const src: Source<T> = {
-    [$$HyplateSubscribers]: subscribers,
-    get val() {
-      currentScope()?.add(src);
-      return val;
-    },
-    sub(subscriber) {
-      subscribers.add(subscriber);
-      return () => {
-        subscribers.delete(subscriber);
-      };
-    },
-    set(newVal) {
-      if (differ(val, newVal)) {
-        return;
-      }
-      val = newVal;
-      dispatch(subscribers, newVal);
-    },
-  };
-  return src;
+  return new SourceImpl(val, differ);
 };
 
 export const isQuery = (obj: unknown): obj is Query<unknown> =>
@@ -75,47 +76,49 @@ const dispatch = <T extends unknown>(subscribers: Set<Subscriber<T>>, newVal: T)
   });
 };
 
-export const query = <T extends unknown>(selector: () => T, differ: Differ = defaultDiffer): Query<T> => {
-  const subscribers = new Set<Subscriber<T>>();
-  const q: Query<T> = {
-    [$$HyplateSubscribers]: subscribers,
-    get val() {
-      lazyEvaluate();
-      return current!;
-    },
-    sub(subscriber) {
-      subscribers.add(subscriber);
-      return () => {
-        subscribers.delete(subscriber);
-        if (!subscribers.size) {
-          applyAll(teardowns)();
-        }
-      };
-    },
-  };
-  let dirty = true;
-  let current: T | null = null;
-  let teardowns: CleanUpFunc[] = [];
-  const lazyEvaluate = () => {
-    currentScope()?.add(q);
-    if (!dirty) {
+class QueryImpl<T extends unknown> implements Query<T> {
+  _dirty = true;
+  _current: T | null = null;
+  _teardowns: CleanUpFunc[] = [];
+  [$$HyplateSubscribers] = new Set<Subscriber<T>>();
+  constructor(private readonly _selector: () => T, private _differ: Differ) {}
+  get val() {
+    this.#lazyEvaluate();
+    return this._current!;
+  }
+  sub(subscriber: Subscriber<T>): CleanUpFunc {
+    const subscribers = this[$$HyplateSubscribers];
+    subscribers.add(subscriber);
+    return () => {
+      subscribers.delete(subscriber);
+      if (!subscribers.size) {
+        applyAll(this._teardowns)();
+      }
+    };
+  }
+  #lazyEvaluate() {
+    currentScope()?.add(this);
+    if (!this._dirty) {
       return;
     }
-    dirty = false;
+    this._dirty = false;
     const [newDeps, cleanupDepScope] = useDepScope();
-    current = selector();
+    this._current = this._selector();
     cleanupDepScope();
-    applyAll(teardowns)();
-    teardowns = [...newDeps].map((dep) => dep.sub(queryDispatch));
-  };
-  const queryDispatch = () => {
-    dirty = true;
-    const last = current;
-    lazyEvaluate();
-    if (differ(last, current)) {
+    applyAll(this._teardowns)();
+    this._teardowns = [...newDeps].map((dep) => dep.sub(this.#dispatch));
+  }
+  #dispatch = () => {
+    this._dirty = true;
+    const last = this._current;
+    this.#lazyEvaluate();
+    if (this._differ(last, this._current)) {
       return;
     }
-    dispatch(subscribers, current!);
+    dispatch(this[$$HyplateSubscribers], this._current!);
   };
-  return q;
+}
+
+export const query = <T extends unknown>(selector: () => T, differ: Differ = defaultDiffer): Query<T> => {
+  return new QueryImpl(selector, differ);
 };
