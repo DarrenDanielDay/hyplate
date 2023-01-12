@@ -197,6 +197,19 @@ describe("jsx-runtime.ts", () => {
       button.click();
       expect(handleEvent).toBeCalledTimes(1);
     });
+    it("should add delegate event handler", () => {
+      const handler = import.meta.jest.fn();
+      const mountable: Mountable<HTMLButtonElement> = <button on:click={handler}></button>;
+      const [cleanup, button] = mountable(attach);
+      expect(handler).toBeCalledTimes(0);
+      button.click();
+      expect(handler).toBeCalledTimes(1);
+      button.click();
+      expect(handler).toBeCalledTimes(2);
+      cleanup();
+      button.click();
+      expect(handler).toBeCalledTimes(2);
+    });
     it("should render nodes", () => {
       const mountable = (
         <>

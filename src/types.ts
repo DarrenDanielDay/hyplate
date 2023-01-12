@@ -89,6 +89,7 @@ export type Alphabet<S = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", U = never> = S extends `$
   : U;
 
 export type EventPattern = `on${Alphabet}${string}`;
+export type DelegatePattern = `on:${string}`;
 
 export type EventHandlerOptions = boolean | EventListenerOptions;
 
@@ -2017,12 +2018,16 @@ declare global {
     type JSXEventHandlerAttributes<E extends globalThis.Element> = {
       [K in Extract<keyof EventMap<E>, string> as `on${Capitalize<K>}`]?: Handler<E, K>;
     };
+    type JSXDelegateHandlerAttributes<E extends globalThis.Element> = {
+      [K in Extract<keyof EventMap<E>, string> as `on:${K}`]?: FunctionalEventHanlder<E, EventType<E, K>>;
+    }
 
     type JSXAttributes<T extends {}, E extends globalThis.Element> = {
       [K in keyof T]?: BindingPattern<T[K]>;
     } & ElementAttributes<E> &
       JSX.IntrinsicAttributes &
-      JSXEventHandlerAttributes<E> & {
+      JSXDelegateHandlerAttributes<E> &
+      JSXEventHandlerAttributes<E>  & {
         /**
          * Custom event handlers.
          */

@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { bindAttr, interpolation, isSubscribable } from "./binding.js";
-import { appendChild, attr, listen, docFragment, element, svg } from "./core.js";
+import { appendChild, attr, listen, docFragment, element, svg, delegate } from "./core.js";
 import type {
   JSXChildNode,
   FunctionalComponent,
@@ -19,6 +19,8 @@ import type {
   PropsBase,
   Later,
   ObjectEventHandler,
+  EventHost,
+  DelegateHost,
 } from "./types.js";
 import { applyAll, fori, isFunction, isObject, noop, push, __DEV__ } from "./util.js";
 
@@ -62,8 +64,7 @@ const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
   }
   return [cleanups, () => (begin && end ? ([begin, end] as const) : void 0)] as const;
 };
-const pattern = /^on[A-Z]/;
-const isEventAttribute = (name: string) => pattern.test(name);
+
 const isObjectEventHandler = (v: unknown): v is ObjectEventHandler<any> =>
   isObject(v) && "handleEvent" in v && isFunction(v.handleEvent);
 
@@ -89,23 +90,35 @@ export const jsx = (
         ref.current = el;
       }
       const [cleanups] = children != null ? renderChild(children, appendChild(el)) : [[]];
-      const host = listen(el);
+      const eventHost = listen(el);
+      const delegateHost = delegate(el);
       for (const key in attributes) {
         // @ts-expect-error for-in key access
         const value = attributes[key];
         if (isSubscribable(value)) {
           push(cleanups, bindAttr(el, key, value));
         } else {
-          if (isEventAttribute(key)) {
-            const event = key.slice(2).toLowerCase();
-            if (isFunction(value)) {
-              push(cleanups, host(event, value));
-            } else if (isObjectEventHandler(value)) {
-              push(cleanups, host(event, value, value.options));
+          if (key.startsWith("on")) {
+            const next = key[2];
+            if ("A" <= next && next <= "Z") {
+              const event = key.slice(2).toLowerCase();
+              if (isFunction(value)) {
+                push(cleanups, eventHost(event, value));
+                continue;
+              } else if (isObjectEventHandler(value)) {
+                push(cleanups, eventHost(event, value, value.options));
+                continue;
+              }
             }
-          } else {
-            attr(el, key, value as AttributeInterpolation);
+            if (next === ":") {
+              if (isFunction(value)) {
+                const event = key.slice(3).toLowerCase();
+                push(cleanups, delegateHost(event, value));
+                continue;
+              }
+            }
           }
+          attr(el, key, value as AttributeInterpolation);
         }
       }
       attach(el);
