@@ -19,8 +19,6 @@ import type {
   PropsBase,
   Later,
   ObjectEventHandler,
-  EventHost,
-  DelegateHost,
 } from "./types.js";
 import { applyAll, fori, isFunction, isObject, noop, push, __DEV__ } from "./util.js";
 
