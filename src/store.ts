@@ -77,14 +77,14 @@ const dispatch = <T extends unknown>(subscribers: Set<Subscriber<T>>, newVal: T)
 };
 
 class QueryImpl<T extends unknown> implements Query<T> {
-  _dirty = true;
-  _current: T | null = null;
-  _teardowns: CleanUpFunc[] = [];
+  #dirty = true;
+  #current: T | null = null;
+  #teardowns: CleanUpFunc[] = [];
   [$$HyplateSubscribers] = new Set<Subscriber<T>>();
   constructor(private readonly _selector: () => T, private _differ: Differ) {}
   get val() {
     this.#lazyEvaluate();
-    return this._current!;
+    return this.#current!;
   }
   sub(subscriber: Subscriber<T>): CleanUpFunc {
     const subscribers = this[$$HyplateSubscribers];
@@ -92,30 +92,30 @@ class QueryImpl<T extends unknown> implements Query<T> {
     return () => {
       subscribers.delete(subscriber);
       if (!subscribers.size) {
-        applyAll(this._teardowns)();
+        applyAll(this.#teardowns)();
       }
     };
   }
   #lazyEvaluate() {
     currentScope()?.add(this);
-    if (!this._dirty) {
+    if (!this.#dirty) {
       return;
     }
-    this._dirty = false;
+    this.#dirty = false;
     const [newDeps, cleanupDepScope] = useDepScope();
-    this._current = this._selector();
+    this.#current = this._selector();
     cleanupDepScope();
-    applyAll(this._teardowns)();
-    this._teardowns = [...newDeps].map((dep) => dep.sub(this.#dispatch));
+    applyAll(this.#teardowns)();
+    this.#teardowns = [...newDeps].map((dep) => dep.sub(this.#dispatch));
   }
   #dispatch = () => {
-    this._dirty = true;
-    const last = this._current;
+    this.#dirty = true;
+    const last = this.#current;
     this.#lazyEvaluate();
-    if (this._differ(last, this._current)) {
+    if (this._differ(last, this.#current)) {
       return;
     }
-    dispatch(this[$$HyplateSubscribers], this._current!);
+    dispatch(this[$$HyplateSubscribers], this.#current!);
   };
 }
 
