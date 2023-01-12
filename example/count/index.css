@@ -13,3 +13,23 @@
   width: 24em;
   height: 24em;
 }
+
+button {
+  --animate: 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: pointer;
+  border: none;
+  color: #57606a;
+  padding: 1rem;
+  background-color: #ffffff;
+  background-image: linear-gradient(135deg, rgb(181, 103, 235), rgb(247, 198, 246) 30%, white 60%);
+  background-size: 400%;
+  border-radius: 0.5rem;
+  background-position: 100%;
+  transition: background-position var(--animate), color var(--animate);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+button:is(:hover, :focus, :focus-within) {
+  background-position: 0;
+  color: #ffffff;
+}

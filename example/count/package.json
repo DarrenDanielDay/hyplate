@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "concurrently \"npm run start:compile\" \"npm run start:serve\"",
+    "start": "concurrently \"npm:start:*\"",
     "start:compile": "esbuild ./index.tsx --bundle --format=esm --tsconfig=./tsconfig.json --watch --outfile=index.js --sourcemap",
     "start:serve": "serve ."
   },
@@ -16,7 +16,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "hyplate": "^0.1.4"
+    "hyplate": "^0.6.1"
   },
   "devDependencies": {
     "concurrently": "^7.6.0",
