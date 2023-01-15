@@ -1,5 +1,4 @@
-import { appendChild } from "../dist/core";
-import { unmount } from "../dist/internal";
+import { appendChild, unmount } from "../dist/core";
 import { basedOnURL, contextFactory, replaced, shadowed, template } from "../dist/template";
 import type { HyplateElement, Mountable } from "../dist/types";
 import { noop } from "../dist/util";

@@ -12,6 +12,7 @@ import type {
   DelegateHost,
   EventHost,
   GetRange,
+  Rendered,
   TextInterpolation,
 } from "./types.js";
 import { err, fori, isString, push } from "./util.js";
@@ -140,6 +141,12 @@ export const removeRange = (getRange: GetRange) => {
   if (range) {
     moveRange(range[0], range[1], remove);
   }
+};
+
+export const unmount = (rendered: Rendered<any>) => {
+  const [cleanup, , getRange] = rendered;
+  cleanup();
+  removeRange(getRange);
 };
 
 export const access = (node: ParentNode, path: number[]): ParentNode | undefined => {

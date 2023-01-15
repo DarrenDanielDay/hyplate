@@ -17,8 +17,8 @@ import type {
   Rendered,
   Subscribable,
 } from "./types.js";
-import { unmount, withCommentRange } from "./internal.js";
-import { before, moveRange } from "./core.js";
+import { withCommentRange } from "./internal.js";
+import { before, moveRange, unmount } from "./core.js";
 import { subscribe } from "./binding.js";
 
 const createIfDirective = <Test, T extends ExposeBase, F extends ExposeBase = void>(

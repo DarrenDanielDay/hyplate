@@ -1,7 +1,6 @@
 import { resetBinding } from "../dist/binding";
-import { appendChild } from "../dist/core";
+import { appendChild, unmount } from "../dist/core";
 import { If, Show, For } from "../dist/directive";
-import { unmount } from "../dist/internal";
 import { jsxRef } from "../dist/jsx-runtime";
 import { query, source } from "../dist/store";
 import type { AttachFunc, Query, Source } from "../dist/types";
