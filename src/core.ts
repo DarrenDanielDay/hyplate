@@ -124,7 +124,7 @@ export const seqAfter = (element: ChildNode): AttachFunc => {
 
 export const remove: AttachFunc = (node: Node) => node.parentNode?.removeChild(node);
 
-export const moveRange = (begin: Node | null, end: Node | null) => (attach: AttachFunc) => {
+export const moveRange = (begin: Node | null, end: Node | null, attach: AttachFunc) => {
   const targets: Node[] = [];
   for (let node = begin; node && node !== end; node = node.nextSibling) {
     push(targets, node);
@@ -138,7 +138,7 @@ export const moveRange = (begin: Node | null, end: Node | null) => (attach: Atta
 export const removeRange = (getRange: GetRange) => {
   const range = getRange();
   if (range) {
-    moveRange(range[0], range[1])(remove);
+    moveRange(range[0], range[1], remove);
   }
 };
 

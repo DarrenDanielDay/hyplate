@@ -278,8 +278,7 @@ describe("core.ts", () => {
 
       const begin = fragment[1];
       const end = fragment[2];
-      const render = moveRange(begin, end);
-      render(appendChild(box));
+      moveRange(begin, end, appendChild(box));
       expect(Array.from(container.children)).toEqual([fragment[0], fragment[3]]);
       expect(Array.from(box.children)).toEqual([fragment[1], fragment[2]]);
     });

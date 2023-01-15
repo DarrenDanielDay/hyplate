@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { compare, err, isFunction, warned, __DEV__ } from "./util.js";
+import { compare, err, isFunction, noop, warned, __DEV__ } from "./util.js";
 import type {
   AttachFunc,
   CleanUpFunc,
@@ -17,7 +17,6 @@ import type {
   Rendered,
   Subscribable,
 } from "./types.js";
-import { noop } from "./util.js";
 import { unmount, withCommentRange } from "./internal.js";
 import { before, moveRange } from "./core.js";
 import { subscribe } from "./binding.js";
@@ -215,7 +214,7 @@ export const For = <T extends unknown>({
             if (j < 0 || i !== increasingNewIndexSequence[j]!) {
               const range = nextChild[1]![2]();
               if (range) {
-                moveRange(...range)(attach);
+                moveRange(range[0], range[1], attach);
               }
             } else {
               j--;
