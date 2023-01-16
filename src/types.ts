@@ -2009,9 +2009,6 @@ declare global {
   namespace JSX {
     type Element = Mountable<any>;
     interface JSXTypeConfig {}
-    interface ElementAttributesProperty {
-      options: {};
-    }
     interface ElementChildrenAttribute {
       children: {};
     }
