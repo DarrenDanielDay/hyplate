@@ -21,9 +21,9 @@ import type {
   ObjectEventHandler,
 } from "./types.js";
 import { applyAll, fori, isFunction, isObject, isString, noop, push, __DEV__ } from "./util.js";
-
+const isNode = (node: unknown): node is Node => node instanceof Node;
 const addChild = (child: JSXChild, attach: AttachFunc) => {
-  if (child instanceof Node) {
+  if (isNode(child)) {
     attach(child);
     return noop;
   }
@@ -161,3 +161,8 @@ export const Fragment: FunctionalComponent<{}, JSXChildNode | undefined> = ({ ch
     return [applyAll(cleanups), void 0, getRange];
   };
 };
+
+export const mount = (element: JSX.Element, onto: Node | AttachFunc): Rendered<any> => {
+  const attach = isNode(onto) ? appendChild(onto) : onto;
+  return element(attach);
+}

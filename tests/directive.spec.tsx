@@ -1,7 +1,7 @@
 import { resetBinding } from "../dist/binding";
 import { appendChild, unmount } from "../dist/core";
 import { If, Show, For } from "../dist/directive";
-import { jsxRef } from "../dist/jsx-runtime";
+import { jsxRef, mount } from "../dist/jsx-runtime";
 import { query, source } from "../dist/store";
 import type { AttachFunc, Query, Source } from "../dist/types";
 import { setHyplateStore } from "./configure-store";
@@ -32,7 +32,7 @@ describe("directive.ts", () => {
           }}
         </If>
       );
-      const rendered = mountable(attach);
+      const rendered = mount(mountable, attach);
       expect(container.textContent).toBe("then");
       unmount(rendered);
       expect(container.textContent).toBe("");
@@ -46,7 +46,7 @@ describe("directive.ts", () => {
           }}
         </If>
       );
-      const [cleanup] = mountable(attach);
+      const [cleanup] = mount(mountable, attach);
       expect(container.textContent).toBe("then");
       condition.set(false);
       expect(container.textContent).toBe("");
@@ -62,7 +62,7 @@ describe("directive.ts", () => {
           }}
         </If>
       );
-      const [cleanup] = mountable(attach);
+      const [cleanup] = mount(mountable, attach);
       expect(container.textContent).toBe("then");
       condition.set(false);
       expect(container.textContent).toBe("else");
@@ -80,7 +80,7 @@ describe("directive.ts", () => {
           }}
         </If>
       );
-      const [cleanup] = mountable(attach);
+      const [cleanup] = mount(mountable, attach);
       const button1 = ref.current;
       src.set({});
       const button2 = ref.current;
@@ -101,7 +101,7 @@ describe("directive.ts", () => {
           }}
         </If>
       );
-      const [cleanup] = mountable(attach);
+      const [cleanup] = mount(mountable, attach);
       const button1 = ref.current;
       src.set(obj);
       const button2 = ref.current;
@@ -176,7 +176,7 @@ describe("directive.ts", () => {
     it("should emit warning when duplicated children found", () => {
       const warnSpy = import.meta.jest.spyOn(console, "warn");
       warnSpy.mockImplementation(() => {});
-      (<For of={list}>{renderChild}</For>)(attach);
+      mount(<For of={list}>{renderChild}</For>, attach);
       const arr = list.val;
       list.set([arr[1], arr[0], arr[0], arr[9]]);
       expect(warnSpy).toBeCalled();
@@ -184,13 +184,13 @@ describe("directive.ts", () => {
       warnSpy.mockRestore();
     });
     it("should render list", () => {
-      const rendered = (<For of={list}>{(item: Item) => <span>{item.val}</span>}</For>)(attach);
+      const rendered = mount(<For of={list}>{(item: Item) => <span>{item.val}</span>}</For>, attach);
       expect(container.children.length).toBe(10);
       expect(container.textContent).toBe("0123456789");
       unmount(rendered);
     });
     it("should perform insert", () => {
-      (<For of={list}>{renderChild}</For>)(attach);
+      mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
       const listContent = list.val;
       const newList: Item[] = [
@@ -205,7 +205,7 @@ describe("directive.ts", () => {
       expect(container.textContent).toBe("012-13-2456789");
     });
     it("should perform move", () => {
-      (<For of={list}>{renderChild}</For>)(attach);
+      mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
       const listContent = list.val;
       const item2 = listContent[2]!;
@@ -216,7 +216,7 @@ describe("directive.ts", () => {
       expect(container.textContent).toBe("01526789");
     });
     it("should perform remove", () => {
-      (<For of={list}>{renderChild}</For>)(attach);
+      mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
       const listContent = list.val;
       const newList: Item[] = [...listContent.slice(0, 2), ...listContent.slice(3)];
@@ -225,7 +225,7 @@ describe("directive.ts", () => {
       expect(container.textContent).toBe("013456789");
     });
     it("should perform remove and move", () => {
-      (<For of={list}>{renderChild}</For>)(attach);
+      mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
       const listContent = list.val;
       const [a, b, c, d, e, , , , i, j] = listContent;
@@ -235,7 +235,7 @@ describe("directive.ts", () => {
       expect(container.textContent).toBe("0134289");
     });
     it("should cover LIS", () => {
-      (<For of={list}>{renderChild}</For>)(attach);
+      mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
       const arr = list.val;
       const newList: Item[] = [arr[2], arr[1], arr[5], arr[3], arr[6], arr[4], arr[8], arr[9], arr[7]];
@@ -244,7 +244,7 @@ describe("directive.ts", () => {
       expect(container.textContent).toBe("215364897");
     });
     it("should work altogether", () => {
-      (<For of={list}>{renderChild}</For>)(attach);
+      mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
       expect(container.textContent).toBe("0123456789");
       const [a, b, c, d, e, f, g, h, i, j] = list.val;
