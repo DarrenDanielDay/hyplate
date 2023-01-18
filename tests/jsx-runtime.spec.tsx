@@ -68,6 +68,20 @@ describe("jsx-runtime.ts", () => {
       expect(el2).toBeInstanceOf(HTMLSpanElement);
       expect(el1).not.toBe(el2);
     });
+    it("should render extended custom element", () => {
+      const fn = import.meta.jest.fn();
+      class MySpan extends window.HTMLSpanElement {
+        constructor() {
+          super();
+          fn();
+        }
+      }
+      customElements.define("test-custom-extended-span", MySpan, { extends: "span" });
+      const render = <span is="test-custom-extended-span"></span>;
+      const el = render(attach)[1];
+      expect(el).toBeInstanceOf(MySpan);
+      expect(fn).toBeCalledTimes(1);
+    });
     it("should create nested svg element and have valid type", () => {
       const svgTitleRef = jsxRef<SVGTitleElement>();
       const documentTitleRef = jsxRef<SVGTitleElement>();

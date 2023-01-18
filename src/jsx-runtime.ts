@@ -20,7 +20,7 @@ import type {
   Later,
   ObjectEventHandler,
 } from "./types.js";
-import { applyAll, fori, isFunction, isObject, noop, push, __DEV__ } from "./util.js";
+import { applyAll, fori, isFunction, isObject, isString, noop, push, __DEV__ } from "./util.js";
 
 const addChild = (child: JSXChild, attach: AttachFunc) => {
   if (child instanceof Node) {
@@ -66,7 +66,7 @@ const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
 const isObjectEventHandler = (v: unknown): v is ObjectEventHandler<any> =>
   isObject(v) && "handleEvent" in v && isFunction(v.handleEvent);
 
-let currentElementFactory: (name: string) => Element = element;
+let currentElementFactory: (name: string, options: ElementCreationOptions | undefined) => Element = element;
 
 export const jsx = (
   type: FunctionalComponent | string,
@@ -84,7 +84,7 @@ export const jsx = (
         currentElementFactory = svg;
       }
       //#endregion
-      const el = currentElementFactory(type);
+      const el = currentElementFactory(type, "is" in props && isString(props.is) ? { is: props.is } : undefined);
       if (isForeignObject) {
         currentElementFactory = element;
       }
