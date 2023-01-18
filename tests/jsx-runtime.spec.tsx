@@ -71,12 +71,18 @@ describe("jsx-runtime.ts", () => {
     it("should create nested svg element and have valid type", () => {
       const svgTitleRef = jsxRef<SVGTitleElement>();
       const documentTitleRef = jsxRef<SVGTitleElement>();
+      const svgTitleRef2 = jsxRef<SVGTitleElement>();
+      const documentTitleRef2 = jsxRef<SVGTitleElement>();
       const [, nestedSvg] = (<svg version="1.1" width="300" height="200">
         <rect width="100%" height="100%" fill="red" />
         <circle cx="150" cy="100" r="80" fill="green" />
         <text x="150" y="125" font-size="60" text-anchor="middle" fill="white">
           SVG
         </text>
+        <title ref={svgTitleRef2}>{".a {color: red;}"}</title>
+        <foreignObject>
+          <title ref={documentTitleRef2}>{".a {color: red;}"}</title>
+        </foreignObject>
         <svg viewBox="0 0 20 10">
           <circle cx="5" cy="5" r="4">
             <title ref={svgTitleRef}>I'm a circle</title>
@@ -90,6 +96,10 @@ describe("jsx-runtime.ts", () => {
       expect(nestedSvg).toBeInstanceOf(window.SVGSVGElement);
       expect(svgTitleRef.current).toBeInstanceOf(window.SVGTitleElement);
       expect(svgTitleRef.current).not.toBeInstanceOf(window.HTMLTitleElement);
+      expect(svgTitleRef2.current).toBeInstanceOf(window.SVGTitleElement);
+      expect(svgTitleRef2.current).not.toBeInstanceOf(window.HTMLTitleElement);
+      expect(documentTitleRef2.current).toBeInstanceOf(window.HTMLTitleElement);
+      expect(documentTitleRef2.current).not.toBeInstanceOf(window.SVGTitleElement);
       expect(documentTitleRef.current).toBeInstanceOf(window.HTMLTitleElement);
       expect(documentTitleRef.current).not.toBeInstanceOf(window.SVGSVGElement);
     });

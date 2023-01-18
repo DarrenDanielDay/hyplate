@@ -76,6 +76,8 @@ export const jsx = (
     return (attach): Rendered<object> => {
       let lastElementFactory = currentElementFactory;
       const isSvg = type === "svg";
+      const isForeignObject = type === "foreignObject";
+      const changnigFactory = isSvg || isForeignObject;
       //#region enter svg creating scope
       if (isSvg) {
         // @ts-expect-error Skipped type check for svg children.
@@ -83,6 +85,9 @@ export const jsx = (
       }
       //#endregion
       const el = currentElementFactory(type);
+      if (isForeignObject) {
+        currentElementFactory = element;
+      }
       const { children, ref, ...attributes } = props;
       if (ref) {
         ref.current = el;
@@ -120,7 +125,7 @@ export const jsx = (
         }
       }
       attach(el);
-      if (isSvg) {
+      if (changnigFactory) {
         currentElementFactory = lastElementFactory;
       }
       return [cleanups.length ? applyAll(cleanups) : noop, el, () => [el, el]];
