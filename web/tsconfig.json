@@ -1,17 +1,15 @@
 {
   "compilerOptions": {
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "module": "ESNext",
     "target": "ESNext",
     "sourceMap": true,
     "moduleResolution": "Node",
     "paths": {
-      "hyplate/*": [
-        "../dist/*"
-      ]
+      "hyplate/*": ["../dist/*"]
     },
     "jsx": "react-jsx",
-    "jsxImportSource": "../dist"
+    "jsxImportSource": "hyplate"
   },
   "include": ["."]
 }

@@ -6,6 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import type { $$HyplateSubscribers } from "./internal.js";
+import type { Component } from "./jsx-runtime.js";
 /**
  * `NaN` cannot represented in TypeScript types.
  * @see https://developer.mozilla.org/en-US/docs/Glossary/Falsy
@@ -56,6 +57,8 @@ export type TextInterpolation = string | number | bigint | boolean;
 
 export type AttributeInterpolation = string | number | boolean | undefined | null;
 
+export type AttributePattern = `attr:${string}`;
+
 export type AttributesMap<T> = AttributeEntries extends infer P ? (P extends [T, infer A] ? A : never) : never;
 
 export type EventMap<T extends EventTarget> = T extends HTMLElement
@@ -89,6 +92,7 @@ export type Alphabet<S = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", U = never> = S extends `$
   : U;
 
 export type EventPattern = `on${Alphabet}${string}`;
+
 export type DelegatePattern = `on:${string}`;
 
 export type EventHandlerOptions = boolean | EventListenerOptions;
@@ -131,22 +135,50 @@ export interface Hooks {
   useCleanUpCollector(): (cleanup: CleanUpFunc) => void;
 }
 
+export interface OnConnected {
+  connectedCallback(): void;
+}
+
+export interface OnDisconnected {
+  disconnectedCallback(): void;
+}
+
+export interface OnAdopted {
+  adoptedCallback(): void;
+}
+
+export interface OnAttributeChanged {
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void;
+}
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements#using_the_lifecycle_callbacks
+ */
+export interface LifecycleCallbacks extends OnConnected, OnDisconnected, OnAdopted, OnAttributeChanged {}
+
 export interface HyplateElement<T> extends HTMLElement {
   readonly exposed: T;
 }
 
-export type SlotContent = Element | DocumentFragment | Mountable<any>;
+export type NativeSlotContent = Text | Element;
+
+export type SlotContent = Node | JSX.Element;
 
 /**
  * Slot name map for
  */
-export type SlotMap<S extends string = string> = [S] extends [never] ? undefined : Partial<Record<S, SlotContent>>;
+export type SlotMap<S extends string = string> = Partial<Record<S, SlotContent>>;
+
+export type Reflection<S extends string> = {
+  [K in S]: K;
+};
 
 export type ExposeBase = {} | void;
 
 export type PropsBase = {};
 
 export type Mountable<E extends ExposeBase> = (attach: AttachFunc) => Rendered<E>;
+
+export type Renderer = (element: JSX.Element, onto: Node | AttachFunc) => Rendered<any>;
 
 export type ConditionalMountable<Test, E extends ExposeBase> = (
   attach: AttachFunc,
@@ -216,11 +248,39 @@ export interface ForProps<T extends unknown> {
 //#endregion
 
 //#region JSX types
-type ArrayOr<T> = T | T[];
+export type ArrayOr<T> = T | T[];
 
 export type JSXChild = JSX.Element | Node | BindingPattern<TextInterpolation>;
 
 export type JSXChildNode = ArrayOr<JSXChild>;
+
+export interface JSXFactory {
+  /**
+   * native tag overload
+   */
+  <T extends keyof JSX.IntrinsicElements>(
+    type: T,
+    props?: (JSX.IntrinsicElements[T] & Partial<WithChildren<JSXChildNode>>) | undefined | null,
+    ...children: JSXChild[]
+  ): JSX.Element;
+  /**
+   * functional component overload
+   */
+  <P extends PropsBase, C, E extends ExposeBase>(
+    type: FunctionalComponent<P, C, E>,
+    props?: Props<P, C, E> | undefined | null,
+    ...children: JSXChild[]
+  ): JSX.Element;
+  /**
+   * class component overload
+   */
+  <T extends typeof Component<any, any>>(
+    type: T,
+    props: JSX.IntrinsicClassAttributes<InstanceType<T>> &
+      (InstanceType<T> extends Component<infer P, infer S> ? Props<P, SlotMap<S> | undefined, InstanceType<T>> : never),
+    ...childre: JSXChild[]
+  ): JSX.Element;
+}
 
 type GeneralAttributeType = string | number | boolean | undefined | null;
 
@@ -687,10 +747,7 @@ export interface GlobalAttributes extends HTMLGlobalEventAttributes, AriaAttribu
   nonce: string;
   part: GeneralAttributeType;
   role: AriaRoles;
-  /**
-   * `slot` is handled. Do not use.
-   */
-  slot: never;
+  slot: string;
   spellcheck: BooleanAttributeValue;
   style: string;
   tabindex: NumericAttributeValue;
@@ -2012,19 +2069,24 @@ declare global {
     interface ElementChildrenAttribute {
       children: {};
     }
+    interface IntrinsicClassAttributes<T extends Component<PropsBase, string>>
+      extends ClassComponentNativeAttributes<T> {
+      ref?: Later<T>;
+      [attribute: AttributePattern]: BindingPattern<AttributeInterpolation>;
+    }
     type JSXEventHandlerAttributes<E extends globalThis.Element> = {
       [K in Extract<keyof EventMap<E>, string> as `on${Capitalize<K>}`]?: Handler<E, K>;
     };
     type JSXDelegateHandlerAttributes<E extends globalThis.Element> = {
       [K in Extract<keyof EventMap<E>, string> as `on:${K}`]?: FunctionalEventHanlder<E, EventType<E, K>>;
-    }
+    };
 
     type JSXAttributes<T extends {}, E extends globalThis.Element> = {
       [K in keyof T]?: BindingPattern<T[K]>;
     } & ElementAttributes<E> &
       JSX.IntrinsicAttributes &
       JSXDelegateHandlerAttributes<E> &
-      JSXEventHandlerAttributes<E>  & {
+      JSXEventHandlerAttributes<E> & {
         /**
          * Custom event handlers.
          */
@@ -2034,6 +2096,10 @@ declare global {
          */
         [key: string]: unknown;
       };
+
+    type ClassComponentNativeAttributes<T> = {
+      [K in keyof GlobalAttributes as `attr:${K}`]?: BindingPattern<GlobalAttributes[K]>;
+    };
 
     interface JSXHTMLElements {
       a: JSXAttributes<HTMLAnchorElementAttributes, HTMLAnchorElement>;

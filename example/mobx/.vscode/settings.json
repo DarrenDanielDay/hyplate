@@ -4,6 +4,6 @@
     "src/**/*.js.map": true,
     "src/**/*.template.*.css": true,
     "src/**/*.template.d.ts": true,
-    "src/**/*.template.d.ts.map": true,
+    "src/**/*.template.d.ts.map": true
   }
 }

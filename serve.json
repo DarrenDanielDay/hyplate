@@ -1,7 +1,3 @@
 {
-  "redirects": [
-    { "source": "/web/components/:name/:id.template", "destination": "/web/components/:name/:id.template.js" },
-    { "source": "/dist/jsx-runtime", "destination": "./dist/jsx-runtime.js" },
-    { "source": "/dist/template", "destination": "./dist/template.js" }
-  ]
+  "redirects": []
 }

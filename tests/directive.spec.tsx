@@ -1,7 +1,7 @@
 import { resetBinding } from "../dist/binding";
-import { appendChild, unmount } from "../dist/core";
+import { appendChild } from "../dist/core";
 import { If, Show, For } from "../dist/directive";
-import { jsxRef, mount } from "../dist/jsx-runtime";
+import { jsxRef, mount, unmount } from "../dist/jsx-runtime";
 import { query, source } from "../dist/store";
 import type { AttachFunc, Query, Source } from "../dist/types";
 import { setHyplateStore } from "./configure-store";

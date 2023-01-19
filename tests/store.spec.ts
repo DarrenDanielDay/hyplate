@@ -121,7 +121,7 @@ describe("store.ts", () => {
       src.set(3);
       expect(evaluate).toBeCalledTimes(2);
       expect(watcher).toBeCalledTimes(2);
-    })
+    });
   });
   describe("dispatch", () => {
     it("should continue to dispatch when some subscribers emitted errors", () => {

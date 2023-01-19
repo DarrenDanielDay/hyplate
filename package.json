@@ -11,7 +11,7 @@
     "build:test": "tsc -p ./tests/tsconfig.json",
     "build:test-examples": "node ./scripts/build-examples.js",
     "build:typescript": "ts-esmbuilder",
-    "format": "prettier --write .",
+    "format": "prettier --write . --ignore-path ./.gitignore",
     "start": "concurrently npm:start:*",
     "start:dev": "open-cli http://localhost:3000/web/ && serve .",
     "start:demo": "node ./scripts/demo.js",

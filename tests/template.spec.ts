@@ -1,4 +1,5 @@
-import { appendChild, unmount } from "../dist/core";
+import { appendChild } from "../dist/core";
+import { unmount } from "../dist/jsx-runtime";
 import { basedOnURL, contextFactory, replaced, shadowed, template } from "../dist/template";
 import type { HyplateElement, Mountable } from "../dist/types";
 import { noop } from "../dist/util";

@@ -1,20 +1,70 @@
 import { replaced } from "../dist/template.js";
-import count from "./components/count/count.template";
+import count from "./components/count/count.template.js";
 import { useCleanUp, useChildView } from "../dist/hooks.js";
 import { enableBuiltinStore, query, source } from "../dist/store.js";
 import { For, Show } from "../dist/directive.js";
-import { listen as bindEvent, appendChild, select, anchor, seqAfter } from "../dist/core.js";
-import { jsxRef } from "../dist/jsx-runtime.js";
+import { listen as bindEvent, appendChild, select, anchor, seqAfter, element } from "../dist/core.js";
+import { Component, jsxRef, mount, unmount } from "../dist/jsx-runtime.js";
 import { bindAttr, interpolation as text } from "../dist/binding.js";
 import { useBinding } from "../dist/toolkit.js";
+import { LifecycleCallbacks } from "hyplate/types.js";
 
 enableBuiltinStore();
+class CountComponent extends Component<{ msg: string }, "insert-here"> implements LifecycleCallbacks {
+  public static shadowRootInit?: Omit<ShadowRootInit, "mode"> | undefined = {
+    slotAssignment: "manual",
+  };
+  public static tag = this.defineAs("hyplate-counter-demo");
+  public static get observedAttributes(): string[] {
+    return ["id"];
+  }
+  connectedCallback() {
+    console.log("connected", arguments);
+  }
+  disconnectedCallback(): void {
+    console.log("disconnected", arguments);
+  }
+  adoptedCallback(): void {
+    console.log("adopted", arguments);
+  }
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    console.log("attribute changed", arguments);
+  }
+  public override render(): JSX.Element {
+    const count = source(0);
+    return (
+      <div>
+        <p>Hello, class component!</p>
+        <slot name={this.slots["insert-here"]}></slot>
+        <button onClick={() => count.set(count.val + 1)}>
+          {this.props.msg} clicked {count}
+        </button>
+      </div>
+    );
+  }
+}
 function main() {
-  const t1 = anchor("t1");
-  const t2 = anchor("t2");
-  const app = select("div#app");
-  const resetBtn = select("button#reset");
-  const unmountBtn = select("button#unmount");
+  const container = element("div");
+  appendChild(document.body)(container);
+  const r = jsxRef<CountComponent>();
+  mount(
+    <CountComponent msg="ohhhh" ref={r} attr:id="class-count">
+      {{
+        "insert-here": (
+          <>
+            <div>The inserted content</div>in fragment!
+          </>
+        ),
+      }}
+    </CountComponent>,
+    container
+  );
+  console.log(r);
+  const t1 = anchor("t1")!;
+  const t2 = anchor("t2")!;
+  const app = select("div#app")!;
+  const resetBtn = select("button#reset")!;
+  const unmountBtn = select("button#unmount")!;
   const World = replaced(t2)();
   const Count = count(({}, ctx) => {
     const counter = source(0);
@@ -27,10 +77,10 @@ function main() {
   const App = replaced<"world">(t1)(({ user }: { user: string }) => {
     const count = source(0);
     const double = query(() => count.val * 2);
-    const addButton = select("button.add-btn");
-    const oddDisabledBtn = anchor(document.body, "odd-disabled");
+    const addButton = select("button.add-btn")!;
+    const oddDisabledBtn = anchor(document.body, "odd-disabled")!;
     useCleanUp(text`${user} clicked ${count} times.`(appendChild(addButton)));
-    useCleanUp(text`double of count: ${double}`(appendChild(anchor(document.body, "double"))));
+    useCleanUp(text`double of count: ${double}`(appendChild(anchor(document.body, "double")!)));
     const disabled = query(() => count.val % 2 === 1);
     useCleanUp(bindAttr(oddDisabledBtn, "disabled", disabled));
     useBinding(addButton).event("click", () => {
@@ -70,7 +120,7 @@ function main() {
                   <div class="row">
                     <button
                       onClick={() => {
-                        item.text.set(renameInput.current.value);
+                        item.text.set(renameInput.current!.value);
                       }}
                     >
                       rename as:
@@ -81,7 +131,7 @@ function main() {
                     <button
                       onClick={() => {
                         const originalList = list.val;
-                        const splitIndex = +moveIndexInput.current.value;
+                        const splitIndex = +moveIndexInput.current!.value;
                         if (!(0 <= splitIndex && splitIndex < originalList.length)) {
                           return;
                         }
@@ -158,13 +208,14 @@ function main() {
       },
     };
   });
-  const [unmountApp, exposed] = App({ user: "Darren", children: { world: World({}) } })(appendChild(app));
+  const rendered = App({ user: "Darren", children: { world: World({}) } })(appendChild(app));
+  const [, exposed] = rendered;
   const unbindRest = bindEvent(resetBtn)("click", () => {
     exposed.setCount(0);
   });
   const unbindUnmount = bindEvent(unmountBtn)("click", () => {
     console.log("unmount!");
-    unmountApp();
+    unmount(rendered);
     unbindUnmount();
     unbindRest();
   });

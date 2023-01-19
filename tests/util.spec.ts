@@ -74,7 +74,7 @@ describe("util.ts", () => {
   describe("applyAll", () => {
     it("should apply every function", () => {
       const funcs = Array.from({ length: 3 }, () => import.meta.jest.fn());
-      applyAll(funcs)();
+      applyAll(funcs);
       for (const fn of funcs) {
         expect(fn).toBeCalledTimes(1);
       }

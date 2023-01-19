@@ -1,5 +1,5 @@
 import { before, element } from "../dist/core";
-import { comment, withCommentRange } from "../dist/internal";
+import { comment, reflection, withCommentRange } from "../dist/internal";
 import { setMode } from "../dist/util";
 describe("internal.ts", () => {
   describe("comment", () => {
@@ -27,6 +27,11 @@ describe("internal.ts", () => {
       expect(container.textContent).toBe("text 1text 2");
       clear();
       expect(container.textContent).toBe("");
+    });
+  });
+  describe("reflection", () => {
+    it("should return the property name", () => {
+      expect(reflection["foo"]).toBe("foo");
     });
   });
 });

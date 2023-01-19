@@ -1,17 +1,28 @@
 import { resetBinding } from "../dist/binding";
-import { appendChild, element, unmount } from "../dist/core";
+import { appendChild, element } from "../dist/core";
 import { If, Show } from "../dist/directive";
-import { Fragment, jsx, jsxRef, jsxs, mount } from "../dist/jsx-runtime";
+import { Component, createElement, Fragment, h, jsx, jsxRef, jsxs, mount, unmount } from "../dist/jsx-runtime";
 import { source } from "../dist/store";
-import type { AttachFunc, FunctionalComponent, Mountable, ObjectEventHandler, Rendered } from "../dist/types";
+import type {
+  AttachFunc,
+  FunctionalComponent,
+  JSXChild,
+  Later,
+  Mountable,
+  ObjectEventHandler,
+  Rendered,
+} from "../dist/types";
 import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
+import { mock, reset } from "./slot-mock";
 describe("jsx-runtime.ts", () => {
   beforeAll(() => {
     setHyplateStore();
+    mock();
   });
   afterAll(() => {
     resetBinding();
+    reset();
   });
   describe("JSX syntax", () => {
     it("should work with intrinsic element tags and fragment", () => {
@@ -47,6 +58,114 @@ describe("jsx-runtime.ts", () => {
       );
       expect(el1).toBeTruthy();
       expect(el2).toBeTruthy();
+    });
+    it("should work with class component", () => {
+      class ClassComponent0 extends Component {
+        static tag: string = this.defineAs("test-class-component-0");
+        override render() {
+          return <div></div>;
+        }
+      }
+      class ClassComponent1 extends Component<{ msg: string }, "slot1" | "slot2"> {
+        static tag: string = this.defineAs("test-class-component-1");
+        override render(): JSX.Element {
+          return (
+            <div>
+              <p>msg={this.props.msg}</p>
+              <slot name={this.slots.slot1}></slot>
+              <slot name={this.slots.slot2}></slot>
+            </div>
+          );
+        }
+      }
+      class ClassComponent2 extends ClassComponent1 {
+        static slotTag?: string | undefined = "div";
+        static tag: string = this.defineAs("test-class-component-2");
+      }
+      class ClassComponent3 extends Component {
+        static shadowRootInit?: Omit<ShadowRootInit, "mode"> | undefined = {
+          slotAssignment: "manual",
+        };
+        static tag: string = this.defineAs("test-class-component-3");
+        slot3 = jsxRef<HTMLSlotElement>();
+        override render(): JSX.Element {
+          return (
+            <div>
+              {/* using slot without type */}
+              <slot name="slot0">not provided</slot>
+              <slot name="slot1">provided undefined</slot>
+              <slot name="slot2">provided null</slot>
+              <slot ref={this.slot3} name="slot3">
+                provided
+              </slot>
+            </div>
+          );
+        }
+      }
+      class ClassComponent4 extends Component {
+        static shadowRootInit?: Omit<ShadowRootInit, "mode"> | undefined = {
+          slotAssignment: "manual",
+        };
+        static tag: string = this.defineAs("test-class-component-4");
+        render(): JSX.Element {
+          return <div></div>;
+        }
+      }
+      const ref1 = jsxRef<ClassComponent1>();
+      const ref2 = jsxRef<ClassComponent2>();
+      const ref3 = jsxRef<ClassComponent3>();
+      const used = jsxRef<HTMLDivElement>();
+      const unused = jsxRef<HTMLDivElement>();
+      class WrapperClassComponent extends Component {
+        static tag: string = this.defineAs("test-class-component-wrapper");
+        render(): JSX.Element {
+          const lang = source("");
+          return (
+            <>
+              {/* no slot */}
+              <ClassComponent0 />
+              {/* named slot */}
+              <ClassComponent1 ref={ref1} msg="the message1" attr:id="test-class-comp1" attr:lang={lang}>
+                {{
+                  slot1: <>fragment content for text</>,
+                  slot2: <div>node content</div>,
+                }}
+              </ClassComponent1>
+              {/* manual slot with custom tag */}
+              <ClassComponent2 ref={ref2} msg="the message2">
+                {{
+                  slot1: <>fragment content for text</>,
+                  slot2: <div>node content</div>,
+                }}
+              </ClassComponent2>
+              {/* manual slot */}
+              <ClassComponent3 ref={ref3}>
+                {/* using slot without type checking */}
+                {{
+                  slot1: undefined,
+                  // @ts-expect-error strict null checks to undefined
+                  slot2: null,
+                  slot3: <div ref={used}>used</div>,
+                  slot4: <div ref={unused}>unused</div>,
+                }}
+              </ClassComponent3>
+              {element(ClassComponent4.tag)}
+            </>
+          );
+        }
+      }
+      const container = element("div");
+
+      const rendered = mount(<WrapperClassComponent></WrapperClassComponent>, container);
+      const instance1 = ref1.current!;
+      expect(instance1.textContent).toBe("fragment content for textnode content");
+      expect(instance1.shadowRoot.textContent).toBe("msg=the message1");
+      expect(instance1.id).toBe("test-class-comp1");
+      const instance2 = ref2.current!;
+      expect(instance2.shadowRoot.textContent).toBe("msg=the message2");
+      const instance3 = ref3.current!;
+      expect(instance3.slot3.current!.assignedNodes()).toStrictEqual([used.current!]);
+      unmount(rendered);
     });
   });
   describe("jsx", () => {
@@ -296,16 +415,67 @@ describe("jsx-runtime.ts", () => {
       expect(getRange()).toStrictEqual([document.getElementById("div1"), document.getElementById("div3")]);
       cleanup();
     });
+    it("should return noop if no real side effect", () => {
+      const [cleanup] = mount(
+        <>
+          <div id="div1"></div>
+          <div id="div2"></div>
+          <div id="div3"></div>
+        </>,
+        attach
+      );
+      expect(cleanup).toBe(noop);
+    });
+    it("should not return noop with side effect", () => {
+      const [cleanup] = mount(
+        <>
+          <div id="div1" onClick={() => {}}></div>
+          <div id="div2"></div>
+          <div id="div3"></div>
+        </>,
+        attach
+      );
+      expect(cleanup).not.toBe(noop);
+    });
   });
-  describe("jsxs", () => {
+  describe("jsxs, h, createElement", () => {
     it("should be alias of jsx", () => {
       expect(jsxs).toBe(jsx);
+      expect(h).toBe(jsx);
+      expect(createElement).toBe(jsx);
+    });
+    it("should work with multiple jsx mode", () => {
+      const container = element("div");
+      expect(() => {
+        const el = jsx("div");
+        const rendered = mount(el, container);
+        expect(container.innerHTML).toBe("<div></div>");
+        unmount(rendered);
+      }).not.toThrow();
+      expect(() => {
+        const fc: FunctionalComponent<{}, JSXChild> = (props) => <>{props.children}</>;
+        const el = jsx(fc, null, jsx("div"));
+        const rendered = mount(el, container);
+        expect(container.innerHTML).toBe("<div></div>");
+        unmount(rendered);
+      }).not.toThrow();
+      expect(() => {
+        const el = jsx("div", null, jsx("div"), "text");
+        const rendered = mount(el, container);
+        expect(container.innerHTML).toBe("<div><div></div>text</div>");
+        unmount(rendered);
+      }).not.toThrow();
     });
   });
   describe("jsxRef", () => {
     it("should return an object with `current` property", () => {
       const ref = jsxRef();
       expect(ref).toStrictEqual({ current: null });
+    });
+  });
+  describe("Component", () => {
+    it("should have no observed attributes", () => {
+      expect(Component.observedAttributes ?? []).toStrictEqual([]);
     });
   });
 });

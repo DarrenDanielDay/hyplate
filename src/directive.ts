@@ -18,8 +18,9 @@ import type {
   Subscribable,
 } from "./types.js";
 import { withCommentRange } from "./internal.js";
-import { before, moveRange, unmount } from "./core.js";
+import { before, moveRange } from "./core.js";
 import { subscribe } from "./binding.js";
+import { unmount } from "./jsx-runtime.js";
 
 const createIfDirective = <Test, T extends ExposeBase, F extends ExposeBase = void>(
   condition: Subscribable<Test>,

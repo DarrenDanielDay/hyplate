@@ -7,16 +7,10 @@
     {
       "name": "Launch snowpack NPM",
       "request": "launch",
-      "runtimeArgs": [
-        "run",
-        "start:snowpack"
-      ],
+      "runtimeArgs": ["run", "start:snowpack"],
       "runtimeExecutable": "npm",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "type": "node"
     }
-    
   ]
 }

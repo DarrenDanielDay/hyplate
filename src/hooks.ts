@@ -5,8 +5,9 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
+import { addCleanUp } from "./internal.js";
 import type { AttachFunc, CleanUpFunc, ExposeBase, Hooks, Mountable } from "./types.js";
-import { applyAll, push, scopes } from "./util.js";
+import { scopes } from "./util.js";
 
 /**
  * @internal
@@ -23,17 +24,15 @@ const resolveHooks = (): Hooks => {
   return currentHooks;
 };
 
-export const createHooks = (): [Hooks, CleanUpFunc] => {
-  const cleanups: CleanUpFunc[] = [];
+export const createHooks = (cleanups: CleanUpFunc[]): Hooks => {
   const register = (cleanup: CleanUpFunc): void => {
-    push(cleanups, cleanup);
+    addCleanUp(cleanups, cleanup);
   };
   const useCleanUpCollector: Hooks["useCleanUpCollector"] = () => register;
   const hooks: Hooks = {
     useCleanUpCollector,
   };
-  const cleanup = applyAll(cleanups);
-  return [hooks, cleanup];
+  return hooks;
 };
 
 export const useCleanUpCollector: Hooks["useCleanUpCollector"] = () => resolveHooks().useCleanUpCollector();

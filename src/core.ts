@@ -12,13 +12,12 @@ import type {
   DelegateHost,
   EventHost,
   GetRange,
-  Rendered,
   TextInterpolation,
 } from "./types.js";
 import { err, fori, isString, push } from "./util.js";
 import { comment } from "./internal.js";
 
-const doc = document;
+export const doc = document;
 
 export const element = /* #__PURE__ */ doc.createElement.bind(doc);
 
@@ -143,12 +142,6 @@ export const removeRange = (getRange: GetRange) => {
   }
 };
 
-export const unmount = (rendered: Rendered<any>) => {
-  const [cleanup, , getRange] = rendered;
-  cleanup();
-  removeRange(getRange);
-};
-
 export const access = (node: ParentNode, path: number[]): ParentNode | undefined => {
   for (let i = 0, l = path.length; i < l; i++) {
     node = node.children[path[i]];
@@ -157,9 +150,4 @@ export const access = (node: ParentNode, path: number[]): ParentNode | undefined
     }
   }
   return node;
-};
-
-export const insertSlot = (host: Element, slotName: string, element: Element) => {
-  attr(element, "slot", slotName);
-  appendChild(host)(element);
 };

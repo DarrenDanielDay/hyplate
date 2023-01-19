@@ -1,6 +1,3 @@
 {
-  "recommendations": [
-    "firsttris.vscode-jest-runner",
-    "esbenp.prettier-vscode"
-  ]
+  "recommendations": ["firsttris.vscode-jest-runner", "esbenp.prettier-vscode"]
 }

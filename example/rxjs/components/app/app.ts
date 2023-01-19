@@ -9,7 +9,7 @@ interface CounterProps {
 const Counter = counter(({ name }: CounterProps, ctx) => {
   const count = new BehaviorSubject(0);
   const doubleCount = count.pipe(map((c) => c * 2));
-  
+
   useEvent(ctx.refs.btn)("click", () => {
     count.next(count.value + 1);
   });

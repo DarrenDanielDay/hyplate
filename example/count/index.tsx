@@ -1,7 +1,7 @@
 import { appendChild } from "hyplate/core";
 import { source as ref, query as computed, enableBuiltinStore } from "hyplate/store";
 
-//#region 
+//#region
 // Configure the binding source and types
 // This function should be executed once before any binding is created.
 // If you want to use other library for reactivity (such as `rxjs` and `mobx`), use the `configureBinding` API.
@@ -13,7 +13,6 @@ declare module "hyplate/types" {
   export interface Subscribable<T> extends Query<T> {}
 }
 //#endregion
-
 
 const App = ({ msg }: { msg: string }) => {
   const count = ref(0);

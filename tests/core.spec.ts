@@ -11,7 +11,6 @@ import {
   clone,
   docFragment,
   element,
-  insertSlot,
   moveRange,
   remove,
   select,
@@ -311,16 +310,6 @@ describe("core.ts", () => {
       expect(access(fragment, [0, 2])).toBeUndefined();
       expect(access(fragment, [0, 3])).toBeUndefined();
       expect(access(fragment, [0, 3, 8])).toBeUndefined();
-    });
-  });
-
-  describe("insertSlot", () => {
-    it("should insert element as slot", () => {
-      const container = document.createElement("div");
-      const slotElement = document.createElement("div");
-      insertSlot(container, "test", slotElement);
-      expect(slotElement.parentElement).toBe(container);
-      expect(slotElement.slot).toBe("test");
     });
   });
 });

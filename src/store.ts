@@ -92,7 +92,7 @@ class QueryImpl<T extends unknown> implements Query<T> {
     return () => {
       subscribers.delete(subscriber);
       if (!subscribers.size) {
-        applyAll(this.#teardowns)();
+        applyAll(this.#teardowns);
       }
     };
   }
@@ -105,7 +105,7 @@ class QueryImpl<T extends unknown> implements Query<T> {
     const [newDeps, cleanupDepScope] = useDepScope();
     this.#current = this._selector();
     cleanupDepScope();
-    applyAll(this.#teardowns)();
+    applyAll(this.#teardowns);
     this.#teardowns = [...newDeps].map((dep) => dep.sub(this.#dispatch));
   }
   #dispatch = () => {

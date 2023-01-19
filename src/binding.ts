@@ -10,7 +10,7 @@ import type {
   SubscribeFunc,
   TextInterpolation,
 } from "./types.js";
-import { applyAll, err, isObject, noop, push, warn, __DEV__ } from "./util.js";
+import { applyAllStatic, err, isObject, noop, push, warn, __DEV__ } from "./util.js";
 
 const defaultSubscribe: SubscribeFunc = (subscribable, subscriber) => {
   if (__DEV__) {
@@ -87,7 +87,7 @@ export const interpolation = (fragments: TemplateStringsArray, ...bindings: Bind
     }
     push(buf, fragments.at(-1)!);
     flushBuf();
-    return applyAll(effects);
+    return applyAllStatic(effects);
   };
 };
 

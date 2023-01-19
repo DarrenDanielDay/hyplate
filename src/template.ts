@@ -5,8 +5,12 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { access, appendChild, before, clone, element, insertSlot, remove } from "./core.js";
+import { access, before, clone, element, remove } from "./core.js";
+import { anonymousElement, define } from "./custom-elements.js";
 import { createHooks, enterHooks, quitHooks } from "./hooks.js";
+import { addCleanUp, isTemplate } from "./internal.js";
+import { mount } from "./jsx-runtime.js";
+import { insertSlotMap, slotName } from "./slot.js";
 import type {
   CleanUpFunc,
   ContextFactory,
@@ -14,15 +18,10 @@ import type {
   HyplateElement,
   TemplateContext,
 } from "./types.js";
-import { applyAll, fori, isFunction, once, patch, push } from "./util.js";
+import { applyAll, fori, isFunction, once, patch } from "./util.js";
 
 export const template = (input: string | HTMLTemplateElement): HTMLTemplateElement =>
-  input instanceof HTMLTemplateElement ? input : patch(element("template"), { innerHTML: input });
-
-const anonymousElement = () =>
-  class HyplateAnonymousElement<T> extends HTMLElement implements HyplateElement<T> {
-    declare exposed: T;
-  };
+  isTemplate(input) ? input : patch(element("template"), { innerHTML: input });
 
 let templateId = 0;
 const templateName = (name: string | undefined) => name ?? `hype-${templateId++}`;
@@ -31,9 +30,9 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
   const t = template(input);
   return (setup, name) => {
     const elementTag = templateName(name);
-    const slotTag = `${elementTag}-slot`;
-    customElements.define(elementTag, anonymousElement());
-    customElements.define(slotTag, anonymousElement());
+    const slotTag = slotName(elementTag);
+    define(elementTag, anonymousElement());
+    define(slotTag, anonymousElement());
     return (props) => (attach) => {
       const localCleanups: CleanUpFunc[] = [];
       const slots = props.children;
@@ -45,21 +44,9 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
       const context = contextFactory?.(fragment)!;
       shadow.appendChild(fragment);
       if (slots) {
-        for (const [name, slotInput] of Object.entries(slots)) {
-          if (slotInput == null) {
-            continue;
-          }
-          const slot = element(slotTag);
-          if (isFunction(slotInput)) {
-            const [cleanupSlot] = slotInput(appendChild(slot));
-            push(localCleanups, cleanupSlot);
-          } else {
-            appendChild(slot)(slotInput);
-          }
-          insertSlot(owner, name, slot);
-        }
+        insertSlotMap(mount, owner, slots, slotTag, localCleanups);
       }
-      const [hooks, cleanupHooks] = createHooks();
+      const hooks = createHooks(localCleanups);
       enterHooks(hooks);
       const exposed = setup?.(props as never, context) as never;
       quitHooks();
@@ -67,8 +54,7 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
         value: exposed,
       });
       const unmount = once(() => {
-        cleanupHooks();
-        applyAll(localCleanups)();
+        applyAll(localCleanups);
       });
       return [unmount, exposed, () => [owner, owner]];
     };
@@ -93,8 +79,8 @@ export const replaced: FunctionalComponentTemplateFactory = (input, contextFacto
           }
           const attach = before(slot);
           if (isFunction(slotInput)) {
-            const [cleanupSlot] = slotInput(attach);
-            push(localCleanups, cleanupSlot);
+            const [cleanupSlot] = mount(slotInput, attach);
+            addCleanUp(localCleanups, cleanupSlot);
           } else {
             attach(slotInput);
           }
@@ -104,13 +90,12 @@ export const replaced: FunctionalComponentTemplateFactory = (input, contextFacto
       const begin = fragment.firstChild;
       const end = fragment.lastChild;
       attach(fragment);
-      const [hooks, cleanupHooks] = createHooks();
+      const hooks = createHooks(localCleanups);
       enterHooks(hooks);
       const exposed = setup?.(options as never, context) as never;
       quitHooks();
       const unmount = once(() => {
-        cleanupHooks();
-        applyAll(localCleanups)();
+        applyAll(localCleanups);
       });
       return [unmount, exposed, () => [begin, end]];
     };

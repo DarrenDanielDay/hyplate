@@ -41,13 +41,31 @@ export const pop = <T extends unknown>(arr: T[]) => arr.pop();
 
 export const noop = () => {};
 
-export const applyAll = (cleanups: (() => void)[]) => () => fori(cleanups, (element) => element());
+export const applyAll = (cleanups: (() => void)[]) => {
+  // The side effects are revoked in the reversed order.
+  for (let i = cleanups.length - 1; i >= 0; i--) {
+    cleanups[i]!();
+  }
+};
+
+/**
+ * In many cases the `cleanups` array never grow. In that case we can use `noop` for fewer memory usage.
+ */
+export const applyAllStatic = (cleanups: (() => void)[]): (() => void) =>
+  cleanups.length ? () => applyAll(cleanups) : noop;
 
 export const isString = (v: unknown): v is string => typeof v === "string";
 
 export const isFunction = (v: unknown): v is AnyFunc => typeof v === "function";
 
 export const isObject = (v: unknown): v is object => v != null && typeof v === "object";
+
+export const isArray = Array.isArray;
+
+export const isInstance =
+  <T>(ctor: new (...args: any[]) => T) =>
+  (value: unknown): value is T =>
+    value instanceof ctor;
 
 export const compare = Object.is;
 

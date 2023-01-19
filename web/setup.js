@@ -4,8 +4,8 @@ ESModularize.createProjectLoader({
   nodeGlobals: {
     process: {
       env: {
-        NODE_ENV: 'development'
-      }
-    }
-  }
-}).load({})
+        NODE_ENV: "development",
+      },
+    },
+  },
+}).load({});
