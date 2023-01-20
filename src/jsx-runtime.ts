@@ -28,7 +28,7 @@ import type {
   JSXFactory,
   ShadowRootConfig,
 } from "./types.js";
-import { applyAll, applyAllStatic, fori, isFunction, isObject, isString, noop, push, __DEV__ } from "./util.js";
+import { applyAll, applyAllStatic, fori, isArray, isFunction, isObject, isString, noop, push, __DEV__ } from "./util.js";
 
 export const mount: Renderer = (element, onto): Rendered<any> => {
   const attach = isNode(onto) ? appendChild(onto) : onto;
@@ -72,7 +72,7 @@ const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
     return _attach(node);
   };
   const cleanups: CleanUpFunc[] = [];
-  if (Array.isArray(children)) {
+  if (isArray(children)) {
     fori(children, (child) => {
       addCleanUp(cleanups, addChild(child, attach));
     });

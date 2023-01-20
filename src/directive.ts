@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { compare, err, isFunction, noop, warned, __DEV__ } from "./util.js";
+import { arrayFrom, compare, err, isFunction, noop, warned, __DEV__ } from "./util.js";
 import type {
   AttachFunc,
   CleanUpFunc,
@@ -181,7 +181,7 @@ export const For = <T extends unknown>({
         const toBePatched = e2 - s2 + 1;
         let moved = false;
         let maxNewIndexSoFar = 0;
-        const newIndexToOldIndexMap = Array.from({ length: toBePatched }, () => 0);
+        const newIndexToOldIndexMap = arrayFrom({ length: toBePatched }, () => 0);
         for (i = s1; i <= e1; i++) {
           const prevChild = nodes[i]!;
           if (patched >= toBePatched) {

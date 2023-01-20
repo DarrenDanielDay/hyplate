@@ -35,6 +35,8 @@ export const scopes = <T extends {}>() => {
   return [enter, quit, resolve] as const;
 };
 
+export const arrayFrom = Array.from;
+
 export const push = <T extends unknown>(arr: T[], val: T) => arr.push(val);
 
 export const pop = <T extends unknown>(arr: T[]) => arr.pop();
@@ -66,6 +68,8 @@ export const isInstance =
   <T>(ctor: new (...args: any[]) => T) =>
   (value: unknown): value is T =>
     value instanceof ctor;
+
+export const strictEqual = Object.is;
 
 export const defineProp = Object.defineProperty;
 

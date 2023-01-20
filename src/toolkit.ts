@@ -10,14 +10,14 @@ import { appendChild, delegate, listen } from "./core.js";
 import { useCleanUpCollector } from "./hooks.js";
 import type { Component } from "./jsx-runtime.js";
 import type { BindingHost, ClassComponentStatic, Differ } from "./types.js";
-import { defineProp, isObject } from "./util.js";
+import { defineProp, isObject, patch, strictEqual } from "./util.js";
 
 export const alwaysDifferent: Differ = () => false;
 
 export const deepDiffer: Differ = (a, b) => {
   if (!isObject(a) || !isObject(b)) {
     // Compare identity for cases of functions & primitives.
-    return Object.is(a, b);
+    return strictEqual(a, b);
   }
   const aKeys = Reflect.ownKeys(a);
   const bKeys = new Set(Reflect.ownKeys(b));
@@ -61,7 +61,7 @@ export const component = (options: ClassComponentStatic) => (ctor: typeof Compon
   if (observedAttributes) {
     defineProp(ctor, "observedAttributes", { get: () => observedAttributes });
   }
-  Object.assign(ctor, statics);
+  patch(ctor, statics);
   // @ts-expect-error assign to readonly field
   ctor.tag = ctor.defineAs(tag);
 };

@@ -8,7 +8,9 @@
 import type { CleanUpFunc, NativeSlotContent, Reflection } from "./types.js";
 import { isInstance, noop, push, __DEV__ } from "./util.js";
 
-export const comment = (message: string) => document.createComment(__DEV__ ? message : "");
+export const doc = document;
+
+export const comment = (message: string) => doc.createComment(__DEV__ ? message : "");
 
 export const withCommentRange = (message: string): [begin: Comment, end: Comment, clearRange: CleanUpFunc] => {
   const begin = comment(` ${message} begin `);

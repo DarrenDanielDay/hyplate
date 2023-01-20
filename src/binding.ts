@@ -47,9 +47,9 @@ export const bindText = (node: Node, subscribable: Subscribable<TextInterpolatio
   subscribe(subscribable, (text) => content(node, text));
 
 export const interpolation = (fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]) => {
-  const fragmentsLength = fragments.length;
   const bindingsLength = bindings.length;
   if (__DEV__) {
+    const fragmentsLength = fragments.length;
     if (fragmentsLength !== bindingsLength + 1) {
       err(
         `Invalid usage of "text". Fragments length(${fragments.length}) and bindings length(${bindings.length}) do not match.`

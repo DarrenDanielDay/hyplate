@@ -14,10 +14,8 @@ import type {
   GetRange,
   TextInterpolation,
 } from "./types.js";
-import { err, fori, isString, push } from "./util.js";
-import { comment } from "./internal.js";
-
-export const doc = document;
+import { arrayFrom, err, fori, isString, push } from "./util.js";
+import { comment, doc } from "./internal.js";
 
 export const element = /* #__PURE__ */ doc.createElement.bind(doc);
 
@@ -26,7 +24,7 @@ export const text = /* #__PURE__ */ doc.createTextNode.bind(doc);
 export const svg: <K extends keyof SVGElementTagNameMap>(name: K) => SVGElementTagNameMap[K] = (name) =>
   doc.createElementNS("http://www.w3.org/2000/svg", name);
 
-export const docFragment = doc.createDocumentFragment.bind(doc);
+export const docFragment = /* #__PURE__ */ doc.createDocumentFragment.bind(doc);
 
 export const clone = <N extends Node>(node: N): N => node.cloneNode(true) as N;
 
@@ -51,9 +49,9 @@ export const anchor: {
   return p1.querySelector(`[\\#${p2}]`);
 };
 
-export const $: <S extends string>(selector: S) => ParseSelector<S> = doc.querySelector.bind(doc);
+export const $: <S extends string>(selector: S) => ParseSelector<S> = /* #__PURE__ */ doc.querySelector.bind(doc);
 
-export const $$ = <S extends string>(selector: S): ParseSelector<S>[] => Array.from(doc.querySelectorAll(selector));
+export const $$ = <S extends string>(selector: S): ParseSelector<S>[] => arrayFrom(doc.querySelectorAll(selector));
 
 export const listen =
   <T extends EventTarget>(target: T): EventHost<T> =>
