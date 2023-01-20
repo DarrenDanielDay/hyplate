@@ -153,7 +153,7 @@ describe("directive.ts", () => {
     let attach: AttachFunc;
     let list: Source<Item[]>;
     const renderChildImpl = (item: Item) => <span>{item.val}</span>;
-    let renderChild: typeof renderChildImpl;
+    let renderChild: jest.Mock<ReturnType<typeof renderChildImpl>, Parameters<typeof renderChildImpl>>;
     beforeEach(() => {
       list = source<Item[]>(Array.from({ length: 10 }, (_, i) => ({ val: i })));
       container = document.createElement("div");
@@ -251,6 +251,21 @@ describe("directive.ts", () => {
       list.set([a, b, d, e, c, { val: 10 }, g, h, i, j]);
       expect(renderChild).toBeCalledTimes(11);
       expect(container.textContent).toBe("01342106789");
+    });
+    it("should work with fragment", () => {
+      renderChild.mockImplementation((item) => (
+        <>
+          <span>{item.val}</span>
+          <span>@</span>
+        </>
+      ));
+      mount(<For of={list}>{renderChild}</For>, attach);
+      expect(renderChild).toBeCalledTimes(10);
+      expect(container.textContent).toBe("0@1@2@3@4@5@6@7@8@9@");
+      const [a, b, c, d, e, f, g, h, i, j] = list.val;
+      list.set([a, b, d, e, c, { val: 10 }, g, h, i, j]);
+      expect(renderChild).toBeCalledTimes(11);
+      expect(container.textContent).toBe("0@1@3@4@2@10@6@7@8@9@");
     });
   });
 });

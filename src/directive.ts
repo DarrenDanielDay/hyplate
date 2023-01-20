@@ -147,7 +147,7 @@ export const For = <T extends unknown>({
       if (i > e1) {
         if (i <= e2) {
           const nextPos = e2 + 1;
-          const anchor = newNodes[nextPos]?.[1]?.[2]()?.[1] ?? end;
+          const anchor = newNodes[nextPos]?.[1]?.[2]()?.[0] ?? end;
           const attach = before(anchor);
           for (; i <= e2; i++) {
             const node = newNodes[i]!;
