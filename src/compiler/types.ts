@@ -8,7 +8,7 @@
 import type { IAttribute, ITag } from "html5parser";
 import type { Position } from "source-map";
 
-export type TemplateFactory = "shadowed" | "replaced";
+export type TemplateFactory = "shadowed" | "replaced" | "pure";
 
 export interface TemplateOptions {
   /**

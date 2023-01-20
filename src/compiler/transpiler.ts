@@ -39,7 +39,7 @@ const FACTORY = "f";
 const FRAGMENT = "d";
 const FIRST_CHILD = "c";
 const NEXT_SIBLIING = "n";
-const REPLACED = "r";
+const PURE = "r";
 const BASE_URL = "b";
 const TO_URL = "u";
 
@@ -176,7 +176,7 @@ export const transpile = (templates: ChildTemplates, file: string): OutputWithSo
     const [getRefsCode, refsExpr] = transpileReference(template, 2);
     return `\
 // ${templateInfo.path.map((anchor) => `[#${anchor}]`).join(" ")}
-const ${id} = ${isGlobal ? FACTORY : "r"}(
+const ${id} = ${isGlobal ? FACTORY : PURE}(
   \`${transpileTemplate(id)}\`,
   (${FRAGMENT}) => {
     ${getRefsCode}
@@ -338,7 +338,7 @@ ${tabs(indent)}`)};`;
 `;
   const createSetupCode = emitIdSequence.map((id) => jsCodeTemplate(id)).join("");
   //#region imports
-  const templateImport = `import{${factory} as ${FACTORY},replaced as ${REPLACED}${
+  const templateImport = `import{${factory} as ${FACTORY},pure as ${PURE}${
     usedToURL ? `,basedOnURL as ${BASE_URL}` : ""
   }}from"hyplate/template";`;
   type Identifiers = keyof typeof import("../identifiers.js");
