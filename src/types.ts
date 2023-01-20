@@ -242,10 +242,10 @@ export type Rendered<E extends ExposeBase> = [unmount: CleanUpFunc, exposed: E, 
 
 export type BindingHost<T extends Element> = {
   attr<P extends keyof AttributesMap<T>>(name: P, subscribable: Subscribable<AttributesMap<T>[P]>): BindingHost<T>;
-  content(fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]): BindingHost<T>;
+  content(subscribable: Subscribable<TextInterpolation>): BindingHost<T>;
   delegate<E extends Events<T>>(name: E, handler: FunctionalEventHanlder<T, EventType<T, E>>): BindingHost<T>;
   event<E extends Events<T>>(name: E, handler: Handler<T, E>, options?: boolean | EventListenerOptions): BindingHost<T>;
-  text(subscribable: Subscribable<TextInterpolation>): BindingHost<T>;
+  text(fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]): BindingHost<T>;
 };
 
 //#region directives

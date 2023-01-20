@@ -5,7 +5,7 @@ import { enableBuiltinStore, query, source } from "../dist/store.js";
 import { For, Show } from "../dist/directive.js";
 import { listen as bindEvent, appendChild, select, anchor, seqAfter, element } from "../dist/core.js";
 import { Component, jsxRef, mount, unmount } from "../dist/jsx-runtime.js";
-import { bindAttr, interpolation as text } from "../dist/binding.js";
+import { $attr, $text } from "../dist/binding.js";
 import { useBinding } from "../dist/toolkit.js";
 import { LifecycleCallbacks } from "hyplate/types.js";
 
@@ -72,17 +72,17 @@ function main() {
       counter.set(counter.val + 1);
     });
     ctx.refs.msg.textContent = "";
-    useCleanUp(text`you clicked ${counter} times.`(appendChild(ctx.refs.msg)));
+    useCleanUp($text`you clicked ${counter} times.`(appendChild(ctx.refs.msg)));
   });
   const App = replaced<"world">(t1)(({ user }: { user: string }) => {
     const count = source(0);
     const double = query(() => count.val * 2);
     const addButton = select("button.add-btn")!;
     const oddDisabledBtn = anchor(document.body, "odd-disabled")!;
-    useCleanUp(text`${user} clicked ${count} times.`(appendChild(addButton)));
-    useCleanUp(text`double of count: ${double}`(appendChild(anchor(document.body, "double")!)));
+    useCleanUp($text`${user} clicked ${count} times.`(appendChild(addButton)));
+    useCleanUp($text`double of count: ${double}`(appendChild(anchor(document.body, "double")!)));
     const disabled = query(() => count.val % 2 === 1);
-    useCleanUp(bindAttr(oddDisabledBtn, "disabled", disabled));
+    useCleanUp($attr(oddDisabledBtn, "disabled", disabled));
     useBinding(addButton).event("click", () => {
       console.log("click!");
       count.set(count.val + 1);

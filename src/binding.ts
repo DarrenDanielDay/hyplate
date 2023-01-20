@@ -43,10 +43,10 @@ export const resetBinding = () => {
   isSubscribable = defaultIsSubscribable;
 };
 
-export const bindText = (node: Node, subscribable: Subscribable<TextInterpolation>) =>
+export const $content = (node: Node, subscribable: Subscribable<TextInterpolation>) =>
   subscribe(subscribable, (text) => content(node, text));
 
-export const interpolation = (fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]) => {
+export const $text = (fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]) => {
   const bindingsLength = bindings.length;
   if (__DEV__) {
     const fragmentsLength = fragments.length;
@@ -91,7 +91,7 @@ export const interpolation = (fragments: TemplateStringsArray, ...bindings: Bind
   };
 };
 
-export const bindAttr: {
+export const $attr: {
   <E extends Element, P extends keyof AttributesMap<E>>(
     el: E,
     name: P,

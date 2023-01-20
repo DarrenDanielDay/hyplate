@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { bindAttr, bindText, interpolation } from "./binding.js";
+import { $attr, $content, $text } from "./binding.js";
 import { appendChild, delegate, listen } from "./core.js";
 import { useCleanUpCollector } from "./hooks.js";
 import type { Component } from "./jsx-runtime.js";
@@ -33,11 +33,11 @@ export const useBinding = <T extends Element>(el: T): BindingHost<T> => {
   const delegateHost = delegate(el);
   const bindings: BindingHost<T> = {
     attr: (name, subscribable) => {
-      registerCleanUp(bindAttr(el, name, subscribable));
+      registerCleanUp($attr(el, name, subscribable));
       return bindings;
     },
-    content: (fragments, ...bindingPatterns) => {
-      registerCleanUp(interpolation(fragments, ...bindingPatterns)(appendChild(el)));
+    content: (subscribable) => {
+      registerCleanUp($content(el, subscribable));
       return bindings;
     },
     delegate: (name, handler) => {
@@ -48,8 +48,8 @@ export const useBinding = <T extends Element>(el: T): BindingHost<T> => {
       registerCleanUp(eventHost(name, handler, options));
       return bindings;
     },
-    text: (subscribable) => {
-      registerCleanUp(bindText(el, subscribable));
+    text: (fragments, ...bindingPatterns) => {
+      registerCleanUp($text(fragments, ...bindingPatterns)(appendChild(el)));
       return bindings;
     },
   };

@@ -7,7 +7,7 @@ import { source } from "../dist/store";
 import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
 import { resetBinding } from "../dist/binding";
-import { Component, h, mount, unmount } from "../dist/jsx-runtime";
+import { Component, mount, unmount } from "../dist/jsx-runtime";
 import { mock, reset } from "./slot-mock";
 describe("toolkit.ts", () => {
   describe("always different", () => {
@@ -58,9 +58,9 @@ describe("toolkit.ts", () => {
       const binding = useBinding(el);
       binding.attr("id", source("aaa"));
       expect(el.id).toBe("aaa");
-      binding.content`Using useBind().content ${0} ${source(1)}`;
+      binding.text`Using useBind().content ${0} ${source(1)}`;
       expect(el.textContent).toBe(`Using useBind().content 0 1`);
-      binding.text(source("Now changed"));
+      binding.content(source("Now changed"));
       expect(el.textContent).toBe("Now changed");
       const handler = import.meta.jest.fn();
       binding.event("click", handler);

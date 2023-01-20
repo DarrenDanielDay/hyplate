@@ -1,4 +1,4 @@
-import { bindAttr, bindText, interpolation, isSubscribable, resetBinding, subscribe } from "../dist/binding";
+import { $attr, $content, $text, isSubscribable, resetBinding, subscribe } from "../dist/binding";
 import { appendChild, element } from "../dist/core";
 import { source } from "../dist/store";
 import { setHyplateStore } from "./configure-store";
@@ -14,7 +14,7 @@ describe("binding.ts", () => {
     it("should bind textContent", () => {
       const data = source("1");
       const p = element("p");
-      bindText(p, data);
+      $content(p, data);
       expect(p.textContent).toBe("1");
       data.set("2");
       expect(p.textContent).toBe("2");
@@ -30,7 +30,7 @@ describe("binding.ts", () => {
     it("should bind textContent with reactive store", () => {
       const p = document.createElement("p");
       const a1 = source(1);
-      const fn = interpolation`print: ${a1}`(appendChild(p));
+      const fn = $text`print: ${a1}`(appendChild(p));
       expect(p.textContent).toBe("print: 1");
       a1.set(2);
       expect(p.textContent).toBe("print: 2");
@@ -40,7 +40,7 @@ describe("binding.ts", () => {
     it("should insert text with primitive values", () => {
       const p = document.createElement("p");
       const content = "1";
-      const fn = interpolation`print: ${content}`(appendChild(p));
+      const fn = $text`print: ${content}`(appendChild(p));
       expect(p.textContent).toBe("print: 1");
       fn();
     });
@@ -49,7 +49,7 @@ describe("binding.ts", () => {
       const fn = import.meta.jest.spyOn(console, "error");
       fn.mockImplementation(() => {});
       // @ts-expect-error invalid usage
-      interpolation(["111", "222", "333"], "");
+      $text(["111", "222", "333"], "");
       expect(fn).toBeCalled();
       fn.mockReset();
       fn.mockRestore();
@@ -59,7 +59,7 @@ describe("binding.ts", () => {
       const fn = import.meta.jest.spyOn(console, "error");
       fn.mockImplementation(() => {});
       // @ts-expect-error invalid usage
-      interpolation(["111", "222"], {});
+      $text(["111", "222"], {});
       expect(fn).toBeCalled();
       fn.mockReset();
       fn.mockRestore();
@@ -76,7 +76,7 @@ describe("binding.ts", () => {
     it("should bind attribute", () => {
       const disabled = source(false);
       const button = document.createElement("button");
-      const cleanup = bindAttr(button, "disabled", disabled);
+      const cleanup = $attr(button, "disabled", disabled);
       expect(button.disabled).toBeFalsy();
       disabled.set(true);
       expect(button.disabled).toBeTruthy();

@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { bindAttr, interpolation, isSubscribable } from "./binding.js";
+import { $attr, $text, isSubscribable } from "./binding.js";
 import { appendChild, attr, listen, docFragment, element, svg, delegate, removeRange } from "./core.js";
 import { anonymousElement, define } from "./custom-elements.js";
 import { addCleanUp, isFragment, isNode, reflection } from "./internal.js";
@@ -49,7 +49,7 @@ const addChild = (child: JSXChild, attach: AttachFunc) => {
   if (isFunction(child)) {
     return mount(child, attach)[0];
   }
-  return interpolation`${child}`(attach);
+  return $text`${child}`(attach);
 };
 
 const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
@@ -124,7 +124,7 @@ export const jsx: JSXFactory = (
         // @ts-expect-error for-in key access
         const value = attributes[key];
         if (isSubscribable(value)) {
-          push(cleanups, bindAttr(el, key, value));
+          push(cleanups, $attr(el, key, value));
         } else {
           if (key.startsWith("on")) {
             const next = key[2];
@@ -290,7 +290,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
         if (key.startsWith("attr:")) {
           const name = key.slice(5);
           if (isSubscribable(value)) {
-            push(cleanups, bindAttr(this, name, value));
+            push(cleanups, $attr(this, name, value));
           } else {
             attr(this, name, value);
           }
