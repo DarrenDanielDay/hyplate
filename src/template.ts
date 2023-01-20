@@ -18,7 +18,7 @@ import type {
   HyplateElement,
   TemplateContext,
 } from "./types.js";
-import { applyAll, applyAllStatic, fori, isFunction, once, patch } from "./util.js";
+import { applyAll, applyAllStatic, defineProp, fori, isFunction, once, patch } from "./util.js";
 
 export const template = (input: string | HTMLTemplateElement): HTMLTemplateElement =>
   isTemplate(input) ? input : patch(element("template"), { innerHTML: input });
@@ -50,7 +50,7 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
       enterHooks(hooks);
       const exposed = setup?.(props as never, context) as never;
       quitHooks();
-      Object.defineProperty(owner, "exposed", {
+      defineProp(owner, "exposed", {
         value: exposed,
       });
       const unmount = once(() => {

@@ -8,8 +8,9 @@
 import { bindAttr, bindText, interpolation } from "./binding.js";
 import { appendChild, delegate, listen } from "./core.js";
 import { useCleanUpCollector } from "./hooks.js";
-import type { BindingHost, Differ } from "./types.js";
-import { isObject } from "./util.js";
+import type { Component } from "./jsx-runtime.js";
+import type { BindingHost, ClassComponentStatic, Differ } from "./types.js";
+import { defineProp, isObject } from "./util.js";
 
 export const alwaysDifferent: Differ = () => false;
 
@@ -53,4 +54,14 @@ export const useBinding = <T extends Element>(el: T): BindingHost<T> => {
     },
   };
   return bindings;
+};
+
+export const component = (options: ClassComponentStatic) => (ctor: typeof Component<any, any>) => {
+  const { tag, observedAttributes, ...statics } = options;
+  if (observedAttributes) {
+    defineProp(ctor, "observedAttributes", { get: () => observedAttributes });
+  }
+  Object.assign(ctor, statics);
+  // @ts-expect-error assign to readonly field
+  ctor.tag = ctor.defineAs(tag);
 };

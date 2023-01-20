@@ -67,6 +67,8 @@ export const isInstance =
   (value: unknown): value is T =>
     value instanceof ctor;
 
+export const defineProp = Object.defineProperty;
+
 export const compare = Object.is;
 
 export const err = (error: unknown) => {

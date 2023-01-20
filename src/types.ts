@@ -135,6 +135,16 @@ export interface Hooks {
   useCleanUpCollector(): (cleanup: CleanUpFunc) => void;
 }
 
+export type ShadowRootConfig = Omit<ShadowRootInit, "mode">;
+
+export interface ClassComponentStatic {
+  tag: string;
+  slotTag?: string;
+  shadowRootInit?: ShadowRootConfig;
+  defaultProps?: object;
+  observedAttributes?: string[];
+}
+
 export interface OnConnected {
   connectedCallback(): void;
 }

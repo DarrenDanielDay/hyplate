@@ -26,6 +26,7 @@ import type {
   Reflection,
   Renderer,
   JSXFactory,
+  ShadowRootConfig,
 } from "./types.js";
 import { applyAll, applyAllStatic, fori, isFunction, isObject, isString, noop, push, __DEV__ } from "./util.js";
 
@@ -201,7 +202,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
    * The shadow root init config except `mode`.
    * In hyplate, we force the `mode` option to be `open`.
    */
-  public static readonly shadowRootInit?: Omit<ShadowRootInit, "mode">;
+  public static readonly shadowRootInit?: ShadowRootConfig;
   /**
    * The custom element name. Must be present, or it will explode.
    */
