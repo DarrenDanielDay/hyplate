@@ -18,7 +18,7 @@ import type {
   HyplateElement,
   TemplateContext,
 } from "./types.js";
-import { applyAll, fori, isFunction, once, patch } from "./util.js";
+import { applyAll, applyAllStatic, fori, isFunction, once, patch } from "./util.js";
 
 export const template = (input: string | HTMLTemplateElement): HTMLTemplateElement =>
   isTemplate(input) ? input : patch(element("template"), { innerHTML: input });
@@ -97,6 +97,27 @@ export const replaced: FunctionalComponentTemplateFactory = (input, contextFacto
       const unmount = once(() => {
         applyAll(localCleanups);
       });
+      return [unmount, exposed, () => [begin, end]];
+    };
+  };
+};
+
+// @ts-expect-error generic overload
+export const pure: FunctionalComponentTemplateFactory = (input, contextFactory) => {
+  const t = template(input);
+  return (setup) => {
+    return (options) => (attach) => {
+      const localCleanups: CleanUpFunc[] = [];
+      const fragment = clone(t.content);
+      const context = contextFactory?.(fragment)!;
+      const begin = fragment.firstChild;
+      const end = fragment.lastChild;
+      attach(fragment);
+      const hooks = createHooks(localCleanups);
+      enterHooks(hooks);
+      const exposed = setup?.(options as never, context) as never;
+      quitHooks();
+      const unmount = applyAllStatic(localCleanups);
       return [unmount, exposed, () => [begin, end]];
     };
   };
