@@ -1,8 +1,10 @@
 import { resetBinding } from "../dist/binding";
-import { appendChild } from "../dist/core";
+import { appendChild, content } from "../dist/core";
 import { If, Show, For } from "../dist/directive";
+import { useCleanUp } from "../dist/hooks";
 import { jsxRef, mount, unmount } from "../dist/jsx-runtime";
 import { query, source } from "../dist/store";
+import { pure } from "../dist/template";
 import type { AttachFunc, Query, Source } from "../dist/types";
 import { setHyplateStore } from "./configure-store";
 describe("directive.ts", () => {
@@ -266,6 +268,27 @@ describe("directive.ts", () => {
       list.set([a, b, d, e, c, { val: 10 }, g, h, i, j]);
       expect(renderChild).toBeCalledTimes(11);
       expect(container.textContent).toBe("0@1@3@4@2@10@6@7@8@9@");
+    });
+    it("should call all item's cleanup when unmounted", () => {
+      const createMock = import.meta.jest.fn();
+      const cleanupMock = import.meta.jest.fn();
+      const Component = pure(
+        `<span></span>`,
+        (f) => f.firstChild! as HTMLSpanElement
+      )(({ val }: Item, span) => {
+        content(span, val);
+        createMock();
+        useCleanUp(cleanupMock);
+      });
+      const rendered = mount(<For of={list}>{(item) => <Component {...item} />}</For>, attach);
+      expect(createMock).toBeCalledTimes(10);
+      expect(container.textContent).toBe("0123456789");
+      const [a, b, c, d, e, f, g, h, i, j] = list.val;
+      list.set([a, b, d, e, c, { val: 10 }, g, h, i, j]);
+      expect(createMock).toBeCalledTimes(11);
+      expect(container.textContent).toBe("01342106789");
+      unmount(rendered);
+      expect(cleanupMock).toBeCalledTimes(11);
     });
   });
 });

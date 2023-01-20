@@ -96,6 +96,7 @@ const unmountHNode = (node: HNode<any>) => {
   const rendered = node[1]!;
   unmount(rendered);
 };
+const initAsZero = () => 0;
 /**
  * The `for` directive for list rendering.
  *
@@ -147,7 +148,7 @@ export const For = <T extends unknown>({
       if (i > e1) {
         if (i <= e2) {
           const nextPos = e2 + 1;
-          const anchor = newNodes[nextPos]?.[1]?.[2]()?.[0] ?? end;
+          const anchor = newNodes[nextPos]?.[1]![2]()?.[0] ?? end;
           const attach = before(anchor);
           for (; i <= e2; i++) {
             const node = newNodes[i]!;
@@ -181,7 +182,7 @@ export const For = <T extends unknown>({
         const toBePatched = e2 - s2 + 1;
         let moved = false;
         let maxNewIndexSoFar = 0;
-        const newIndexToOldIndexMap = arrayFrom({ length: toBePatched }, () => 0);
+        const newIndexToOldIndexMap = arrayFrom({ length: toBePatched }, initAsZero);
         for (i = s1; i <= e1; i++) {
           const prevChild = nodes[i]!;
           if (patched >= toBePatched) {
@@ -227,7 +228,13 @@ export const For = <T extends unknown>({
     });
     return [
       () => {
+        // Apply all the cleanup functions in the reversed order.
+        for (let i = nodes.length - 1; i >= 0; i--) {
+          nodes[i][1]![0]();
+        }
+        // Unsubscribe `of`.
         cleanup();
+        // Remove all DOM nodes in the comment range.
         removeRange();
       },
       undefined,
