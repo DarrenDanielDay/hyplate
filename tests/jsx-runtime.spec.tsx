@@ -103,12 +103,13 @@ describe("jsx-runtime.ts", () => {
         }
       }
       class ClassComponent4 extends Component {
-        static shadowRootInit?: Omit<ShadowRootInit, "mode"> | undefined = {
-          slotAssignment: "manual",
-        };
         static tag: string = this.defineAs("test-class-component-4");
         render(): JSX.Element {
-          return <div></div>;
+          return (
+            <div>
+              <slot name="foo"></slot>
+            </div>
+          );
         }
       }
       const ref1 = jsxRef<ClassComponent1>();
@@ -150,6 +151,11 @@ describe("jsx-runtime.ts", () => {
                 }}
               </ClassComponent3>
               {element(ClassComponent4.tag)}
+              <ClassComponent4>
+                {{
+                  foo: undefined,
+                }}
+              </ClassComponent4>
             </>
           );
         }

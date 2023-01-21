@@ -4,7 +4,14 @@ import { mount, unmount } from "../dist/jsx-runtime";
 import { basedOnURL, contextFactory, pure, replaced, shadowed, template } from "../dist/template";
 import type { HyplateElement, Mountable } from "../dist/types";
 import { noop } from "../dist/util";
+import { mock, reset } from "./slot-mock";
 describe("template.ts", () => {
+  beforeAll(() => {
+    mock();
+  });
+  afterAll(() => {
+    reset();
+  });
   describe("template", () => {
     it("should create template element with text", () => {
       const t1 = template(`<div>1</div><div>2</div>`);
@@ -17,18 +24,18 @@ describe("template.ts", () => {
       expect(t1).toBe(t);
     });
   });
-  describe("shallowed", () => {
+  describe("shadowed", () => {
     beforeEach(() => {
       document.body.innerHTML = "";
     });
     afterEach(() => {
       document.body.innerHTML = "";
     });
-    it("should create shadow root", () => {
-      const App = shadowed(`<div>1</div><div>2</div><div>3</div>`)(noop, "shadow-element-1");
+    it("should create shadow root with given tag", () => {
+      const App = shadowed(`<div>1</div><div>2</div><div>3</div>`)(noop, "span");
       const [cleanup, , getRange] = mount(App({}), appendChild(document.body));
       const el = document.body.children[0];
-      expect(el.tagName.toLowerCase()).toBe("shadow-element-1");
+      expect(el.tagName.toLowerCase()).toBe("span");
       expect(el.shadowRoot).toBeTruthy();
       expect(getRange()).toStrictEqual([el, el]);
       cleanup();
@@ -80,9 +87,9 @@ describe("template.ts", () => {
     it("should define readonly `exposed` property", () => {
       const Comopnent = shadowed(``)(() => {
         return {};
-      }, "test-exposed");
+      });
       const [unmount, exposed] = mount(Comopnent({}), appendChild(document.body));
-      const el = document.querySelector<HyplateElement<unknown>>("test-exposed")!;
+      const el = document.body.lastChild as HyplateElement<unknown>;
       expect(el.exposed).toBe(exposed);
       expect(() => {
         // @ts-expect-error readonly property
@@ -160,6 +167,13 @@ describe("template.ts", () => {
       const App = replaced<"slot1">(`<span>1</span><span>2</span><slot name="slot1">fallback</slot>`)();
       const rendered = mount(App({ children: {} }), appendChild(document.body));
       expect(document.body.textContent).toBe("12fallback");
+      unmount(rendered);
+    });
+    it("should wrap contents with wrapper element if provided", () => {
+      const App = replaced(`content`)(undefined, "div");
+      const rendered = mount(App({}), appendChild(document.body));
+      expect(document.body.textContent).toBe("content");
+      expect(document.body.innerHTML).toBe("<div>content</div>");
       unmount(rendered);
     });
   });

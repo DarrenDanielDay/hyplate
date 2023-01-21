@@ -39,7 +39,7 @@ const FACTORY = "f";
 const FRAGMENT = "d";
 const FIRST_CHILD = "c";
 const NEXT_SIBLIING = "n";
-const PURE = "r";
+const PURE = "p";
 const BASE_URL = "b";
 const TO_URL = "u";
 

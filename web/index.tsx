@@ -1,4 +1,4 @@
-import { replaced } from "../dist/template.js";
+import { replaced, shadowed } from "../dist/template.js";
 import count from "./components/count/count.template.js";
 import { useCleanUp, useChildView } from "../dist/hooks.js";
 import { enableBuiltinStore, query, source } from "../dist/store.js";
@@ -8,7 +8,6 @@ import { Component, jsxRef, mount, unmount } from "../dist/jsx-runtime.js";
 import { $attr, $text } from "../dist/binding.js";
 import { useBinding } from "../dist/toolkit.js";
 import { LifecycleCallbacks } from "hyplate/types.js";
-
 enableBuiltinStore();
 class CountComponent extends Component<{ msg: string }, "insert-here"> implements LifecycleCallbacks {
   public static shadowRootInit?: Omit<ShadowRootInit, "mode"> | undefined = {
@@ -74,13 +73,15 @@ function main() {
     ctx.refs.msg.textContent = "";
     useCleanUp($text`you clicked ${counter} times.`(appendChild(ctx.refs.msg)));
   });
-  const App = replaced<"world">(t1)(({ user }: { user: string }) => {
+  const App = shadowed(t1, (f) => ({
+    addButton: anchor(f, "add")!,
+    doubleContainer: anchor(f, "double")!,
+    oddDisabledBtn: anchor(f, "odd-disabled")!,
+  }))(({ user }: { user: string }, { addButton, oddDisabledBtn, doubleContainer }) => {
     const count = source(0);
     const double = query(() => count.val * 2);
-    const addButton = select("button.add-btn")!;
-    const oddDisabledBtn = anchor(document.body, "odd-disabled")!;
     useCleanUp($text`${user} clicked ${count} times.`(appendChild(addButton)));
-    useCleanUp($text`double of count: ${double}`(appendChild(anchor(document.body, "double")!)));
+    useCleanUp($text`double of count: ${double}`(appendChild(doubleContainer)));
     const disabled = query(() => count.val % 2 === 1);
     useCleanUp($attr(oddDisabledBtn, "disabled", disabled));
     useBinding(addButton).event("click", () => {

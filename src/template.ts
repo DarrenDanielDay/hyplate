@@ -6,11 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { access, before, clone, element, remove } from "./core.js";
-import { anonymousElement, define } from "./custom-elements.js";
 import { createHooks, enterHooks, quitHooks } from "./hooks.js";
 import { addCleanUp, isTemplate } from "./internal.js";
 import { mount } from "./jsx-runtime.js";
-import { insertSlotMap, slotName } from "./slot.js";
+import { assignSlotMap } from "./slot.js";
 import type {
   CleanUpFunc,
   ContextFactory,
@@ -23,47 +22,42 @@ import { applyAll, applyAllStatic, defineProp, fori, isFunction, once, patch } f
 export const template = (input: string | HTMLTemplateElement): HTMLTemplateElement =>
   isTemplate(input) ? input : patch(element("template"), { innerHTML: input });
 
-let templateId = 0;
-const templateName = (name: string | undefined) => name ?? `hype-${templateId++}`;
 // @ts-expect-error generic overload
 export const shadowed: FunctionalComponentTemplateFactory = (input, contextFactory) => {
   const t = template(input);
-  return (setup, name) => {
-    const elementTag = templateName(name);
-    const slotTag = slotName(elementTag);
-    define(elementTag, anonymousElement());
-    define(slotTag, anonymousElement());
+  return (setup, wrapper) => {
+    const elementTag = wrapper ?? "div";
     return (props) => (attach) => {
       const localCleanups: CleanUpFunc[] = [];
       const slots = props.children;
       // @ts-expect-error dynamic created element
-      const owner: HyplateElement<unknown> = element(elementTag);
-      attach(owner);
-      const shadow = owner.attachShadow({ mode: "open" });
+      const host: HyplateElement<unknown> = element(elementTag);
+      attach(host);
+      const shadow = host.attachShadow({ mode: "open", slotAssignment: "manual" });
       const fragment = clone(t.content);
       const context = contextFactory?.(fragment)!;
       shadow.appendChild(fragment);
       if (slots) {
-        insertSlotMap(mount, owner, slots, slotTag, localCleanups);
+        assignSlotMap(mount, host, slots, localCleanups);
       }
       const hooks = createHooks(localCleanups);
       enterHooks(hooks);
       const exposed = setup?.(props as never, context) as never;
       quitHooks();
-      defineProp(owner, "exposed", {
+      defineProp(host, "exposed", {
         value: exposed,
       });
       const unmount = once(() => {
         applyAll(localCleanups);
       });
-      return [unmount, exposed, () => [owner, owner]];
+      return [unmount, exposed, () => [host, host]];
     };
   };
 };
 // @ts-expect-error generic overload
 export const replaced: FunctionalComponentTemplateFactory = (input, contextFactory) => {
   const t = template(input);
-  return (setup) => {
+  return (setup, wrapper) => {
     return (options) => (attach) => {
       const localCleanups: CleanUpFunc[] = [];
       const slots = options.children;
@@ -87,9 +81,16 @@ export const replaced: FunctionalComponentTemplateFactory = (input, contextFacto
           remove(slot);
         });
       }
-      const begin = fragment.firstChild;
-      const end = fragment.lastChild;
-      attach(fragment);
+      let host: Node, begin: Node | null, end: Node | null;
+      if (wrapper) {
+        host = begin = end = element(wrapper);
+        host.appendChild(fragment);
+      } else {
+        host = fragment;
+        begin = fragment.firstChild;
+        end = fragment.lastChild;
+      }
+      attach(host);
       const hooks = createHooks(localCleanups);
       enterHooks(hooks);
       const exposed = setup?.(options as never, context) as never;

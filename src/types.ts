@@ -211,7 +211,7 @@ export type ContextFactory<Context extends {}> = (fragment: DocumentFragment) =>
 
 export type ContextSetupFactory<Context extends {}, S extends SlotMap> = <P extends PropsBase, E extends ExposeBase>(
   setup?: (props: P, context: Context) => E,
-  name?: string
+  wrapper?: keyof HTMLElementTagNameMap
 ) => FunctionalComponent<P, undefined | S, E>;
 
 export interface TemplateContext<R> {
@@ -221,7 +221,7 @@ export interface TemplateContext<R> {
 export interface FunctionalComponentTemplateFactory {
   <S extends string = never>(input: string | HTMLTemplateElement): <P extends PropsBase, E extends ExposeBase>(
     setup?: (props: P) => E,
-    name?: string
+    wrapper?: keyof HTMLElementTagNameMap
   ) => FunctionalComponent<P, undefined | SlotMap<S>, E>;
   <S extends SlotMap, Context extends {}>(
     input: string | HTMLTemplateElement,
