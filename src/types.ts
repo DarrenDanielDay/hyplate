@@ -238,7 +238,7 @@ export type AttachFunc = (el: Node) => void;
 
 export type GetRange = () => readonly [Node, Node] | undefined | void;
 
-export type Rendered<E extends ExposeBase> = [unmount: CleanUpFunc, exposed: E, range: GetRange];
+export type Rendered<E extends ExposeBase> = [cleanup: CleanUpFunc, exposed: E, getRange: GetRange];
 
 export type BindingHost<T extends Element> = {
   attr<P extends keyof AttributesMap<T>>(name: P, subscribable: Subscribable<AttributesMap<T>[P]>): BindingHost<T>;

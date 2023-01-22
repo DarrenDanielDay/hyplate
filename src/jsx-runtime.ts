@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { $attr, $text, isSubscribable } from "./binding.js";
-import { appendChild, attr, listen, docFragment, element, svg, delegate, removeRange } from "./core.js";
+import { appendChild, attr, listen, fragment, element, svg, delegate, removeRange } from "./core.js";
 import { anonymousElement, define } from "./custom-elements.js";
 import { addCleanUp, isFragment, isNode, reflection } from "./internal.js";
 import { assignSlotMap, insertSlotMap, slotName } from "./slot.js";
@@ -188,9 +188,9 @@ export const jsxRef = <E extends {}>(): Later<E> => ({
 
 export const Fragment: FunctionalComponent<{}, JSXChildNode | undefined> = ({ children }) => {
   return (attach) => {
-    const fragment = docFragment();
-    const [cleanups, getRange] = children ? renderChild(children, appendChild(fragment)) : [[], noop];
-    attach(fragment);
+    const f = fragment();
+    const [cleanups, getRange] = children ? renderChild(children, appendChild(f)) : [[], noop];
+    attach(f);
     return [applyAllStatic(cleanups), void 0, getRange];
   };
 };

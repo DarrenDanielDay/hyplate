@@ -24,7 +24,7 @@ export const text = /* #__PURE__ */ doc.createTextNode.bind(doc);
 export const svg: <K extends keyof SVGElementTagNameMap>(name: K) => SVGElementTagNameMap[K] = (name) =>
   doc.createElementNS("http://www.w3.org/2000/svg", name);
 
-export const docFragment = /* #__PURE__ */ doc.createDocumentFragment.bind(doc);
+export const fragment = /* #__PURE__ */ doc.createDocumentFragment.bind(doc);
 
 export const clone = <N extends Node>(node: N): N => node.cloneNode(true) as N;
 

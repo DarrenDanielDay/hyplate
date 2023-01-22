@@ -9,7 +9,7 @@ import {
   before,
   listen,
   clone,
-  docFragment,
+  fragment,
   element,
   moveRange,
   remove,
@@ -38,9 +38,9 @@ describe("core.ts", () => {
     });
   });
 
-  describe("docFragment", () => {
+  describe("fragment", () => {
     it("should create document fragment", () => {
-      expect(docFragment()).toBeInstanceOf(DocumentFragment);
+      expect(fragment()).toBeInstanceOf(DocumentFragment);
     });
   });
 
