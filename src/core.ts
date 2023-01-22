@@ -16,6 +16,7 @@ import type {
 } from "./types.js";
 import { arrayFrom, err, fori, isString, push } from "./util.js";
 import { comment, doc } from "./internal.js";
+export { comment } from "./internal.js";
 
 export const element = /* #__PURE__ */ doc.createElement.bind(doc);
 
