@@ -107,7 +107,7 @@ const initAsZero = () => 0;
 export const For = <T extends unknown>({
   of,
   children,
-}: Props<ForProps<T>, (item: T) => JSX.Element>): Mountable<void> => {
+}: Props<ForProps<T>, (item: T) => Mountable<any>>): Mountable<void> => {
   if (__DEV__) {
     if (!isFunction(children)) {
       err("Invalid `children` of `For` directive. Expected to be a function.");
