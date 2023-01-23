@@ -121,7 +121,7 @@ export const jsx: JSXFactory = (
         currentElementFactory = svg;
       }
       //#endregion
-      const el = currentElementFactory(type, "is" in props && isString(props.is) ? { is: props.is } : undefined);
+      const el = currentElementFactory(type, "is" in props && isString(props.is) ? { is: props.is } : void 0);
       if (isForeignObject) {
         currentElementFactory = element;
       }

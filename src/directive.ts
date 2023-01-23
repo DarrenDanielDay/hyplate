@@ -237,7 +237,7 @@ export const For = <T extends unknown>({
         // Remove all DOM nodes in the comment range.
         removeRange();
       },
-      undefined,
+      void 0,
       () => [begin, end],
     ];
   };
