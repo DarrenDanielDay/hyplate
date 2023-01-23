@@ -358,7 +358,11 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
    * The unmount steps.
    */
   public unmount(): void {
-    applyAll(this.cleanups);
+    if (this.#rendered) {
+      applyAll(this.cleanups);
+      this.shadowRoot.innerHTML = "";
+      this.#rendered = void 0;
+    }
   }
   #attach(attach?: AttachFunc | undefined): Rendered<this> {
     const rendered = (this.#rendered = [() => this.unmount(), this, () => [this, this]]);
