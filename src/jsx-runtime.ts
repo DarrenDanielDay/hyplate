@@ -27,6 +27,7 @@ import type {
   Renderer,
   JSXFactory,
   ShadowRootConfig,
+  Mountable,
 } from "./types.js";
 import {
   applyAll,
@@ -316,7 +317,10 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
     this.props = others;
     this.#children = children;
   }
-  public abstract render(): JSX.Element;
+  /**
+   * The render function, should behave like the functional component.
+   */
+  public abstract render(): Mountable<any>;
   /**
    * The mount steps. Manually assign the slots or insert named slots,
    * and then attach the component instance to the parent view.
