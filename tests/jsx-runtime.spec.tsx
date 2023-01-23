@@ -10,6 +10,7 @@ import type {
   Later,
   Mountable,
   ObjectEventHandler,
+  OnConnected,
   Rendered,
 } from "../dist/types";
 import { noop } from "../dist/util";
@@ -480,8 +481,38 @@ describe("jsx-runtime.ts", () => {
     });
   });
   describe("Component", () => {
+    beforeEach(() => {
+      document.body.innerHTML = "";
+    });
+    afterEach(() => {
+      document.body.innerHTML = "";
+    });
     it("should have no observed attributes", () => {
       expect(Component.observedAttributes ?? []).toStrictEqual([]);
+    });
+    it("should not perform mount more than once", () => {
+      class AutoMount extends Component implements OnConnected {
+        static tag: string = this.defineAs("test-auto-mount");
+        render() {
+          return <div>auto mount</div>;
+        }
+        connectedCallback(): void {
+          this.mount();
+        }
+      }
+      // basic usage
+      const container = element("div");
+      document.body.appendChild(container);
+      const rendered = mount(<AutoMount />, container);
+      expect(container.firstElementChild?.shadowRoot?.innerHTML).toBe("<div>auto mount</div>");
+      unmount(rendered);
+      expect(container.firstElementChild).toBeNull();
+      // use it as web component
+      // const el = element(AutoMount.tag);
+      // expect(el.shadowRoot).toBeFalsy();
+      // container.appendChild(el);
+      // expect(container.firstElementChild?.shadowRoot?.innerHTML).toBe("<div>auto mount</div>");
+      // expect(el.shadowRoot).toBeTruthy();
     });
   });
 });

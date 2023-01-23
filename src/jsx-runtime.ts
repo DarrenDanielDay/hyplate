@@ -28,7 +28,18 @@ import type {
   JSXFactory,
   ShadowRootConfig,
 } from "./types.js";
-import { applyAll, applyAllStatic, fori, isArray, isFunction, isObject, isString, noop, push, __DEV__ } from "./util.js";
+import {
+  applyAll,
+  applyAllStatic,
+  fori,
+  isArray,
+  isFunction,
+  isObject,
+  isString,
+  noop,
+  push,
+  __DEV__,
+} from "./util.js";
 
 export const mount: Renderer = (element, onto): Rendered<any> => {
   const attach = isNode(onto) ? appendChild(onto) : onto;
@@ -160,7 +171,7 @@ export const jsx: JSXFactory = (
     return (attach) => {
       // @ts-expect-error Dynamic Implementation
       const instance: Component = new type(props);
-      return instance.mount(attach, type);
+      return instance.mount(attach);
     };
   }
   const { ref, ...otherProps } = props;
@@ -257,15 +268,14 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
    * Initialized in `setup`.
    */
   public props!: P;
-  /**
-   * @internal
-   */
-  public $children: SlotMap<S> | undefined;
   public slots: Reflection<S> = reflection;
   public cleanups: CleanUpFunc[] = [];
+  #children: SlotMap<S> | undefined;
+  #rendered: Rendered<this> | undefined;
+  #newTarget: typeof Component<any, any>;
   public constructor(props?: Props<P, SlotMap<S> | undefined, {}>) {
     super();
-    const newTarget = new.target;
+    const newTarget = (this.#newTarget = new.target);
     // @ts-expect-error cannot use `this` for Exposed
     this.setup(props ?? newTarget.defaultProps);
   }
@@ -304,17 +314,21 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
       ref.current = this;
     }
     this.props = others;
-    this.$children = children;
+    this.#children = children;
   }
   public abstract render(): JSX.Element;
   /**
    * The mount steps. Manually assign the slots or insert named slots,
    * and then attach the component instance to the parent view.
    * @param attach the attach function
-   * @param newTarget the constructor
    * @returns rendered result
    */
-  public mount(attach: AttachFunc, newTarget: typeof Component): Rendered<this> {
+  public mount(attach?: AttachFunc): Rendered<this> {
+    const rendered = this.#rendered;
+    if (rendered) {
+      return rendered;
+    }
+    const newTarget = this.#newTarget;
     const { tag, shadowRootInit } = newTarget;
     const slotAssignment = shadowRootInit?.slotAssignment;
     const shadow = this.attachShadow({
@@ -323,17 +337,17 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
     });
     const [cleanup] = mount(this.render(), shadow);
     addCleanUp(this.cleanups, cleanup);
-    const children = this.$children;
+    const children = this.#children;
     if (!children) {
       return this.#attach(attach);
     }
-    // Free the slot map object since it will never be used again.
-    delete this.$children;
     if (slotAssignment === "manual") {
       assignSlotMap(mount, this, children, this.cleanups);
     } else {
       insertSlotMap(mount, this, children, newTarget.slotTag ?? slotName(tag), this.cleanups);
     }
+    // Free the slot map object since it will never be used again.
+    this.#children = void 0;
     return this.#attach(attach);
   }
   /**
@@ -342,8 +356,9 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
   public unmount(): void {
     applyAll(this.cleanups);
   }
-  #attach(attach: AttachFunc): Rendered<this> {
-    attach(this);
-    return [() => this.unmount(), this, () => [this, this]];
+  #attach(attach?: AttachFunc | undefined): Rendered<this> {
+    const rendered = (this.#rendered = [() => this.unmount(), this, () => [this, this]]);
+    attach?.(this);
+    return rendered;
   }
 }
