@@ -328,7 +328,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
    * @returns rendered result
    */
   public mount(attach?: AttachFunc): Rendered<this> {
-    const rendered = this.#rendered;
+    let rendered = this.#rendered;
     if (rendered) {
       return rendered;
     }
@@ -342,17 +342,18 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
     const [cleanup] = mount(this.render(), shadow);
     addCleanUp(this.cleanups, cleanup);
     const children = this.#children;
-    if (!children) {
-      return this.#attach(attach);
+    if (children) {
+      if (slotAssignment === "manual") {
+        assignSlotMap(mount, this, children, this.cleanups);
+      } else {
+        insertSlotMap(mount, this, children, newTarget.slotTag ?? slotName(tag), this.cleanups);
+      }
+      // Free the slot map object since it will never be used again.
+      this.#children = void 0;
     }
-    if (slotAssignment === "manual") {
-      assignSlotMap(mount, this, children, this.cleanups);
-    } else {
-      insertSlotMap(mount, this, children, newTarget.slotTag ?? slotName(tag), this.cleanups);
-    }
-    // Free the slot map object since it will never be used again.
-    this.#children = void 0;
-    return this.#attach(attach);
+    rendered = this.#rendered = [() => this.unmount(), this, () => [this, this]];
+    attach?.(this);
+    return rendered;
   }
   /**
    * The unmount steps.
@@ -363,10 +364,5 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
       this.shadowRoot.innerHTML = "";
       this.#rendered = void 0;
     }
-  }
-  #attach(attach?: AttachFunc | undefined): Rendered<this> {
-    const rendered = (this.#rendered = [() => this.unmount(), this, () => [this, this]]);
-    attach?.(this);
-    return rendered;
   }
 }
