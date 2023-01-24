@@ -9,7 +9,7 @@ import { $attr, $content, $text } from "./binding.js";
 import { appendChild, delegate, listen } from "./core.js";
 import { useCleanUpCollector } from "./hooks.js";
 import type { Component } from "./jsx-runtime.js";
-import type { BindingHost, ClassComponentStatic, Differ } from "./types.js";
+import type { AttachFunc, AttributesMap, BindingHost, BindingPattern, ClassComponentStatic, DelegateHost, Differ, EventHost, Events, EventType, FunctionalEventHanlder, Handler, Subscribable, TextInterpolation } from "./types.js";
 import { defineProp, isObject, patch, strictEqual } from "./util.js";
 
 export const alwaysDifferent: Differ = () => false;
@@ -27,33 +27,42 @@ export const deepDiffer: Differ = (a, b) => {
   return aKeys.every((key) => bKeys.has(key) && deepDiffer(Reflect.get(a, key), Reflect.get(b, key)));
 };
 
+class BindingHostImpl<T extends Element> implements BindingHost<T> {
+  #el: T;
+  #collect = useCleanUpCollector();
+  #event: EventHost<T>;
+  #delegate: DelegateHost<T>;
+  #attach: AttachFunc;
+  constructor(el: T) {
+    this.#el = el;
+    this.#attach = appendChild(el);
+    this.#event = listen(el);
+    this.#delegate = delegate(el);
+  }
+  attr<P extends keyof AttributesMap<T>>(name: P, subscribable: Subscribable<AttributesMap<T>[P]>): BindingHost<T> {
+    this.#collect($attr(this.#el, name, subscribable));
+    return this;
+  }
+  content(subscribable: Subscribable<TextInterpolation>): BindingHost<T> {
+    this.#collect($content(this.#el, subscribable));
+    return this;
+  }
+  delegate<E extends Events<T>>(name: E, handler: FunctionalEventHanlder<T, EventType<T, E>>): BindingHost<T> {
+    this.#collect(this.#delegate(name, handler));
+    return this;
+  }
+  event<E extends Events<T>>(name: E, handler: Handler<T, E>, options?: boolean | EventListenerOptions): BindingHost<T> {
+    this.#collect(this.#event(name, handler, options));
+   return this; 
+  }
+  text(fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]): BindingHost<T> {
+    this.#collect($text(fragments, ...bindings)(this.#attach));
+    return this;
+  }
+}
+
 export const useBinding = <T extends Element>(el: T): BindingHost<T> => {
-  const registerCleanUp = useCleanUpCollector();
-  const eventHost = listen(el);
-  const delegateHost = delegate(el);
-  const bindings: BindingHost<T> = {
-    attr: (name, subscribable) => {
-      registerCleanUp($attr(el, name, subscribable));
-      return bindings;
-    },
-    content: (subscribable) => {
-      registerCleanUp($content(el, subscribable));
-      return bindings;
-    },
-    delegate: (name, handler) => {
-      registerCleanUp(delegateHost(name, handler));
-      return bindings;
-    },
-    event: (name, handler, options?) => {
-      registerCleanUp(eventHost(name, handler, options));
-      return bindings;
-    },
-    text: (fragments, ...bindingPatterns) => {
-      registerCleanUp($text(fragments, ...bindingPatterns)(appendChild(el)));
-      return bindings;
-    },
-  };
-  return bindings;
+  return new BindingHostImpl(el);
 };
 
 export const component = (options: ClassComponentStatic) => (ctor: typeof Component<any, any>) => {
