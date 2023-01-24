@@ -65,12 +65,11 @@ export const listen =
     };
   };
 
-let delegatedEvents: Set<string> | undefined;
-
 export const delegate =
   <T extends Element>(el: T): DelegateHost<T> =>
   (event, handler) => {
-    if (!(delegatedEvents ??= new Set<string>()).has(event)) {
+    const delegatedEvents = (el.ownerDocument.$$delegates ??= new Set<string>());
+    if (!delegatedEvents.has(event)) {
       delegatedEvents.add(event);
       doc.addEventListener(event, globalDelegateEventHandler);
     }

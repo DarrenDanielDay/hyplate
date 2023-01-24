@@ -120,6 +120,13 @@ declare global {
   interface EventTarget {
     [handler: `_${string}`]: FunctionalEventHanlder<EventTarget, Event>;
   }
+  interface Document {
+    /**
+     * @internal
+     * This is the internal type declaration for event delegate mode.
+     */
+    $$delegates: Set<string> | undefined;
+  }
 }
 
 export type EventHost<T extends EventTarget> = <E extends Events<T>>(
