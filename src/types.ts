@@ -59,7 +59,13 @@ export type AttributeInterpolation = string | number | boolean | undefined | nul
 
 export type AttributePattern = `attr:${string}`;
 
-export type AttributesMap<T> = AttributeEntries extends infer P ? (P extends [T, infer A] ? A : never) : never;
+export type AttributesMap<T> = AttributeEntries extends infer P
+  ? P extends [infer E extends T, infer A]
+    ? T extends E
+      ? A
+      : never
+    : never
+  : never;
 
 export type EventMap<T extends EventTarget> = T extends HTMLElement
   ? HTMLElementEventMap
@@ -1127,6 +1133,280 @@ export interface HTMLVideoElementAttributes extends GlobalAttributes, SizeOption
 }
 //#endregion
 
+//#region MathML
+
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/MathML/Global_attributes
+ */
+export interface MathMLGlobalAttributes {
+  class: string;
+  dir: EnumeratedValues<"ltr" | "rtl">;
+  displaystyle: BooleanAttributeValue;
+  id: string;
+  mathbackground: string;
+  mathcolor: string;
+  mathsize: string;
+  mathvariant: EnumeratedValues<
+    | "normal"
+    | "bold"
+    | "italic"
+    | "bold-italic"
+    | "double-struck"
+    | "bold-fraktur"
+    | "script"
+    | "bold-script"
+    | "fraktur"
+    | "sans-serif"
+    | "bold-sans-serif"
+    | "sans-serif-italic"
+    | "sans-serif-bold-italic"
+    | "monospace"
+    | "initial"
+    | "tailed"
+    | "looped"
+    | "stretched"
+  >;
+  nonce: string;
+  scriptlevel: `${"+" | "-" | ""}${number}`;
+  style: string;
+  tabindex: NumericAttributeValue;
+}
+
+/**
+ * `<math>`
+ */
+export interface MathElementAttributes extends MathMLGlobalAttributes {
+  display: EnumeratedValues<"block" | "inline">;
+}
+
+//#region Token elements
+
+/**
+ * `<mi>`
+ */
+export interface MathIdentifierAttributes extends MathMLGlobalAttributes {}
+
+/**
+ * `<mn>`
+ */
+export interface MathNumericAttributes extends MathMLGlobalAttributes {}
+
+/**
+ * `<mo>`
+ */
+export interface MathOperatorAttributes extends MathMLGlobalAttributes {
+  fence: BooleanAttributeValue;
+  largeop: BooleanAttributeValue;
+  lspace: string;
+  maxsize: string;
+  minsize: string;
+  movablelimits: BooleanAttributeValue;
+  rspace: string;
+  separator: BooleanAttributeValue;
+  stretchy: BooleanAttributeValue;
+  symmetric: BooleanAttributeValue;
+}
+
+/**
+ * `<ms>`
+ */
+export interface MathStringAttributes extends MathMLGlobalAttributes {
+  /**
+   * @deprecated
+   */
+  lquote: string;
+  /**
+   * @deprecated
+   */
+  rquote: string;
+}
+
+/**
+ * `<mspace>`
+ */
+export interface MathSpaceAttributes extends MathMLGlobalAttributes {
+  depth: string;
+  height: string;
+  width: string;
+}
+
+/**
+ * `<mtext>`
+ */
+export interface MathTextAttributes extends MathMLGlobalAttributes {}
+
+//#endregion
+
+//#region General layout
+
+/**
+ * `<merror>`
+ */
+export interface MathErrorAttributes extends MathMLGlobalAttributes {}
+
+/**
+ * `<mfrac>`
+ */
+export interface MathFractionAttributes extends MathMLGlobalAttributes {
+  linethickness: string;
+}
+
+/**
+ * `<mpadded>`
+ */
+export interface MathPaddedAttributes extends MathMLGlobalAttributes {
+  depth: string;
+  height: string;
+  lspace: string;
+  voffset: string;
+  width: string;
+}
+
+/**
+ * `<mphantom>`
+ */
+export interface MathPhantomAttributes extends MathMLGlobalAttributes {}
+
+/**
+ * `<mroot>`
+ */
+export interface MathRootAttributes extends MathMLGlobalAttributes {}
+
+/**
+ * `<mrow>`
+ */
+export interface MathRowAttributes extends MathMLGlobalAttributes {}
+/**
+ * `<msqrt>`
+ */
+export interface MathSquareRootAttributes extends MathMLGlobalAttributes {}
+/**
+ * `<mstyle>`
+ */
+export interface MathStyleAttributes extends MathMLGlobalAttributes {}
+
+//#endregion
+
+//#region Script and limit elements
+
+/**
+ * `<mmultiscripts>`
+ */
+export interface MathMultipleScriptsAttributes extends MathMLGlobalAttributes {}
+
+/**
+ * `<mover>`
+ */
+export interface MathOverAttributes extends MathMLGlobalAttributes {
+  accent: BooleanAttributeValue;
+}
+
+/**
+ * `<mprescripts>`
+ */
+export interface MathPrescriptAttributes extends MathMLGlobalAttributes {}
+/**
+ * `<msub>`
+ */
+export interface MathSubscriptAttributes extends MathMLGlobalAttributes {}
+/**
+ * `<msubsup>`
+ */
+export interface MathSubscriptAndSuperscriptAttributes extends MathMLGlobalAttributes {}
+
+/**
+ * `<msup>`
+ */
+export interface MathSuperscriptAttributes extends MathMLGlobalAttributes {}
+
+/**
+ * `<munder>`
+ */
+export interface MathUnderAttributes extends MathMLGlobalAttributes {
+  accentunder: BooleanAttributeValue;
+}
+
+/**
+ * `<munderover>`
+ */
+export interface MathUnderAndOverAttributes extends MathMLGlobalAttributes {
+  accent: BooleanAttributeValue;
+  accentunder: BooleanAttributeValue;
+}
+
+//#endregion
+
+//#region Tabular math
+
+/**
+ * `<mtable>`
+ */
+export interface MathTableAttributes extends MathMLGlobalAttributes {}
+
+/**
+ * `<mtd>`
+ */
+export interface MathTableCellAttributes extends MathMLGlobalAttributes {}
+
+/**
+ * `<mtr>`
+ */
+export interface MathTableRowAttributes extends MathMLGlobalAttributes {
+  columnspan: NumericAttributeValue;
+  rowspan: NumericAttributeValue;
+}
+
+//#endregion
+
+//#region Semantic annotations
+
+/**
+ * `<annotation>`, `<annotation-xml>`, `<semantics>`
+ */
+export interface MathSemanticsAttributes extends MathMLGlobalAttributes {
+  encoding: EnumeratedValues<
+    | "application/mathml-presentation+xml"
+    | "MathML-Presentation"
+    | "SVG1.1"
+    | "text/html"
+    | "image/svg+xml"
+    | "application/xml"
+  >;
+}
+
+export interface MathMLElementAllAttributes
+  extends MathMLGlobalAttributes,
+    MathSemanticsAttributes,
+    MathElementAttributes,
+    MathErrorAttributes,
+    MathFractionAttributes,
+    MathIdentifierAttributes,
+    MathMultipleScriptsAttributes,
+    MathNumericAttributes,
+    MathOperatorAttributes,
+    MathOverAttributes,
+    MathPaddedAttributes,
+    MathPhantomAttributes,
+    MathRootAttributes,
+    MathRowAttributes,
+    MathStringAttributes,
+    MathSpaceAttributes,
+    MathSquareRootAttributes,
+    MathStyleAttributes,
+    MathSubscriptAttributes,
+    MathSubscriptAndSuperscriptAttributes,
+    MathSuperscriptAttributes,
+    MathTableAttributes,
+    MathTableCellAttributes,
+    MathTextAttributes,
+    MathTableRowAttributes,
+    MathUnderAttributes,
+    MathUnderAndOverAttributes {}
+
+//#endregion
+
+//#endregion
+
 //#region SVG shared attributes
 export interface SVGCoreAttributes {
   id: string;
@@ -2006,6 +2286,7 @@ type AttributeEntries =
   | [HTMLTrackElement, HTMLTrackElementAttributes]
   | [HTMLUListElement, GlobalAttributes]
   | [HTMLVideoElement, HTMLVideoElementAttributes]
+  | [MathMLElement, MathMLElementAllAttributes]
   | [SVGAElement, SVGAElementAttributes]
   | [SVGAnimateElement, SVGAnimateElementAttributes]
   | [SVGAnimateMotionElement, SVGAnimateMotionElementAttributes]
@@ -2071,7 +2352,6 @@ type AttributeEntries =
   | [SVGViewElement, SVGViewElementAttributes];
 
 //#endregion
-
 declare global {
   namespace JSX {
     type Element = Mountable<any>;
@@ -2221,6 +2501,36 @@ declare global {
       var: JSXAttributes<GlobalAttributes, HTMLElement>;
       video: JSXAttributes<HTMLVideoElementAttributes, HTMLVideoElement>;
       wbr: JSXAttributes<GlobalAttributes, HTMLElement>;
+    }
+    interface JSXMathMLElements {
+      annotation: JSXAttributes<MathSemanticsAttributes, MathMLElement>;
+      "annotation-xml": JSXAttributes<MathSemanticsAttributes, MathMLElement>;
+      math: JSXAttributes<MathElementAttributes, MathMLElement>;
+      merror: JSXAttributes<MathErrorAttributes, MathMLElement>;
+      mfrac: JSXAttributes<MathFractionAttributes, MathMLElement>;
+      mi: JSXAttributes<MathIdentifierAttributes, MathMLElement>;
+      mmultiscripts: JSXAttributes<MathMultipleScriptsAttributes, MathMLElement>;
+      mn: JSXAttributes<MathNumericAttributes, MathMLElement>;
+      mo: JSXAttributes<MathOperatorAttributes, MathMLElement>;
+      mover: JSXAttributes<MathOverAttributes, MathMLElement>;
+      mpadded: JSXAttributes<MathPaddedAttributes, MathMLElement>;
+      mphantom: JSXAttributes<MathPhantomAttributes, MathMLElement>;
+      mroot: JSXAttributes<MathRootAttributes, MathMLElement>;
+      mrow: JSXAttributes<MathRowAttributes, MathMLElement>;
+      ms: JSXAttributes<MathStringAttributes, MathMLElement>;
+      mspace: JSXAttributes<MathSpaceAttributes, MathMLElement>;
+      msqrt: JSXAttributes<MathSquareRootAttributes, MathMLElement>;
+      mstyle: JSXAttributes<MathStyleAttributes, MathMLElement>;
+      msub: JSXAttributes<MathSubscriptAttributes, MathMLElement>;
+      msubsup: JSXAttributes<MathSubscriptAndSuperscriptAttributes, MathMLElement>;
+      msup: JSXAttributes<MathSuperscriptAttributes, MathMLElement>;
+      mtable: JSXAttributes<MathTableAttributes, MathMLElement>;
+      mtd: JSXAttributes<MathTableCellAttributes, MathMLElement>;
+      mtext: JSXAttributes<MathTextAttributes, MathMLElement>;
+      mtr: JSXAttributes<MathTableRowAttributes, MathMLElement>;
+      munder: JSXAttributes<MathUnderAttributes, MathMLElement>;
+      munderover: JSXAttributes<MathUnderAndOverAttributes, MathMLElement>;
+      semantics: JSXAttributes<MathSemanticsAttributes, MathMLElement>;
     }
     interface JSXSVGElements {
       animate: JSXAttributes<SVGAnimateElementAttributes, SVGAnimateElement>;
