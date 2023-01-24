@@ -2607,7 +2607,7 @@ declare global {
       view: JSXAttributes<SVGViewElementAttributes, SVGViewElement>;
     }
 
-    interface IntrinsicElements extends JSXHTMLElements, JSXSVGElements {}
+    interface IntrinsicElements extends JSXHTMLElements, JSXSVGElements, JSXMathMLElements {}
 
     interface IntrinsicAttributes {
       children?: unknown;
