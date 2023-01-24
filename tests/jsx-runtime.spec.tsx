@@ -208,6 +208,60 @@ describe("jsx-runtime.ts", () => {
       expect(el).toBeInstanceOf(MySpan);
       expect(fn).toBeCalledTimes(1);
     });
+    it("should create MathML elements", () => {
+      const mathRef = jsxRef<MathMLElement>();
+      const createElementNSMock = import.meta.jest.spyOn(document, "createElementNS");
+      const rendered = mount(
+        <p>
+          The infinite sum
+          <math display="block" ref={mathRef}>
+            <mrow>
+              <munderover>
+                <mo>∑</mo>
+                <mrow>
+                  <mi>n</mi>
+                  <mo>=</mo>
+                  <mn>1</mn>
+                </mrow>
+                <mrow>
+                  <mo>+</mo>
+                  <mn>∞</mn>
+                </mrow>
+              </munderover>
+              <mfrac>
+                <mn>1</mn>
+                <msup>
+                  <mi>n</mi>
+                  <mn>2</mn>
+                </msup>
+              </mfrac>
+            </mrow>
+          </math>
+          is equal to the real number
+          <math display="inline">
+            <mfrac>
+              <msup>
+                <mi>π</mi>
+                <mn>2</mn>
+              </msup>
+              <mn>6</mn>
+            </mfrac>
+          </math>
+          .
+        </p>,
+        attach
+      );
+      expect(createElementNSMock).toHaveBeenCalledWith("http://www.w3.org/1998/Math/MathML", "math");
+      expect(createElementNSMock).toHaveBeenCalledWith("http://www.w3.org/1998/Math/MathML", "mfrac");
+      expect(createElementNSMock).toHaveBeenCalledWith("http://www.w3.org/1998/Math/MathML", "msup");
+      expect(createElementNSMock).toHaveBeenCalledWith("http://www.w3.org/1998/Math/MathML", "mi");
+      expect(createElementNSMock).toHaveBeenCalledWith("http://www.w3.org/1998/Math/MathML", "mo");
+      expect(createElementNSMock).toHaveBeenCalledWith("http://www.w3.org/1998/Math/MathML", "mrow");
+      expect(createElementNSMock).toHaveBeenCalledWith("http://www.w3.org/1998/Math/MathML", "munderover");
+      createElementNSMock.mockReset();
+      createElementNSMock.mockRestore();
+      unmount(rendered);
+    });
     it("should create nested svg element and have valid type", () => {
       const svgTitleRef = jsxRef<SVGTitleElement>();
       const documentTitleRef = jsxRef<SVGTitleElement>();
@@ -246,6 +300,7 @@ describe("jsx-runtime.ts", () => {
       expect(documentTitleRef.current).toBeInstanceOf(window.HTMLTitleElement);
       expect(documentTitleRef.current).not.toBeInstanceOf(window.SVGSVGElement);
     });
+
     it("should insert child node directly", () => {
       const el = element("span");
       el.textContent = "I'm here.";

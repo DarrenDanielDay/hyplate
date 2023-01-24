@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { $attr, $text, isSubscribable } from "./binding.js";
-import { appendChild, attr, listen, fragment, element, svg, delegate, removeRange } from "./core.js";
+import { appendChild, attr, listen, fragment, element, svg, delegate, removeRange, mathml } from "./core.js";
 import { anonymousElement, define } from "./custom-elements.js";
 import { addCleanUp, isFragment, isNode, reflection } from "./internal.js";
 import { assignSlotMap, insertSlotMap, slotName } from "./slot.js";
@@ -114,11 +114,15 @@ export const jsx: JSXFactory = (
       let lastElementFactory = currentElementFactory;
       const isSvg = type === "svg";
       const isForeignObject = type === "foreignObject";
-      const changnigFactory = isSvg || isForeignObject;
+      const isMath = type === 'math';
+      const changnigFactory = isSvg || isForeignObject || isMath;
       //#region enter svg creating scope
       if (isSvg) {
         // @ts-expect-error Skipped type check for svg children.
         currentElementFactory = svg;
+      }
+      if (isMath) {
+        currentElementFactory = mathml;
       }
       //#endregion
       const el = currentElementFactory(type, "is" in props && isString(props.is) ? { is: props.is } : void 0);
