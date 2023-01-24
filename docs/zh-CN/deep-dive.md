@@ -4,7 +4,7 @@
 
 你可以在`stackblitz`上尝试`Hyplate`：
 
-[![在StackBlitz中打开](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/DarrenDanielDay/hyplate/tree/main/examples/count)
+[![在StackBlitz中打开](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/DarrenDanielDay/hyplate/tree/main/example/count)
 
 本文中示例的代码大多都包含了所有必要的代码。你可以通过将其复制并全部替换`index.tsx`的内容来尝试运行。
 
