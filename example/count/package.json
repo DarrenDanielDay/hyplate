@@ -1,6 +1,6 @@
 {
   "name": "@hyplate/example-count",
-  "version": "0.1.0",
+  "version": "0.8.0",
   "description": "basic counter example for hyplate",
   "main": "index.js",
   "type": "module",
@@ -16,7 +16,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "hyplate": "^0.6.1"
+    "hyplate": "^0.8.0"
   },
   "devDependencies": {
     "concurrently": "^7.6.0",

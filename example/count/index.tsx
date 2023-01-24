@@ -1,5 +1,6 @@
 import { appendChild } from "hyplate/core";
-import { source as ref, query as computed, enableBuiltinStore } from "hyplate/store";
+import { mount } from "hyplate/jsx-runtime";
+import { source, query, enableBuiltinStore } from "hyplate/store";
 
 //#region
 // Configure the binding source and types
@@ -15,8 +16,8 @@ declare module "hyplate/types" {
 //#endregion
 
 const App = ({ msg }: { msg: string }) => {
-  const count = ref(0);
-  const doubleCount = computed(() => count.val * 2);
+  const count = source(0);
+  const doubleCount = query(() => count.val * 2);
   console.log("This function will only be executed once on `App` attach.");
   return (
     <div class="app">
@@ -36,4 +37,4 @@ const App = ({ msg }: { msg: string }) => {
   );
 };
 
-(<App msg="hyplate"></App>)(appendChild(document.body));
+mount(<App msg="hyplate"></App>, appendChild(document.body));
