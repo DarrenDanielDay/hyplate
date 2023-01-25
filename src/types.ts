@@ -71,6 +71,8 @@ export type EventMap<T extends EventTarget> = T extends HTMLElement
   ? HTMLElementEventMap
   : T extends SVGElement
   ? SVGElementEventMap
+  : T extends MathMLElement 
+  ? MathMLElementEventMap
   : T extends XMLHttpRequestEventTarget
   ? XMLHttpRequestEventMap
   : never;
