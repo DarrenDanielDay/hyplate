@@ -87,9 +87,9 @@ export interface ObjectEventHandler<E extends Event> {
   options?: EventHandlerOptions;
 }
 
-export type Handler<T extends EventTarget, E extends Extract<keyof EventMap<T>, string>> =
-  | FunctionalEventHanlder<T, EventType<T, E>>
-  | ObjectEventHandler<Extract<EventMap<T>[E], Event>>;
+export type Handler<T extends EventTarget, E extends Event> =
+  | FunctionalEventHanlder<T, E>
+  | ObjectEventHandler<E>;
 
 export type Events<T extends EventTarget> = Extract<keyof EventMap<T>, string>;
 
@@ -131,7 +131,7 @@ declare global {
 
 export type EventHost<T extends EventTarget> = <E extends Events<T>>(
   name: E,
-  handler: Handler<T, E>,
+  handler: Handler<T, EventType<T, E>>,
   options?: EventHandlerOptions
 ) => CleanUpFunc;
 
@@ -257,7 +257,7 @@ export type BindingHost<T extends Element> = {
   attr<P extends keyof AttributesMap<T>>(name: P, subscribable: Subscribable<AttributesMap<T>[P]>): BindingHost<T>;
   content(subscribable: Subscribable<TextInterpolation>): BindingHost<T>;
   delegate<E extends Events<T>>(name: E, handler: FunctionalEventHanlder<T, EventType<T, E>>): BindingHost<T>;
-  event<E extends Events<T>>(name: E, handler: Handler<T, E>, options?: boolean | EventListenerOptions): BindingHost<T>;
+  event<E extends Events<T>>(name: E, handler: Handler<T, EventType<T, E>>, options?: boolean | EventListenerOptions): BindingHost<T>;
   text(fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]): BindingHost<T>;
 };
 
@@ -2372,7 +2372,7 @@ declare global {
       [attribute: AttributePattern]: BindingPattern<AttributeInterpolation>;
     }
     type JSXEventHandlerAttributes<E extends globalThis.Element> = {
-      [K in Extract<keyof EventMap<E>, string> as `on${Capitalize<K>}`]?: Handler<E, K>;
+      [K in Extract<keyof EventMap<E>, string> as `on${Capitalize<K>}`]?: Handler<E, EventType<E, K>>;
     };
     type JSXDelegateHandlerAttributes<E extends globalThis.Element> = {
       [K in Extract<keyof EventMap<E>, string> as `on:${K}`]?: FunctionalEventHanlder<E, EventType<E, K>>;
@@ -2387,7 +2387,7 @@ declare global {
         /**
          * Custom event handlers.
          */
-        [event: EventPattern]: Handler<globalThis.Element, string>;
+        [event: EventPattern]: Handler<E, Event>;
         /**
          * Allow any custom attributes.
          */

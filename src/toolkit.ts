@@ -51,7 +51,7 @@ class BindingHostImpl<T extends Element> implements BindingHost<T> {
     this.#collect(this.#delegate(name, handler));
     return this;
   }
-  event<E extends Events<T>>(name: E, handler: Handler<T, E>, options?: boolean | EventListenerOptions): BindingHost<T> {
+  event<E extends Events<T>>(name: E, handler: Handler<T, EventType<T, E>>, options?: boolean | EventListenerOptions): BindingHost<T> {
     this.#collect(this.#event(name, handler, options));
    return this; 
   }
