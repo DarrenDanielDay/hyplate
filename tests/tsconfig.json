@@ -4,6 +4,7 @@
     "composite": true,
     "outDir": "../test-dist",
     "moduleResolution": "Node",
+    "strict": true,
     "jsx": "react-jsx",
     "jsxImportSource": "../dist",
     "preserveWatchOutput": true,

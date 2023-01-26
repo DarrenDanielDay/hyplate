@@ -499,6 +499,25 @@ describe("jsx-runtime.ts", () => {
       );
       expect(cleanup).not.toBe(noop);
     });
+    it("should not have type error", () => {
+      const submit = jsxRef<HTMLButtonElement>();
+      const onSubmit: (e: SubmitEvent) => void = noop;
+      const onClick: (e: Event) => void = noop;
+      interface MyCustomEvent extends Event {
+        foo: string;
+      }
+      const onCustomEvent: (e: MyCustomEvent) => void = noop;
+      const rendered = mount(
+        <div onSubmit={onSubmit} onClick={onClick} onCustom={onCustomEvent}>
+          <form>
+            <input name="foo" value="bar" type="hidden"></input>
+            <button type="sumbit" ref={submit}></button>
+          </form>
+        </div>,
+        attach
+      );
+      unmount(rendered);
+    });
   });
   describe("jsxs, h, createElement", () => {
     it("should be alias of jsx", () => {
