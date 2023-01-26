@@ -1,4 +1,6 @@
 # For this project
+/*.js
+!/*.config.js
 test-dist
 **/*.template.*
 !**/*.template.html

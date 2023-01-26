@@ -6,8 +6,9 @@
   "type": "module",
   "sideEffects": false,
   "scripts": {
-    "build": "npm run build:typescript && npm run build:browser && npm run build:test && npm run build:test-examples",
+    "build": "npm run build:typescript && npm run build:browser && npm run build:proxy && npm run build:test && npm run build:test-examples",
     "build:browser": "npx rollup --config rollup.config.js",
+    "build:proxy": "node ./scripts/proxy-exports.js",
     "build:test": "tsc -p ./tests/tsconfig.json",
     "build:test-examples": "node ./scripts/build-examples.js",
     "build:typescript": "ts-esmbuilder",
