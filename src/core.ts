@@ -71,10 +71,11 @@ export const listen =
 export const delegate =
   <T extends Element>(el: T): DelegateHost<T> =>
   (event, handler) => {
-    const delegatedEvents = (el.ownerDocument.$$delegates ??= new Set<string>());
+    const root = el.ownerDocument;
+    const delegatedEvents = (root.$$delegates ??= new Set<string>());
     if (!delegatedEvents.has(event)) {
       delegatedEvents.add(event);
-      doc.addEventListener(event, globalDelegateEventHandler);
+      root.addEventListener(event, globalDelegateEventHandler);
     }
     const handlerProperty = `_$${event}` as const;
     // @ts-expect-error event type & element type are not validated
