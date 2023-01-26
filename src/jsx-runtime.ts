@@ -116,7 +116,7 @@ export const jsx: JSXFactory = (
       const isForeignObject = type === "foreignObject";
       const isMath = type === 'math';
       const changnigFactory = isSvg || isForeignObject || isMath;
-      //#region enter svg creating scope
+      //#region enter xml namespaced element creation scope
       if (isSvg) {
         // @ts-expect-error Skipped type check for svg children.
         currentElementFactory = svg;
