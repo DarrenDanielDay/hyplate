@@ -22,11 +22,16 @@ async function main() {
       const exports = fields.default;
       const proxyPath = subpath === "." ? "./index.js" : `${subpath}.js`;
       const filename = proxyPath.slice(2);
+      const types = filename.replace(".js", ".d.ts");
       if (!fileSet.has(filename)) {
         addedFiles.push(filename);
       }
+      if (!fileSet.has(types)) {
+        addedFiles.push(types);
+      }
       const code = `export * from "${exports}";`;
       await writeFile(resolve(cwd, proxyPath), code, options);
+      await writeFile(resolve(cwd, types), code, options);
     })
   );
   console.log(`✨ Files for proxy of package.json "exports" emitted.`);
