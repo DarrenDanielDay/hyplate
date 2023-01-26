@@ -88,6 +88,11 @@
       "import": "./dist/identifiers.js",
       "default": "./dist/identifiers.js"
     },
+    "./jsx-dev-runtime": {
+      "types": "./dist/jsx-dev-runtime.d.ts",
+      "import": "./dist/jsx-dev-runtime.js",
+      "default": "./dist/jsx-dev-runtime.js"
+    },
     "./jsx-runtime": {
       "types": "./dist/jsx-runtime.d.ts",
       "browser": "./dist/jsx-runtime.browser.esm.min.js",
