@@ -10,7 +10,20 @@ import { appendChild } from "./core.js";
 import { useCleanUpCollector } from "./hooks.js";
 import { _delegate, _listen } from "./internal.js";
 import type { Component } from "./jsx-runtime.js";
-import type { AttachFunc, AttributesMap, BindingHost, BindingPattern, ClassComponentStatic, Differ, Events, EventType, FunctionalEventHanlder, Handler, Subscribable, TextInterpolation } from "./types.js";
+import type {
+  AttachFunc,
+  AttributesMap,
+  BindingHost,
+  BindingPattern,
+  ClassComponentStatic,
+  Differ,
+  Events,
+  EventType,
+  FunctionalEventHanlder,
+  Handler,
+  Subscribable,
+  TextInterpolation,
+} from "./types.js";
 import { defineProp, isObject, patch, strictEqual } from "./util.js";
 
 export const alwaysDifferent: Differ = () => false;
@@ -48,9 +61,13 @@ class BindingHostImpl<T extends Element> implements BindingHost<T> {
     this.#collect(_delegate(this.#el, name, handler));
     return this;
   }
-  event<E extends Events<T>>(name: E, handler: Handler<T, EventType<T, E>>, options?: boolean | EventListenerOptions): BindingHost<T> {
+  event<E extends Events<T>>(
+    name: E,
+    handler: Handler<T, EventType<T, E>>,
+    options?: boolean | EventListenerOptions
+  ): BindingHost<T> {
     this.#collect(_listen(this.#el, name, handler, options));
-   return this; 
+    return this;
   }
   text(fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]): BindingHost<T> {
     this.#collect($text(fragments, ...bindings)(this.#attach));

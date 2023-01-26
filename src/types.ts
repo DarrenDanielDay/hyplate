@@ -71,7 +71,7 @@ export type EventMap<T extends EventTarget> = T extends HTMLElement
   ? HTMLElementEventMap
   : T extends SVGElement
   ? SVGElementEventMap
-  : T extends MathMLElement 
+  : T extends MathMLElement
   ? MathMLElementEventMap
   : T extends XMLHttpRequestEventTarget
   ? XMLHttpRequestEventMap
@@ -89,9 +89,7 @@ export interface ObjectEventHandler<E extends Event> {
   options?: EventHandlerOptions;
 }
 
-export type Handler<T extends EventTarget, E extends Event> =
-  | FunctionalEventHanlder<T, E>
-  | ObjectEventHandler<E>;
+export type Handler<T extends EventTarget, E extends Event> = FunctionalEventHanlder<T, E> | ObjectEventHandler<E>;
 
 export type Events<T extends EventTarget> = Extract<keyof EventMap<T>, string>;
 
@@ -259,7 +257,11 @@ export type BindingHost<T extends Element> = {
   attr<P extends keyof AttributesMap<T>>(name: P, subscribable: Subscribable<AttributesMap<T>[P]>): BindingHost<T>;
   content(subscribable: Subscribable<TextInterpolation>): BindingHost<T>;
   delegate<E extends Events<T>>(name: E, handler: FunctionalEventHanlder<T, EventType<T, E>>): BindingHost<T>;
-  event<E extends Events<T>>(name: E, handler: Handler<T, EventType<T, E>>, options?: boolean | EventListenerOptions): BindingHost<T>;
+  event<E extends Events<T>>(
+    name: E,
+    handler: Handler<T, EventType<T, E>>,
+    options?: boolean | EventListenerOptions
+  ): BindingHost<T>;
   text(fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]): BindingHost<T>;
 };
 

@@ -10,7 +10,7 @@
 
 [![Auto Test CI](https://github.com/DarrenDanielDay/hyplate/actions/workflows/test.yml/badge.svg)](https://github.com/DarrenDanielDay/hyplate/actions/) [![Publish CI](https://github.com/DarrenDanielDay/hyplate/actions/workflows/publish.yml/badge.svg)](https://github.com/DarrenDanielDay/hyplate/actions/) [![npm version](https://badge.fury.io/js/hyplate.svg)](https://badge.fury.io/js/hyplate)
 
-一个非常快的用于构建Web界面的JavaScript库。
+一个非常快的用于构建 Web 界面的 JavaScript 库。
 
 文档正在编写中。
 

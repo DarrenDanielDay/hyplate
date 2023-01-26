@@ -114,7 +114,7 @@ export const jsx: JSXFactory = (
       let lastElementFactory = currentElementFactory;
       const isSvg = type === "svg";
       const isForeignObject = type === "foreignObject";
-      const isMath = type === 'math';
+      const isMath = type === "math";
       const changnigFactory = isSvg || isForeignObject || isMath;
       //#region enter xml namespaced element creation scope
       if (isSvg) {

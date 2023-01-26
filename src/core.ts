@@ -59,11 +59,13 @@ export const $$ = <S extends string>(selector: S): ParseSelector<S>[] => arrayFr
 
 export const listen =
   <T extends EventTarget>(target: T): EventHost<T> =>
-  (name, handler, options) =>_listen(target, name, handler, options);
+  (name, handler, options) =>
+    _listen(target, name, handler, options);
 
 export const delegate =
   <T extends Element>(el: T): DelegateHost<T> =>
-  (event, handler) => _delegate(el, event, handler);
+  (event, handler) =>
+    _delegate(el, event, handler);
 
 export const appendChild =
   (host: Node): AttachFunc =>
