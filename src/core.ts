@@ -14,8 +14,8 @@ import type {
   GetRange,
   TextInterpolation,
 } from "./types.js";
-import { arrayFrom, err, fori, isString, push } from "./util.js";
-import { comment, doc } from "./internal.js";
+import { arrayFrom, fori, isString, push } from "./util.js";
+import { comment, doc, _delegate, _listen } from "./internal.js";
 export { comment } from "./internal.js";
 
 export const element = /* #__PURE__ */ doc.createElement.bind(doc);
@@ -59,46 +59,11 @@ export const $$ = <S extends string>(selector: S): ParseSelector<S>[] => arrayFr
 
 export const listen =
   <T extends EventTarget>(target: T): EventHost<T> =>
-  (name, handler, options) => {
-    // @ts-expect-error generic
-    target.addEventListener(name, handler, options);
-    return () => {
-      // @ts-expect-error generic
-      target.removeEventListener(name, handler, options);
-    };
-  };
+  (name, handler, options) =>_listen(target, name, handler, options);
 
 export const delegate =
   <T extends Element>(el: T): DelegateHost<T> =>
-  (event, handler) => {
-    const root = el.ownerDocument;
-    const delegatedEvents = (root.$$delegates ??= new Set<string>());
-    if (!delegatedEvents.has(event)) {
-      delegatedEvents.add(event);
-      root.addEventListener(event, globalDelegateEventHandler);
-    }
-    const handlerProperty = `_$${event}` as const;
-    // @ts-expect-error event type & element type are not validated
-    el[handlerProperty] = handler;
-    return () => {
-      delete el[handlerProperty];
-    };
-  };
-
-const globalDelegateEventHandler = (e: Event) => {
-  const eventHandlerProperty = `_$${e.type}` as const;
-  const targets = e.composedPath();
-  fori(targets, (target) => {
-    const handler = target[eventHandlerProperty];
-    if (handler != null) {
-      try {
-        handler.call(target, e);
-      } catch (error) {
-        err(error);
-      }
-    }
-  });
-};
+  (event, handler) => _delegate(el, event, handler);
 
 export const appendChild =
   (host: Node): AttachFunc =>

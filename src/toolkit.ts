@@ -6,10 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { $attr, $content, $text } from "./binding.js";
-import { appendChild, delegate, listen } from "./core.js";
+import { appendChild } from "./core.js";
 import { useCleanUpCollector } from "./hooks.js";
+import { _delegate, _listen } from "./internal.js";
 import type { Component } from "./jsx-runtime.js";
-import type { AttachFunc, AttributesMap, BindingHost, BindingPattern, ClassComponentStatic, DelegateHost, Differ, EventHost, Events, EventType, FunctionalEventHanlder, Handler, Subscribable, TextInterpolation } from "./types.js";
+import type { AttachFunc, AttributesMap, BindingHost, BindingPattern, ClassComponentStatic, Differ, Events, EventType, FunctionalEventHanlder, Handler, Subscribable, TextInterpolation } from "./types.js";
 import { defineProp, isObject, patch, strictEqual } from "./util.js";
 
 export const alwaysDifferent: Differ = () => false;
@@ -30,14 +31,10 @@ export const deepDiffer: Differ = (a, b) => {
 class BindingHostImpl<T extends Element> implements BindingHost<T> {
   #el: T;
   #collect = useCleanUpCollector();
-  #event: EventHost<T>;
-  #delegate: DelegateHost<T>;
   #attach: AttachFunc;
   constructor(el: T) {
     this.#el = el;
     this.#attach = appendChild(el);
-    this.#event = listen(el);
-    this.#delegate = delegate(el);
   }
   attr<P extends keyof AttributesMap<T>>(name: P, subscribable: Subscribable<AttributesMap<T>[P]>): BindingHost<T> {
     this.#collect($attr(this.#el, name, subscribable));
@@ -48,11 +45,11 @@ class BindingHostImpl<T extends Element> implements BindingHost<T> {
     return this;
   }
   delegate<E extends Events<T>>(name: E, handler: FunctionalEventHanlder<T, EventType<T, E>>): BindingHost<T> {
-    this.#collect(this.#delegate(name, handler));
+    this.#collect(_delegate(this.#el, name, handler));
     return this;
   }
   event<E extends Events<T>>(name: E, handler: Handler<T, EventType<T, E>>, options?: boolean | EventListenerOptions): BindingHost<T> {
-    this.#collect(this.#event(name, handler, options));
+    this.#collect(_listen(this.#el, name, handler, options));
    return this; 
   }
   text(fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]): BindingHost<T> {

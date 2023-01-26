@@ -6,9 +6,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { $attr, $text, isSubscribable } from "./binding.js";
-import { appendChild, attr, listen, fragment, element, svg, delegate, removeRange, mathml } from "./core.js";
+import { appendChild, attr, fragment, element, svg, removeRange, mathml } from "./core.js";
 import { anonymousElement, define } from "./custom-elements.js";
-import { addCleanUp, isFragment, isNode, reflection } from "./internal.js";
+import { addCleanUp, isFragment, isNode, reflection, _delegate, _listen } from "./internal.js";
 import { assignSlotMap, insertSlotMap, slotName } from "./slot.js";
 import type {
   JSXChildNode,
@@ -134,8 +134,6 @@ export const jsx: JSXFactory = (
         ref.current = el;
       }
       const [cleanups] = children != null ? renderChild(children, appendChild(el)) : [[]];
-      const eventHost = listen(el);
-      const delegateHost = delegate(el);
       for (const key in attributes) {
         // @ts-expect-error for-in key access
         const value = attributes[key];
@@ -147,17 +145,17 @@ export const jsx: JSXFactory = (
             if ("A" <= next && next <= "Z") {
               const event = key.slice(2).toLowerCase();
               if (isFunction(value)) {
-                push(cleanups, eventHost(event, value));
+                push(cleanups, _listen(el, event, value));
                 continue;
               } else if (isObjectEventHandler(value)) {
-                push(cleanups, eventHost(event, value, value.options));
+                push(cleanups, _listen(el, event, value, value.options));
                 continue;
               }
             }
             if (next === ":") {
               if (isFunction(value)) {
                 const event = key.slice(3).toLowerCase();
-                push(cleanups, delegateHost(event, value));
+                push(cleanups, _delegate(el, event, value));
                 continue;
               }
             }

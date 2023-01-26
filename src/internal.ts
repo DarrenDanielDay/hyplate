@@ -5,8 +5,15 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import type { CleanUpFunc, NativeSlotContent, Reflection } from "./types.js";
-import { isInstance, noop, push, __DEV__ } from "./util.js";
+import type {
+  CleanUpFunc,
+  EventHandlerOptions,
+  FunctionalEventHanlder,
+  Handler,
+  NativeSlotContent,
+  Reflection,
+} from "./types.js";
+import { err, fori, isInstance, noop, push, __DEV__ } from "./util.js";
 
 export const doc = document;
 
@@ -32,6 +39,47 @@ export const addCleanUp = (cleanups: CleanUpFunc[], cleanup: CleanUpFunc) => {
   if (cleanup !== noop) {
     push(cleanups, cleanup);
   }
+};
+
+export const _listen = (
+  target: EventTarget,
+  name: string,
+  hander: Handler<any, any>,
+  options?: EventHandlerOptions
+): CleanUpFunc => {
+  target.addEventListener(name, hander, options);
+  return () => {
+    target.removeEventListener(name, hander, options);
+  };
+};
+
+export const _delegate = (el: Element, event: string, handler: FunctionalEventHanlder<any, any>) => {
+  const root = el.ownerDocument;
+  const delegatedEvents = (root.$$delegates ??= new Set<string>());
+  if (!delegatedEvents.has(event)) {
+    delegatedEvents.add(event);
+    root.addEventListener(event, globalDelegateEventHandler);
+  }
+  const handlerProperty = `_$${event}` as const;
+  el[handlerProperty] = handler;
+  return () => {
+    delete el[handlerProperty];
+  };
+};
+
+const globalDelegateEventHandler = (e: Event) => {
+  const eventHandlerProperty = `_$${e.type}` as const;
+  const targets = e.composedPath();
+  fori(targets, (target) => {
+    const handler = target[eventHandlerProperty];
+    if (handler != null) {
+      try {
+        handler.call(target, e);
+      } catch (error) {
+        err(error);
+      }
+    }
+  });
 };
 
 export const isNode = isInstance(Node);
