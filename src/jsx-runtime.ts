@@ -209,9 +209,13 @@ export const Fragment: FunctionalComponent<{}, JSXChildNode | undefined> = ({ ch
   };
 };
 
-export const isComponentClass = (fn: Function): fn is typeof Component => fn.prototype instanceof Component;
+export const isComponentClass = (fn: Function): fn is typeof Component => !!(fn as typeof Component)?.__hyplate_comp;
 
 export abstract class Component<P extends PropsBase = PropsBase, S extends string = string> extends HTMLElement {
+  /**
+   * @internal
+   */
+  static __hyplate_comp = true;
   /**
    * The shadow root init config except `mode`.
    * In hyplate, we force the `mode` option to be `open`.
