@@ -12,6 +12,8 @@ English | [简体中文](./README.zh-CN.md)
 
 A superfast JavaScript library for building web user interfaces.
 
+Currently the documentation is still in progress. Coming soon.
+
 ## License
 
 ```text
