@@ -2389,7 +2389,7 @@ declare global {
         /**
          * Custom event handlers.
          */
-        [event: EventPattern]: Handler<E, Event>;
+        [event: EventPattern]: Handler<E, any>;
         /**
          * Allow any custom attributes.
          */
