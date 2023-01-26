@@ -1,6 +1,6 @@
 {
   "name": "hyplate",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "A superfast JavaScript library for building web user interfaces.",
   "main": "dist/index.js",
   "type": "module",
