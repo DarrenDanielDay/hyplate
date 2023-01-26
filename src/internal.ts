@@ -82,17 +82,18 @@ const globalDelegateEventHandler = (e: Event) => {
   });
 };
 
-export const isNode = isInstance(Node);
+export const isNode = /* #__PURE__ */ isInstance(Node);
 
-export const isFragment = isInstance(DocumentFragment);
+export const isFragment = /* #__PURE__ */ isInstance(DocumentFragment);
 
-export const isTemplate = isInstance(HTMLTemplateElement);
+export const isTemplate = /* #__PURE__ */ isInstance(HTMLTemplateElement);
 
-const isText = isInstance(Text);
-const isElement = isInstance(Element);
+const isText = /* #__PURE__ */ isInstance(Text);
+
+const isElement = /* #__PURE__ */ isInstance(Element);
 
 export const isValidSlotContent = (node: unknown): node is NativeSlotContent => isText(node) || isElement(node);
 
-export const reflection: Reflection<string> = new Proxy({}, { get: (_, k) => k });
+export const reflection: Reflection<string> = /* #__PURE__ */ new Proxy({}, { get: (_, k) => k });
 
 export const $$HyplateSubscribers: unique symbol = "_$subs" as never;
