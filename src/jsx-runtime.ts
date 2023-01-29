@@ -243,6 +243,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
     }
     return tag;
   }
+  static styles: CSSStyleSheet[] = [];
   /**
    * If the component instance is created by HTML tag directly, the default props will be used.
    * Only useful when you want to use the component directly by its tag name.
@@ -345,6 +346,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
       ...shadowRootInit,
       mode: "open",
     });
+    shadow.adoptedStyleSheets = [...this.#newTarget.styles];
     const [cleanup] = mount(this.render(), shadow);
     addCleanUp(this.cleanups, cleanup);
     const children = this.#children;
