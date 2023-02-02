@@ -9,6 +9,7 @@ import type { ParseSelector } from "typed-query-selector/parser.js";
 import type {
   AttachFunc,
   AttributeInterpolation,
+  AttributesMap,
   DelegateHost,
   EventHost,
   GetRange,
@@ -32,7 +33,10 @@ export const fragment = /* #__PURE__ */ doc.createDocumentFragment.bind(doc);
 
 export const clone = <N extends Node>(node: N): N => node.cloneNode(true) as N;
 
-export const attr = (element: Element, name: string, value: AttributeInterpolation) =>
+export const attr: {
+  <E extends Element, P extends keyof AttributesMap<E>>(element: E, name: P, value: AttributesMap<E>[P]): void;
+  (element: Element, name: string, value: AttributeInterpolation): void;
+} = (element: Element, name: string, value: AttributeInterpolation) =>
   value == null || value === false ? element.removeAttribute(name) : element.setAttribute(name, `${value}`);
 
 export const content = (node: Node, content: TextInterpolation) => (node.textContent = `${content}`);
