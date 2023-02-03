@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "strictNullChecks": true,
+    "experimentalDecorators": true,
     "module": "ESNext",
     "target": "ESNext",
     "sourceMap": true,

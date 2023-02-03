@@ -4,19 +4,20 @@ import { useCleanUp, useChildView } from "../dist/hooks.js";
 import { enableBuiltinStore, query, source } from "../dist/store.js";
 import { For, Show } from "../dist/directive.js";
 import { listen as bindEvent, appendChild, select, anchor, seqAfter, element } from "../dist/core.js";
-import { Component, jsxRef, mount, unmount } from "../dist/jsx-runtime.js";
+import { jsxRef, mount, unmount } from "../dist/jsx-runtime.js";
 import { $attr, $text } from "../dist/binding.js";
 import { useBinding } from "../dist/toolkit.js";
 import { LifecycleCallbacks } from "hyplate/types.js";
+import { Component, CustomElement } from "../dist/elements.js";
 enableBuiltinStore();
-class CountComponent extends Component<{ msg: string }, "insert-here"> implements LifecycleCallbacks {
-  public static shadowRootInit?: Omit<ShadowRootInit, "mode"> | undefined = {
+@CustomElement({
+  tag: "hyplate-counter-demo",
+  shadowRootInit: {
     slotAssignment: "manual",
-  };
-  public static tag = this.defineAs("hyplate-counter-demo");
-  public static get observedAttributes(): string[] {
-    return ["id"];
-  }
+  },
+  observedAttributes: ['id']
+})
+class CountComponent extends Component<{ msg: string }, "insert-here"> implements LifecycleCallbacks {
   connectedCallback() {
     console.log("connected", arguments);
   }

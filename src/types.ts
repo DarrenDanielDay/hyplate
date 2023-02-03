@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import type { $$HyplateSubscribers } from "./internal.js";
-import type { Component } from "./jsx-runtime.js";
+import type { Component } from "./elements.js";
 /**
  * `NaN` cannot represented in TypeScript types.
  * @see https://developer.mozilla.org/en-US/docs/Glossary/Falsy

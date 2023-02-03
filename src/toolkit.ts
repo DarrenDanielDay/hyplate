@@ -9,13 +9,11 @@ import { $attr, $content, $text } from "./binding.js";
 import { appendChild } from "./core.js";
 import { useCleanUpCollector } from "./hooks.js";
 import { _delegate, _listen } from "./internal.js";
-import type { Component } from "./jsx-runtime.js";
 import type {
   AttachFunc,
   AttributesMap,
   BindingHost,
   BindingPattern,
-  ClassComponentStatic,
   Differ,
   Events,
   EventType,
@@ -24,7 +22,7 @@ import type {
   Subscribable,
   TextInterpolation,
 } from "./types.js";
-import { defineProp, isObject, patch, strictEqual } from "./util.js";
+import { isObject, strictEqual } from "./util.js";
 
 export const alwaysDifferent: Differ = () => false;
 
@@ -77,14 +75,4 @@ class BindingHostImpl<T extends Element> implements BindingHost<T> {
 
 export const useBinding = <T extends Element>(el: T): BindingHost<T> => {
   return new BindingHostImpl(el);
-};
-
-export const component = (options: ClassComponentStatic) => (ctor: typeof Component<any, any>) => {
-  const { tag, observedAttributes, ...statics } = options;
-  if (observedAttributes) {
-    defineProp(ctor, "observedAttributes", { get: () => observedAttributes });
-  }
-  patch(ctor, statics);
-  // @ts-expect-error assign to readonly field
-  ctor.tag = ctor.defineAs(tag);
 };
