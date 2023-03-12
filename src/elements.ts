@@ -58,6 +58,9 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
   public static get slotTag(): string {
     return slotName(this.tag);
   }
+  /**
+   * CSS style sheets to apply to the shadow root.
+   */
   static styles: CSSStyleSheet[] = [];
   /**
    * If the component instance is created by HTML tag directly, the default props will be used.
@@ -91,7 +94,13 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
    * Initialized in `setup`.
    */
   public props!: P;
+  /**
+   * Infer slot names with type magic.
+   */
   public slots: Reflection<S> = reflection;
+  /**
+   * Clean up function collection.
+   */
   public cleanups: CleanUpFunc[] = [];
   #children: SlotMap<S> | undefined;
   #rendered: Rendered<this> | undefined;
