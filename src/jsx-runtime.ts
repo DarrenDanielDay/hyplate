@@ -1,5 +1,5 @@
 /**
- * @license MIT
+ * @license hyplate
  * Copyright (C) 2022  DarrenDanielDay <Darren_Daniel_Day@hotmail.com>
  *
  * This source code is licensed under the MIT license found in the
