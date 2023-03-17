@@ -2,13 +2,13 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "composite": true,
+    "target": "ES2020",
     "outDir": "../test-dist",
     "moduleResolution": "Node",
     "strict": true,
     "jsx": "react-jsx",
     "jsxImportSource": "../dist",
     "preserveWatchOutput": true,
-    "experimentalDecorators": true,
     "useDefineForClassFields": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false

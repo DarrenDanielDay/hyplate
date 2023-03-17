@@ -22,7 +22,7 @@ const ce = customElements;
 
 export const define = /* #__PURE__ */ ce.define.bind(ce);
 
-export const component = (options: ClassComponentStatic) => (ctor: typeof Component<any, any>) => {
+export const component = (options: ClassComponentStatic) => (ctor: typeof Component<any, any>, _context?: ClassDecoratorContext) => {
   const { tag, observedAttributes, ...statics } = options;
   if (observedAttributes) {
     defineProp(ctor, "observedAttributes", { get: () => observedAttributes });

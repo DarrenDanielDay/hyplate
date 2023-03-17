@@ -140,7 +140,7 @@
     "rollup-plugin-terser": "^7.0.2",
     "serve": "^14.1.2",
     "ts-esmbuilder": "^0.2.1",
-    "typescript": "^4.9.3"
+    "typescript": "^5.0.2"
   },
   "dependencies": {
     "html5parser": "^2.0.2",
