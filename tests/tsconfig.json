@@ -2,7 +2,6 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "target": "ES2020",
     "outDir": "../test-dist",
     "moduleResolution": "Node",
     "strict": true,
