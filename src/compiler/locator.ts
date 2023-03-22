@@ -6,6 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import type { Position } from "source-map";
+import type { SourceLocation } from "./ast.js";
 
 export const countLineChars = (source: string) => {
   const lines: number[] = [];
@@ -42,6 +43,28 @@ export const locate = (lines: number[], index: number): Position => {
     column: index - (lines[left - 1] ?? 0),
   };
 };
+
+export class Locator {
+  #lines: number[];
+  public constructor(source: string) {
+    this.#lines = countLineChars(source);
+  }
+
+  public locate(index: number): Position {
+    return locate(this.#lines, index);
+  }
+
+  public index(position: Position): number {
+    return (this.#lines[position.line - 2] ?? 0) + position.column;
+  }
+
+  public range(begin: number, end: number): SourceLocation {
+    return {
+      begin: this.locate(begin),
+      end: this.locate(end),
+    };
+  }
+}
 
 export const createLocator = (source: string) => {
   const lines = countLineChars(source);

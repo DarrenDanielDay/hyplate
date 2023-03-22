@@ -5,23 +5,33 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { type IAttribute, type INode, type ITag, parse as parseHTML, SyntaxKind } from "html5parser";
-import { warn } from "../util.js";
-import { createLocator } from "./locator.js";
-import { HTMLTagTypeMapping, SVGTagTypeMapping } from "./mapping.js";
-import { mergedOptions } from "./shared.js";
-import type {
-  ChildTemplates,
-  ExtractedNode,
-  ParsedNode,
-  Template,
-  TemplateOptions,
-  ViewRefs,
-  ViewSlots,
-} from "./types.js";
+import {
+  type IAttribute,
+  type INode,
+  type ITag,
+  parse as parseHTML,
+  SyntaxKind,
+  type IText,
+  type IBaseNode,
+  type IAttributeValue,
+} from "html5parser";
+import { Locator } from "./locator.js";
+import { capitalize, mergedOptions } from "./shared.js";
+import type { TemplateOptions } from "./types.js";
+import {
+  NodeType,
+  type ElementChildNode,
+  type PlainTextNode,
+  type AttributeNode,
+  EventMode,
+  type SourceLocation,
+  type AttributeValueNode,
+  type EventBindingNode,
+  type ParsedTemplateFile,
+} from "./ast.js";
+import { isValidIdentifier, parseVMPropsInText, leadingSpaceCount, trailingSpaceCount } from "./lexer.js";
 
 export const defaultTemplateOptions = Object.freeze<TemplateOptions>({
-  preserveAnchor: false,
   preserveComment: false,
   preserveEmptyTextNodes: false,
 });
@@ -34,266 +44,193 @@ export const configureParser = (options: Partial<TemplateOptions>) => {
   templateOptions = mergeOptions(options);
 };
 
-let currentSource = "";
-let currentLocator = createLocator(currentSource);
+export const parse = (text: string) => new Parser().parse(text);
 
-export const parse = (source: string): ChildTemplates => {
-  currentSource = source;
-  currentLocator = createLocator(source);
-  const templates: ChildTemplates = {};
-  const nodes = parseHTML(source);
-  for (const node of nodes) {
-    if (node.type === SyntaxKind.Text) {
-      const trimmed = node.value.trim();
-      if (trimmed) {
-        warn(`Text in global scope is ignored. Ignored:
-${node.value}`);
-      }
-      continue;
-    }
-    if (isComment(node)) {
-      // Comments in global scope are always ignored.
-      continue;
-    }
-    if (!isTemplate(node)) {
-      warn(`Tags in global scope except "template" is ignored. Ignored:
-${source.slice(node.start, node.end)}`);
-      continue;
-    }
-    const templateNode = createTemplate(node, true);
-    if (templates[templateNode.anchor]) {
-      throw new Error(`Duplicated template anchor: ${templateNode.anchor}`);
-    }
-    templates[templateNode.anchor] = templateNode;
+export class Parser {
+  public readonly options: TemplateOptions;
+  #source = "";
+  #locator = new Locator("");
+  public constructor(options: TemplateOptions = templateOptions) {
+    this.options = mergeOptions(options);
   }
-  return templates;
-};
 
-const isValidIdentifier = (name: string) => {
-  try {
-    eval(`\
-(function (){
-  "use strict";
-  var ${name}
-})()`);
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
-
-const createTemplate = (templateNode: ITag, isGlobal?: boolean): Template => {
-  const { preserveAnchor, preserveComment, preserveEmptyTextNodes } = templateOptions;
-  const processOpeningTag: (node: ITag) => ParsedNode = preserveAnchor
-    ? (node) => ({
-        type: node.close ? "open" : "self",
-        name: node.name,
-        attributes: node.attributes,
-      })
-    : (node) => {
-        const attributes: IAttribute[] = [];
-        for (const attribute of node.attributes) {
-          if (isAnchor(attribute)) {
-            continue;
-          }
-          attributes.push(attribute);
-        }
-        return {
-          type: node.close ? "open" : "self",
-          name: node.name,
-          attributes,
-        };
+  public async parse(source: string): Promise<ParsedTemplateFile> {
+    this.#setSource(source);
+    try {
+      const rootNodes = await this.#parse();
+      return {
+        rootNodes,
+        source,
       };
-  const skipComment = !preserveComment;
-  const children: ChildTemplates = {};
-  const refs: ViewRefs = {};
-  const slots: ViewSlots = {};
-  const path: number[] = [];
-  const indexes: number[] = [];
-  const enterBody = () => {
-    indexes.push(-1);
-    path.push(-1);
-  };
-  const exitBody = () => {
-    indexes.pop();
-    path.pop();
-  };
-  let svgScopeCount = 0;
-  const nextNode = () => {
-    const i = indexes.length - 1;
-    indexes[i]++;
-  };
-  const nextElement = () => {
-    nextNode();
-    const i = path.length - 1;
-    path[i]++;
-  };
-  const nodes: ParsedNode[] = [];
-  const styles: ExtractedNode[] = [];
-  const templateAnchorAttr = findAnchor(templateNode);
-  const anchor = templateAnchorAttr ? anchorAttrName(templateAnchorAttr, isGlobal) : "default";
-  const walk = (node: INode) => {
-    if (node.type === SyntaxKind.Text) {
-      let { start, end } = node;
-      let text: string;
-      if (!preserveEmptyTextNodes) {
-        for (; start < end && isBlankCharacter(currentSource[start]); start++);
-        for (; start < end && isBlankCharacter(currentSource[end - 1]); end--);
-        text = currentSource.slice(start, end);
-      } else {
-        text = node.value;
+    } finally {
+      this.#setSource("");
+    }
+  }
+
+  #setSource(source: string) {
+    this.#source = source;
+    this.#locator = new Locator(source);
+  }
+
+  async #parse(): Promise<ElementChildNode[]> {
+    const htmlNodes = parseHTML(this.#source);
+    return this.#parseChildren(htmlNodes);
+  }
+
+  async #parseChildren(children: INode[]): Promise<ElementChildNode[]> {
+    const resultNodes: ElementChildNode[] = [];
+    Loop: for (let i = 0, l = children.length; i < l; i++) {
+      const node = children[i];
+      switch (node.type) {
+        case SyntaxKind.Text: {
+          resultNodes.push(...this.#parseText(node));
+          break;
+        }
+        case SyntaxKind.Tag: {
+          if (isComment(node)) {
+            if (!this.options.preserveComment) {
+              continue Loop;
+            }
+            resultNodes.push({
+              type: NodeType.Comment,
+              loc: this.#location(node),
+              raw: this.#source.slice(node.start, node.end),
+            });
+            break;
+          }
+          resultNodes.push({
+            type: NodeType.Element,
+            attributes: this.#parseAttributes(node.attributes),
+            children: node.body ? await this.#parseChildren(node.body) : void 0,
+            tag: node.name,
+            loc: this.#location(node),
+          });
+          break;
+        }
       }
-      if (text || preserveEmptyTextNodes) {
-        nodes.push({
-          type: "text",
-          content: text,
+    }
+    return resultNodes;
+  }
+
+  #parseText(text: IText): ElementChildNode[] {
+    const parsed = parseVMPropsInText(text.value, this.#locator, text.start);
+    if (!this.options.preserveEmptyTextNodes) {
+      const first = parsed.at(0);
+      const last = parsed.at(-1);
+      if (first?.type === NodeType.PlainText) {
+        const content = first.content;
+        const leadingSpace = leadingSpaceCount(content);
+        if (leadingSpace === content.length) {
+          parsed.shift();
+        } else {
+          first.content = content.slice(leadingSpace);
+          first.loc.begin = this.#locator.locate(this.#locator.index(first.loc.begin) - leadingSpace);
+        }
+      }
+      if (last?.type === NodeType.PlainText) {
+        const content = last.content;
+        const trailingSpace = trailingSpaceCount(content);
+        if (trailingSpace === content.length) {
+          parsed.pop();
+        } else {
+          last.content = content.slice(0, content.length - trailingSpace);
+          last.loc.begin = this.#locator.locate(this.#locator.index(last.loc.begin) - trailingSpace);
+        }
+      }
+    }
+    return parsed;
+  }
+
+  #location(node: IBaseNode): SourceLocation {
+    return this.#locator.range(node.start, node.end);
+  }
+
+  #textNode(node: Omit<IText, "type">): PlainTextNode {
+    return {
+      type: NodeType.PlainText,
+      content: node.value,
+      loc: this.#locator.range(node.start, node.end),
+    };
+  }
+
+  #parseAttributes(attributes: IAttribute[]): (AttributeNode | EventBindingNode)[] {
+    const attributeNodes: (AttributeNode | EventBindingNode)[] = [];
+    for (let i = 0, l = attributes.length; i < l; i++) {
+      const attribute = attributes[i];
+      const attrNameNode = attribute.name;
+      const attrName = attrNameNode.value;
+      const attrValue = attribute.value;
+      const eventName = this.#getEventName(attrName);
+      let specialized = false;
+      if (attrValue) {
+        if (eventName) {
+          const handlerValue = attrValue.value;
+          const colonIndex = handlerValue.indexOf(":");
+          if (colonIndex !== -1) {
+            const mode = this.#getEventMode(handlerValue.slice(0, colonIndex));
+            if (mode) {
+              const handlerStart = colonIndex + 1;
+              const handler = handlerValue.slice(handlerStart);
+              if (isValidIdentifier(handler)) {
+                const space = leadingSpaceCount(handler);
+                const identifier = handler.trim();
+                const start = attrValue.start + handlerStart + space;
+                const end = start + identifier.length;
+                attributeNodes.push({
+                  type: NodeType.EventBinding,
+                  name: this.#textNode(attrNameNode),
+                  loc: this.#location(attribute),
+                  event: eventName,
+                  identifier: this.#textNode({
+                    value: identifier,
+                    start: space,
+                    end,
+                  }),
+                  mode,
+                });
+                specialized = true;
+              }
+            }
+          }
+        }
+      }
+      if (!specialized) {
+        attributeNodes.push({
+          type: NodeType.Attribute,
+          name: this.#textNode(attrNameNode),
+          loc: this.#location(attribute),
+          quote: attrValue?.quote,
+          value: attrValue && this.#parseAttributeValue(attrValue),
         });
-        nextNode();
       }
-      return;
     }
-    if (isComment(node)) {
-      if (skipComment) {
-        return;
-      }
-      nodes.push({
-        type: "text",
-        content: currentSource.slice(node.start, node.end),
-      });
-      nextNode();
-    }
-    const isSvg = isSVG(node);
-    if (isSvg) {
-      svgScopeCount++;
-    }
-    if (isSlot(node)) {
-      let nameAttribute: IAttribute | undefined;
-      for (const attribute of node.attributes) {
-        if (attribute.name.value === "name") {
-          if (nameAttribute) {
-            throw new Error(`Multiple name attribute for slot found: 
-${node.open.value}`);
-          }
-          nameAttribute = attribute;
-        }
-      }
-      if (!nameAttribute) {
-        throw new Error(`Slot must have slot name attribute:
-${node.open.value}`);
-      }
-      const nameValue = nameAttribute.value;
-      if (!nameValue) {
-        throw new Error(`Value of name attribute must be specified:
-${node.open.value}`);
-      }
-      if (slots[nameValue.value]) {
-        throw new Error(`Duplicated slot name: ${nameValue.value}`);
-      }
-      slots[nameValue.value] = {
-        name: nameValue.value,
-        position: currentLocator(nameValue.start),
-      };
-    }
-    if (isTemplate(node)) {
-      const childTemplate = createTemplate(node);
-      children[childTemplate.anchor] = childTemplate;
-      return;
-    }
-    nextElement();
-    if (isStyle(node)) {
-      // Style elements are extracted just for processing their contents,
-      // and there must be a corresponding element in the template.
-      // So the index cursor should be moved to next.
-      styles.push({
-        index: nodes.length,
-        node,
-      });
-      return;
-    }
-    const { close, body } = node;
-    const anchorRefAttr = findAnchor(node);
-    if (anchorRefAttr) {
-      const ref = anchorAttrName(anchorRefAttr);
-      const tag = node.name;
-      refs[ref] = {
-        path: [...path],
-        indexes: [...indexes],
-        el: (svgScopeCount ? SVGTagTypeMapping[tag] : HTMLTagTypeMapping[tag]) ?? "Element",
-        tag,
-        position: currentLocator(anchorRefAttr.start),
-      };
-    }
-    nodes.push(processOpeningTag(node));
-    if (body) {
-      enterBody();
-      for (const child of body) {
-        walk(child);
-      }
-      exitBody();
-    }
-    if (close) {
-      nodes.push({
-        type: "close",
-        name: node.name,
-      });
-    }
-    if (isSvg) {
-      svgScopeCount--;
-    }
-  };
-  const body = templateNode.body;
-  if (body) {
-    enterBody();
-    for (const child of body) {
-      walk(child);
-    }
-    exitBody();
+    return attributeNodes;
   }
-  const position = currentLocator(templateAnchorAttr ? templateAnchorAttr.start : templateNode.start);
-  return {
-    anchor,
-    refs,
-    slots,
-    position,
-    children,
-    nodes,
-    styles,
-  };
-};
 
-const isBlankCharacter = (char: string) => /\s/.test(char);
-const isTemplate = (node: ITag) => node.name === "template";
-const isStyle = (node: ITag) => node.name === "style";
-const isSVG = (node: ITag) => node.name === "svg";
-const isSlot = (node: ITag) => node.name === "slot";
-const isComment = (node: ITag) => node.name === "!--";
-const isAnchor = (attribute: IAttribute) => attribute.name.value.startsWith("#");
-const findAnchor = (node: ITag) => {
-  let anchorAttribute: undefined | IAttribute = undefined;
-  for (const attribute of node.attributes) {
-    if (isAnchor(attribute)) {
-      if (anchorAttribute) {
-        throw new Error(`Multiple anchor attribute found in opening tag: ${node.open.value}
-"${attribute.name.value}" and "${anchorAttribute.name.value}"`);
-      }
-      if (attribute.value) {
-        warn(
-          `Hyplate will never use the anchor attribute value.
-Consider omit the value "${attribute.value.value}" of anchor "${attribute.name.value}":
-${node.open.value}
-${" ".repeat(attribute.value.start - node.start)}${"^".repeat(attribute.value.end - attribute.value.start)}
-`
-        );
-      }
-      anchorAttribute = attribute;
+  #parseAttributeValue(value: IAttributeValue): AttributeValueNode {
+    const vmProps = parseVMPropsInText(value.value, this.#locator, value.start);
+    if (vmProps.length !== 1) {
+      return this.#textNode(value);
     }
+    return vmProps[0]!;
   }
-  return anchorAttribute;
-};
-const anchorAttrName = (templateAnchorAttr: IAttribute, isGlobal?: boolean) => {
-  const rawName = templateAnchorAttr.name.value.slice(1);
-  if (isGlobal && !isValidIdentifier(rawName)) {
-    throw new Error(`Invalid identifier "${rawName}".`);
+
+  #getEventName(attrName: string): string | false {
+    const pattern = /on([a-z0-9-_]+)/i;
+    const match = pattern.exec(attrName);
+    if (!match) {
+      return false;
+    }
+    return match[1]!;
   }
-  return rawName;
-};
+
+  #getEventMode(id: string): EventMode | false {
+    const match = (["raw", "delegate"] as const).find((mode) => mode.startsWith(id));
+    if (!match) {
+      return false;
+    }
+    return EventMode[capitalize(match)];
+  }
+}
+
+const isComment = (node: ITag) => node.name === "!--";

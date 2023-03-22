@@ -7,6 +7,9 @@
  */
 export const str = (exp: unknown) => JSON.stringify(exp);
 
+// @ts-expect-error Dynamic Implementation
+export const capitalize = <S extends string>(str: S): Capitalize<S> => `${str[0]?.toUpperCase()}${str.slice(1)}`;
+
 export const tabs = (indent: number) => " ".repeat(indent * 2);
 
 export const mergedOptions =

@@ -12,11 +12,6 @@ export type TemplateFactory = "shadowed" | "replaced" | "pure";
 
 export interface TemplateOptions {
   /**
-   * Whether to preserve anchor attributes.
-   * @default false
-   */
-  preserveAnchor: boolean;
-  /**
    * Whether to preserve comment node.
    * @default false
    */
@@ -26,67 +21,6 @@ export interface TemplateOptions {
    * @default false
    */
   preserveEmptyTextNodes: boolean;
-}
-
-export interface TranspileOptions {
-  /**
-   * The way to access element.
-   * When configured to `node`, the element refs will be get by `firstChild` and `nextSibling`.
-   * When configured to `element`, the element refs will be get by `firstElementChild` and `nextElementSibling`.
-   * @default "node"
-   */
-  accessBy: "node" | "element";
-  /**
-   * Define how to transpile inline style elements as external files.
-   *
-   * When configured to `false`, the style element will be kept inline.
-   *
-   * When configured to `"link"`, the style element will be replaced as an external `<link />` element.
-   * (recommended for `shadowed` factory)
-   *
-   * When configured to `"import"`, the style element will be replaced with an empty `<style>` element,
-   * and a CSS file import statement will be added to the JavaScript code.
-   * (recommended for `replaced` factory and bundlers)
-   *
-   * Note that the generated external CSS files will always be relative to the template in the same directory.
-   * @default "link"
-   */
-  externalStyles: false | "link" | "import";
-  /**
-   * The template factory function name, whether `shadowed` or `replaced`.
-   * @default "shadowed"
-   */
-  factory: TemplateFactory;
-  /**
-   * Define how to process CSS code in templates. By default the transpiler leaves the content as what it is,
-   * even the blanks and tabs in template HTML.
-   * @param style the style tag (AST object) with element attributes info
-   * @param template the template info
-   * @returns the precessed CSS code
-   */
-  processInlineCSS: (style: ITag, template: TemplateInfo) => string;
-  /**
-   * Define how to transform relative urls.
-   *
-   * When configured to `false`, the relative URLs will be kept as what it is.
-   *
-   * When configured to `"resolve"`, the relative URL will be dynamically converted like the following dynamically:
-   *
-   * ```js
-   * const _converted = new URL("<relative>", import.meta.url).toString();
-   * // The `_converted` will be inserted into the template.
-   * ```
-   *
-   * When configured to `"import"`, the relative URL will be treated as assets URLs and a import statement will be added.
-   *
-   * ```js
-   * import _ref from "<relative>";
-   * // The default export `_ref` should be a converted URL string, and it will be inserted into the template.
-   * ```
-   *
-   * @default "resolve"
-   */
-  relativeURLs: false | "resolve" | "import";
 }
 
 export interface EmitOptions {
