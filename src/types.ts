@@ -55,7 +55,7 @@ export type Differ = <T>(a: T, b: T) => boolean;
 
 export type TextInterpolation = string | number | bigint | boolean;
 
-export type AttributeInterpolation = string | number | boolean | undefined | null;
+export type AttributeInterpolation = string | number | bigint | boolean | undefined | null;
 
 export type AttributePattern = `attr:${string}`;
 
