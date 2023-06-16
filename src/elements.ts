@@ -164,7 +164,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
       return rendered;
     }
     const newTarget = this.#newTarget;
-    const { tag, shadowRootInit } = newTarget;
+    const { shadowRootInit } = newTarget;
     const slotAssignment = shadowRootInit?.slotAssignment;
     const shadow = this.attachShadow({
       ...shadowRootInit,
@@ -178,7 +178,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
       if (slotAssignment === "manual") {
         assignSlotMap(mount, this, children, this.cleanups);
       } else {
-        insertSlotMap(mount, this, children, newTarget.slotTag ?? slotName(tag), this.cleanups);
+        insertSlotMap(mount, this, children, newTarget.slotTag, this.cleanups);
       }
       // Free the slot map object since it will never be used again.
       this.#children = void 0;
