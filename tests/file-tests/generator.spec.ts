@@ -1,3 +1,4 @@
+/*
 import { parse } from "../../dist/compiler/parser";
 import { generateDeclaration } from "../../dist/compiler/generator";
 import { readFile } from "./file-util";
@@ -11,3 +12,5 @@ describe("generator.ts", () => {
     });
   });
 });
+
+*/

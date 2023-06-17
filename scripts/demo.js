@@ -2,7 +2,10 @@
 import G from "glob";
 import { promisify } from "util";
 import { resolve } from "path";
+/*
 import { emit } from "../dist/compiler/node-emitter.js";
+*/
+
 import ts from "typescript";
 import { watch } from "fs";
 const watchTypeScriptProject = () => {
@@ -35,7 +38,9 @@ const watchTemplates = async () => {
   const base = "./web";
   const pattern = `${base}/**/*.template.html`;
   const existingTemplates = await promisify(G.glob)(pattern);
+  /*
   await Promise.all(existingTemplates.map((t) => emit(t)));
+  */
   watch(
     base,
     {
@@ -44,11 +49,14 @@ const watchTemplates = async () => {
     },
     (event, fileName) => {
       if (event === "change" && fileName.match(/\.template\.html$/)) {
+        /*
         emit(resolve(base, fileName));
+        */
       }
     }
   );
 };
-
+/*
 watchTemplates();
+*/
 watchTypeScriptProject();
