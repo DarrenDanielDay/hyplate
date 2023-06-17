@@ -1,5 +1,7 @@
 import { replaced, shadowed } from "../dist/template.js";
+/*
 import count from "./components/count/count.template.js";
+*/
 import { useCleanUp, useChildView } from "../dist/hooks.js";
 import { enableBuiltinStore, query, source } from "../dist/store.js";
 import { For, Show } from "../dist/directive.js";
@@ -15,7 +17,7 @@ enableBuiltinStore();
   shadowRootInit: {
     slotAssignment: "manual",
   },
-  observedAttributes: ['id']
+  observedAttributes: ["id"],
 })
 class CountComponent extends Component<{ msg: string }, "insert-here"> implements LifecycleCallbacks {
   connectedCallback() {
@@ -66,6 +68,7 @@ function main() {
   const resetBtn = select("button#reset")!;
   const unmountBtn = select("button#unmount")!;
   const World = replaced(t2)();
+  /*
   const Count = count(({}, ctx) => {
     const counter = source(0);
     bindEvent(ctx.refs.addCountBtn)("click", () => {
@@ -74,6 +77,7 @@ function main() {
     ctx.refs.msg.textContent = "";
     useCleanUp($text`you clicked ${counter} times.`(appendChild(ctx.refs.msg)));
   });
+  */
   const App = shadowed(t1, (f) => ({
     addButton: anchor(f, "add")!,
     doubleContainer: anchor(f, "double")!,
@@ -110,7 +114,9 @@ function main() {
             </div>)(attach);
           }}
         </Show>
-        <Count>{{ "the-slot": <div>I'm the slot!</div> }}</Count>
+        {/* 
+        <Count>{{ "the-slot": <div>I'm the slot!</div> }}</Count> 
+        */}
         <For of={list}>
           {(item) => {
             const renameInput = jsxRef<HTMLInputElement>();

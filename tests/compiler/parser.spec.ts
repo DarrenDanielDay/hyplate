@@ -4,10 +4,10 @@ describe("parser.ts", () => {
   describe("Parser", () => {
     describe("corner cases", () => {
       it("should treat unrecognized pattern as HTML", async () => {
-        const children = await parse(`\
+        const { rootNodes } = await parse(`\
 <time data-date-format="{YYYY}-{MM}-{DD} {HH}:{mm}:{ss}"></time>
 `);
-        expect(children).toStrictEqual<ElementChildNode[]>([
+        expect(rootNodes).toStrictEqual<ElementChildNode[]>([
           {
             type: 1,
             attributes: [
@@ -32,7 +32,6 @@ describe("parser.ts", () => {
             loc: { begin: { line: 1, column: 0 }, end: { line: 1, column: 64 } },
           },
         ]);
-        console.log(JSON.stringify(children));
       });
       it("should treat unrecognized label as native JavaScript code", async () => {
         const { rootNodes } = await parse(`\
@@ -114,12 +113,12 @@ describe("parser.ts", () => {
       });
     });
     it("should not omit comment node", async () => {
-      const children = await parse(`\
+      const { rootNodes } = await parse(`\
 <template>
   <!--should not be omitted-->
 </template>
 `);
-      expect(children).toStrictEqual<ElementChildNode[]>([
+      expect(rootNodes).toStrictEqual<ElementChildNode[]>([
         {
           type: NodeType.Element,
           attributes: [],
@@ -149,12 +148,12 @@ describe("parser.ts", () => {
       });
     });
     it("should omit empty text node", async () => {
-      const children = await parse(`\
+      const { rootNodes } = await parse(`\
 <template>
   <!-- should be omitted -->
 </template>
 `);
-      expect(children).toStrictEqual<ElementChildNode[]>([
+      expect(rootNodes).toStrictEqual<ElementChildNode[]>([
         {
           type: NodeType.Element,
           attributes: [],
