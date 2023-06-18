@@ -7,7 +7,7 @@
  */
 import { $attr, $text, isSubscribable } from "./binding.js";
 import { appendChild, attr, fragment, element, svg, removeRange, mathml } from "./core.js";
-import { Component, isComponentClass } from "./elements.js";
+import type { Component } from "./elements.js";
 import { addCleanUp, isFragment, isNode, _delegate, _listen } from "./internal.js";
 import type {
   JSXChildNode,
@@ -24,21 +24,22 @@ import type {
   Renderer,
   JSXFactory,
 } from "./types.js";
-import {
-  applyAllStatic,
-  fori,
-  isArray,
-  isFunction,
-  isObject,
-  isString,
-  noop,
-  push,
-  __DEV__,
-} from "./util.js";
+import { applyAllStatic, fori, isArray, isFunction, isObject, isString, noop, push, __DEV__ } from "./util.js";
+
+export const isComponentClass = (fn: Function): fn is typeof Component => !!(fn as typeof Component)?.__hyplate_comp;
 
 export const mount: Renderer = (element, onto): Rendered<any> => {
   const attach = isNode(onto) ? appendChild(onto) : onto;
   return element(attach);
+};
+
+export const create = (element: JSX.Element): Node => {
+  const frag = fragment();
+  mount(element, frag);
+  if (frag.childNodes.length === 1) {
+    return frag.firstChild!;
+  }
+  return frag;
 };
 
 export const unmount = (rendered: Rendered<any>) => {
@@ -125,7 +126,7 @@ export const jsx: JSXFactory = (
       }
       const { children, ref, ...attributes } = props;
       if (ref) {
-        ref.current = el;
+        setRef(ref, el);
       }
       const [cleanups] = children != null ? renderChild(children, appendChild(el)) : [[]];
       for (const key in attributes) {
@@ -171,6 +172,10 @@ export const jsx: JSXFactory = (
       return instance.mount(attach);
     };
   }
+  if (type.customRef) {
+    // @ts-expect-error Dynamic Implementation
+    return type(props);
+  }
   const { ref, ...otherProps } = props;
   // @ts-expect-error Dynamic Implementation
   const mountable = type(otherProps);
@@ -180,7 +185,7 @@ export const jsx: JSXFactory = (
   return (attach) => {
     const rendered = mountable(attach);
     // @ts-expect-error Dynamic Implementation
-    ref.current = rendered[1];
+    setRef(ref, rendered[1]);
     return rendered;
   };
 };
@@ -190,9 +195,17 @@ export const createElement = jsx;
 /**
  * Create a jsx ref object to fetch the DOM element when mounted.
  */
-export const jsxRef = <E extends {}>(): Later<E> => ({
+export const jsxRef = <E>(): Later<E> => ({
   current: null,
 });
+
+/**
+ * Assign reference.
+ */
+export const setRef = <E>(ref: Later<E>, value: E) => {
+  // TODO check reference object
+  ref.current = value;
+};
 
 export const Fragment: FunctionalComponent<{}, JSXChildNode | undefined> = ({ children }) => {
   return (attach) => {
@@ -202,5 +215,3 @@ export const Fragment: FunctionalComponent<{}, JSXChildNode | undefined> = ({ ch
     return [applyAllStatic(cleanups), void 0, getRange];
   };
 };
-
-

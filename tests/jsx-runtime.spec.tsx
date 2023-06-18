@@ -424,5 +424,19 @@ describe("jsx-runtime.ts", () => {
       expect(ref).toStrictEqual({ current: null });
     });
   });
+  describe("create", () => {
+    it("should return DOM node", () => {
+      expect(create(<div>Hello</div>)).toBeInstanceOf(window.HTMLDivElement);
+      expect(
+        create(
+          <>
+            <div>Hello</div>
+            <br></br>
+            <div>World</div>
+          </>
+        )
+      ).toBeInstanceOf(window.DocumentFragment);
+    });
+  });
 });
 export {};
