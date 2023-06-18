@@ -103,6 +103,12 @@
       "import": "./dist/directive.js",
       "default": "./dist/directive.js"
     },
+    "./elements": {
+      "types": "./dist/elements.d.ts",
+      "browser": "./dist/elements.browser.esm.min.js",
+      "import": "./dist/elements.js",
+      "default": "./dist/elements.js"
+    },
     "./hooks": {
       "types": "./dist/hooks.d.ts",
       "browser": "./dist/hooks.browser.esm.min.js",
