@@ -1,7 +1,7 @@
 import { isSubscribable, $attr } from "./binding.js";
 import { attr } from "./core.js";
 import { reflection, addCleanUp } from "./internal.js";
-import { mount } from "./jsx-runtime.js";
+import { mount, setRef } from "./jsx-runtime.js";
 import { slotName, assignSlotMap, insertSlotMap } from "./slot.js";
 import type {
   AttachFunc,
@@ -22,20 +22,18 @@ const ce = customElements;
 
 export const define = /* #__PURE__ */ ce.define.bind(ce);
 
-export const component = (options: ClassComponentStatic) => (ctor: typeof Component<any, any>, _context?: ClassDecoratorContext) => {
-  const { tag, observedAttributes, ...statics } = options;
-  if (observedAttributes) {
-    defineProp(ctor, "observedAttributes", { get: () => observedAttributes });
-  }
-  patch(ctor, statics);
-  // @ts-expect-error assign to readonly field
-  ctor.tag = define(tag, ctor);
-};
+export const component =
+  (options: ClassComponentStatic) => (ctor: typeof Component<any, any>, _context?: ClassDecoratorContext) => {
+    const { tag, observedAttributes, ...statics } = options;
+    if (observedAttributes) {
+      defineProp(ctor, "observedAttributes", { get: () => observedAttributes });
+    }
+    patch(ctor, statics);
+    // @ts-expect-error assign to readonly field
+    ctor.tag = define(tag, ctor);
+  };
 
 export { component as CustomElement, component as WebComponent };
-
-export const isComponentClass = (fn: Function): fn is typeof Component => !!(fn as typeof Component)?.__hyplate_comp;
-
 export abstract class Component<P extends PropsBase = PropsBase, S extends string = string> extends HTMLElement {
   /**
    * @internal
@@ -143,7 +141,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
       }
     }
     if (ref) {
-      ref.current = this;
+      setRef(ref, this);
     }
     this.props = others;
     this.#children = children;

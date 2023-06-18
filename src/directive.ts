@@ -9,47 +9,53 @@ import { arrayFrom, compare, err, isFunction, noop, warned, __DEV__ } from "./ut
 import type {
   AttachFunc,
   CleanUpFunc,
-  ConditionalMountable,
-  ExposeBase,
+  TruthyContextMountable,
   ForProps,
+  Later,
   Mountable,
   Props,
   Rendered,
   Subscribable,
+  FalsyContextMountable,
 } from "./types.js";
 import { withCommentRange } from "./internal.js";
 import { before, moveRange } from "./core.js";
 import { subscribe } from "./binding.js";
-import { unmount } from "./jsx-runtime.js";
+import { jsxRef, mount, setRef, unmount } from "./jsx-runtime.js";
 
-const createIfDirective = <Test, T extends ExposeBase, F extends ExposeBase = void>(
+const createIfDirective = <Test, T, F>(
   condition: Subscribable<Test>,
-  trueResult: ConditionalMountable<Test, T>,
-  falseResult?: Mountable<F>
-): Mountable<void> => {
+  _ref: Later<T | F> | undefined,
+  trueResult: TruthyContextMountable<Test, T>,
+  falseResult?: FalsyContextMountable<F>
+): Mountable<Later<T | F>> => {
   return (attach) => {
+    const ref = _ref ?? jsxRef<T | F>();
     const [begin, end, clearRange] = withCommentRange("if/show directive");
     attach(begin);
     attach(end);
     const attachContent: AttachFunc = before(end);
-    let lastAttached: CleanUpFunc | null = null;
+    let cleanUpLastAttached: CleanUpFunc | null = null;
+    let current: T | F | null = null;
     const unsubscribe = subscribe(condition, (newValue) => {
-      const shouldReRender = !!newValue;
-      lastAttached?.();
+      cleanUpLastAttached?.();
       clearRange();
-      if (shouldReRender) {
-        // @ts-expect-error truty check
-        [lastAttached] = trueResult(attachContent, newValue);
+      if (newValue) {
+        [cleanUpLastAttached, current] = mount(trueResult(newValue), attachContent);
+      } else if (falseResult) {
+        [cleanUpLastAttached, current] = mount(falseResult(), attachContent);
       } else {
-        [lastAttached] = falseResult?.(attachContent) ?? [null, void 0];
+        cleanUpLastAttached = null;
+        current = null;
       }
+      setRef(ref, current);
     });
     return [
       () => {
         unsubscribe();
-        lastAttached?.();
+        cleanUpLastAttached?.();
       },
-      void 0,
+      ref,
       () => [begin, end],
     ];
   };
@@ -63,31 +69,49 @@ export const nil: Mountable<void> = () => nilRendered;
 /**
  * The `If` directive for conditional rendering.
  */
-export const If = <Test, T extends ExposeBase, F extends ExposeBase = void>({
-  condition,
-  children,
-}: Props<{ condition: Subscribable<Test> }, { then: ConditionalMountable<Test, T>; else?: Mountable<F> }, void>) => {
-  if (!children) {
-    return warned("Invalid usage of 'If'. Must provide children.", nil);
+export const If = <Test, T, F = void>(
+  props: Props<
+    {
+      condition: Subscribable<Test>;
+      then: TruthyContextMountable<Test, T>;
+      else?: FalsyContextMountable<F>;
+    },
+    undefined,
+    T | F
+  >
+) => {
+  const then = props.then;
+  if (!then) {
+    return warned("Invalid usage of 'If'. Must provide `then`.", nil);
   }
-  return createIfDirective(condition, children.then, children.else);
+  return createIfDirective(props.condition, props.ref, then, props.else);
 };
+
+If.customRef = true;
 
 /**
  * The `Show` directive for conditional rendering.
  *
  * Same underlying logic with the {@link If} directive but with different styles of API.
  */
-export const Show = <Test, T extends ExposeBase, F extends ExposeBase = void>({
+export const Show = <Test, T, F = void>({
   when,
+  ref,
   children,
   fallback,
-}: Props<{ when: Subscribable<Test>; fallback?: Mountable<F> }, ConditionalMountable<Test, T>, void>) => {
+}: Props<
+  { when: Subscribable<Test>; fallback?: FalsyContextMountable<F> },
+  TruthyContextMountable<Test, T>,
+  T | F
+>) => {
   if (!children) {
     return warned("Invalid usage of 'Show'. Must provide children.", nil);
   }
-  return createIfDirective(when, children, fallback);
+  return createIfDirective(when, ref, children, fallback);
 };
+
+Show.customRef = true;
+
 /**
  * @internal
  */

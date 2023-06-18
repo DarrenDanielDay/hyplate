@@ -99,19 +99,19 @@ function main() {
     const list = source([listItem("aaa"), listItem("bbb"), listItem("ccc")]);
     useChildView(
       <>
-        <Show when={query(() => count.val % 2 === 0)}>
-          <div>mod 2 = 0</div>
-        </Show>
-        <Show when={query(() => count.val % 3)} fallback={<div>mod 3 = 0</div>}>
-          {(attach, mod) => {
+        <Show when={query(() => count.val % 2 === 0)}>{() => <div>mod 2 = 0</div>}</Show>
+        <Show when={query(() => count.val % 3)} fallback={() => <div>mod 3 = 0</div>}>
+          {(mod) => {
             console.log(`mod changed: ${mod}`);
-            return (<div>
-              mod 3 = 1 or 2
-              <>
-                <div style={query(() => (count.val % 3 === 1 ? `color: red` : `color: blue`))}>fragment</div>
-                <div>supported</div>
-              </>
-            </div>)(attach);
+            return (
+              <div>
+                mod 3 = 1 or 2
+                <>
+                  <div style={query(() => (count.val % 3 === 1 ? `color: red` : `color: blue`))}>fragment</div>
+                  <div>supported</div>
+                </>
+              </div>
+            );
           }}
         </Show>
         {/* 

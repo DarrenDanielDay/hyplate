@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { addCleanUp } from "./internal.js";
-import type { AttachFunc, CleanUpFunc, ExposeBase, Hooks, Mountable } from "./types.js";
+import type { AttachFunc, CleanUpFunc, Hooks, Mountable } from "./types.js";
 import { scopes } from "./util.js";
 
 /**
@@ -38,7 +38,7 @@ export const createHooks = (cleanups: CleanUpFunc[]): Hooks => {
 export const useCleanUpCollector: Hooks["useCleanUpCollector"] = () => resolveHooks().useCleanUpCollector();
 
 export const useChildView =
-  <E extends ExposeBase>(mountable: Mountable<E>) =>
+  <E>(mountable: Mountable<E>) =>
   (attach: AttachFunc) => {
     const [cleanup, exposed] = mountable(attach);
     useCleanUp(cleanup);

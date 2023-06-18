@@ -1,15 +1,9 @@
 import { resetBinding } from "../dist/binding";
 import { appendChild, element } from "../dist/core";
 import { If, Show } from "../dist/directive";
-import { createElement, Fragment, h, jsx, jsxRef, jsxs, mount, unmount } from "../dist/jsx-runtime";
+import { create, createElement, Fragment, h, jsx, jsxRef, jsxs, mount, unmount } from "../dist/jsx-runtime";
 import { source } from "../dist/store";
-import type {
-  AttachFunc,
-  FunctionalComponent,
-  JSXChild,
-  ObjectEventHandler,
-  Rendered,
-} from "../dist/types";
+import type { AttachFunc, FunctionalComponent, JSXChild, ObjectEventHandler, Rendered } from "../dist/types";
 import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
 import { mock, reset } from "./slot-mock";
@@ -41,17 +35,10 @@ describe("jsx-runtime.ts", () => {
 
     it("should work with functional component", () => {
       const condition = source(false);
-      const el1 = (
-        <If condition={condition}>
-          {{
-            then: <div>yes</div>,
-            else: <div>no</div>,
-          }}
-        </If>
-      );
+      const el1 = <If condition={condition} then={() => <div>yes</div>} else={() => <div>no</div>}></If>;
       const el2 = (
-        <Show when={condition} fallback={<div>no</div>}>
-          <div>yes</div>
+        <Show when={condition} fallback={() => <div>no</div>}>
+          {() => <div>yes</div>}
         </Show>
       );
       expect(el1).toBeTruthy();

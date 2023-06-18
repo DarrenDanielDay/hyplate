@@ -5,7 +5,8 @@ import { useCleanUp } from "../dist/hooks";
 import { jsxRef, mount, unmount } from "../dist/jsx-runtime";
 import { query, source } from "../dist/store";
 import { pure } from "../dist/template";
-import type { AttachFunc, Query, Source } from "../dist/types";
+import type { AttachFunc, Mountable, Query, Source } from "../dist/types";
+import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
 describe("directive.ts", () => {
   beforeAll(() => {
@@ -27,13 +28,7 @@ describe("directive.ts", () => {
     });
     it("should create view when data of `that` is true", () => {
       const condition = source(true);
-      const mountable = (
-        <If condition={condition}>
-          {{
-            then: <span>then</span>,
-          }}
-        </If>
-      );
+      const mountable = <If condition={condition} then={() => <span>then</span>}></If>;
       const rendered = mount(mountable, attach);
       expect(container.textContent).toBe("then");
       unmount(rendered);
@@ -41,13 +36,7 @@ describe("directive.ts", () => {
     });
     it("should destroy view when data of `that` changed to falsy", () => {
       const condition = source(true);
-      const mountable = (
-        <If condition={condition}>
-          {{
-            then: <span>then</span>,
-          }}
-        </If>
-      );
+      const mountable = <If condition={condition} then={() => <span>then</span>}></If>;
       const [cleanup] = mount(mountable, attach);
       expect(container.textContent).toBe("then");
       condition.set(false);
@@ -56,14 +45,7 @@ describe("directive.ts", () => {
     });
     it("should create false result view with else", () => {
       const condition = source(true);
-      const mountable = (
-        <If condition={condition}>
-          {{
-            then: <span>then</span>,
-            else: <span>else</span>,
-          }}
-        </If>
-      );
+      const mountable = <If condition={condition} then={() => <span>then</span>} else={() => <span>else</span>}></If>;
       const [cleanup] = mount(mountable, attach);
       expect(container.textContent).toBe("then");
       condition.set(false);
@@ -75,13 +57,7 @@ describe("directive.ts", () => {
       // @ts-expect-error
       const condition: Query<boolean> = query(() => src.val);
       const ref = jsxRef<HTMLButtonElement>();
-      const mountable = (
-        <If condition={condition}>
-          {{
-            then: <button ref={ref}>then</button>,
-          }}
-        </If>
-      );
+      const mountable = <If condition={condition} then={() => <button ref={ref}>then</button>}></If>;
       const [cleanup] = mount(mountable, attach);
       const button1 = ref.current;
       src.set({});
@@ -96,13 +72,7 @@ describe("directive.ts", () => {
       // @ts-expect-error
       const condition: Query<boolean> = query(() => src.val);
       const ref = jsxRef<HTMLButtonElement>();
-      const mountable = (
-        <If condition={condition}>
-          {{
-            then: <button ref={ref}>then</button>,
-          }}
-        </If>
-      );
+      const mountable = <If condition={condition} then={() => <button ref={ref}>then</button>}></If>;
       const [cleanup] = mount(mountable, attach);
       const button1 = ref.current;
       src.set(obj);
@@ -121,6 +91,25 @@ describe("directive.ts", () => {
       cleanup();
       warnSpy.mockReset();
       warnSpy.mockRestore();
+    });
+    it("should expose reference of currently rendered", () => {
+      type T = {
+        foo: number;
+      };
+      type F = {
+        bar: number;
+      };
+      const Comp1: Mountable<T> = () => {
+        return [noop, { foo: 111 }, noop];
+      };
+      const Comp2: Mountable<F> = () => [noop, { bar: 222 }, noop];
+      const ref = jsxRef<T | F>();
+      const cond = source(false);
+      const rendered = mount(<If ref={ref} condition={cond} then={() => Comp1} else={() => Comp2}></If>, container);
+      expect(ref.current).toStrictEqual<F>({ bar: 222 });
+      cond.set(true);
+      expect(ref.current).toStrictEqual<T>({ foo: 111 });
+      unmount(rendered);
     });
   });
   describe("show", () => {

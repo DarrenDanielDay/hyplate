@@ -65,7 +65,9 @@
     "toolkit.d.ts",
     "toolkit.js",
     "types.d.ts",
-    "types.js"
+    "types.js",
+    "elements.d.ts",
+    "elements.js"
   ],
   "exports": {
     ".": {

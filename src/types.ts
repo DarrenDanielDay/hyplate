@@ -44,7 +44,7 @@ export interface Source<T extends unknown> extends Query<T> {
 
 export type Subscriber<T extends unknown> = (latest: T) => void;
 
-export interface Later<E extends {}> {
+export interface Later<E> {
   current: E | null;
 }
 
@@ -195,34 +195,32 @@ export type Reflection<S extends string> = {
   [K in S]: K;
 };
 
-export type ExposeBase = {} | void;
-
 export type PropsBase = {};
 
-export type Mountable<E extends ExposeBase> = (attach: AttachFunc) => Rendered<E>;
+export type Mountable<E> = (attach: AttachFunc) => Rendered<E>;
 
 export type Renderer = (element: JSX.Element, onto: Node | AttachFunc) => Rendered<any>;
 
-export type ConditionalMountable<Test, E extends ExposeBase> = (
-  attach: AttachFunc,
-  value: Exclude<Test, Falsy>
-) => Rendered<E>;
+export type TruthyContextMountable<Truthy, T> = (truthy: NonNullable<Truthy>) => Mountable<T>;
+
+export type FalsyContextMountable<T> = () => Mountable<T>;
 
 export type WithChildren<C> = { children: C };
 
-export type WithRef<E extends {}> = { ref: Later<E> };
+export type WithRef<E> = { ref: Later<E> };
 
 export type Props<P extends PropsBase, C = undefined, E = undefined> = Omit<P, "children" | "ref"> &
   (C extends undefined ? Partial<WithChildren<C>> : WithChildren<C>) &
-  (E extends {} ? Partial<WithRef<E>> : {});
+  Partial<WithRef<E>>;
 
-export type FunctionalComponent<P extends PropsBase = PropsBase, C = undefined, E extends ExposeBase = void> = (
-  props: Props<P, C, E>
-) => Mountable<E>;
+export type FunctionalComponent<P extends PropsBase = PropsBase, C = undefined, E = void> = {
+  (props: Props<P, C, E>): Mountable<E>;
+  customRef?: boolean;
+};
 
 export type ContextFactory<Context extends {}> = (fragment: DocumentFragment) => Context;
 
-export type ContextSetupFactory<Context extends {}, S extends SlotMap> = <P extends PropsBase, E extends ExposeBase>(
+export type ContextSetupFactory<Context extends {}, S extends SlotMap> = <P extends PropsBase, E>(
   setup?: (props: P, context: Context) => E,
   wrapper?: keyof HTMLElementTagNameMap
 ) => FunctionalComponent<P, undefined | S, E>;
@@ -232,7 +230,7 @@ export interface TemplateContext<R> {
 }
 
 export interface FunctionalComponentTemplateFactory {
-  <S extends string = never>(input: string | HTMLTemplateElement): <P extends PropsBase, E extends ExposeBase>(
+  <S extends string = never>(input: string | HTMLTemplateElement): <P extends PropsBase, E>(
     setup?: (props: P) => E,
     wrapper?: keyof HTMLElementTagNameMap
   ) => FunctionalComponent<P, undefined | SlotMap<S>, E>;
@@ -251,7 +249,7 @@ export type AttachFunc = (el: Node) => void;
 
 export type GetRange = () => readonly [Node, Node] | undefined | void;
 
-export type Rendered<E extends ExposeBase> = [cleanup: CleanUpFunc, exposed: E, getRange: GetRange];
+export type Rendered<E> = [cleanup: CleanUpFunc, exposed: E, getRange: GetRange];
 
 export type BindingHost<T extends Element> = {
   attr<P extends keyof AttributesMap<T>>(name: P, subscribable: Subscribable<AttributesMap<T>[P]>): BindingHost<T>;
@@ -293,7 +291,7 @@ export interface JSXFactory {
   /**
    * functional component overload
    */
-  <P extends PropsBase, C, E extends ExposeBase>(
+  <P extends PropsBase, C, E>(
     type: FunctionalComponent<P, C, E>,
     props?: Props<P, C, E> | undefined | null,
     ...children: JSXChild[]
