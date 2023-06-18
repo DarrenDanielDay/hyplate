@@ -29,8 +29,10 @@ export const component =
       defineProp(ctor, "observedAttributes", { get: () => observedAttributes });
     }
     patch(ctor, statics);
+    // @ts-expect-error abstract class usage
+    define(tag, ctor);
     // @ts-expect-error assign to readonly field
-    ctor.tag = define(tag, ctor);
+    ctor.tag = tag;
   };
 
 export { component as CustomElement, component as WebComponent };
