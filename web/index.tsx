@@ -5,7 +5,7 @@ import count from "./components/count/count.template.js";
 import { useCleanUp, useChildView } from "../dist/hooks.js";
 import { enableBuiltinStore, query, source } from "../dist/store.js";
 import { For, Show } from "../dist/directive.js";
-import { listen as bindEvent, appendChild, select, anchor, seqAfter, element } from "../dist/core.js";
+import { listen as bindEvent, appendChild, seqAfter, element, $ } from "../dist/core.js";
 import { jsxRef, mount, unmount } from "../dist/jsx-runtime.js";
 import { $attr, $text } from "../dist/binding.js";
 import { useBinding } from "../dist/toolkit.js";
@@ -47,6 +47,7 @@ class CountComponent extends Component<{ msg: string }, "insert-here"> implement
 }
 function main() {
   const container = element("div");
+  const anchor = (frag: DocumentFragment, selector: string) => frag.querySelector(`[\\#${selector}]`);
   appendChild(document.body)(container);
   const r = jsxRef<CountComponent>();
   mount(
@@ -62,11 +63,11 @@ function main() {
     container
   );
   console.log(r);
-  const t1 = anchor("t1")!;
-  const t2 = anchor("t2")!;
-  const app = select("div#app")!;
-  const resetBtn = select("button#reset")!;
-  const unmountBtn = select("button#unmount")!;
+  const t1 = $("[\\#t1]") as HTMLTemplateElement;
+  const t2 = $("[\\#t2]") as HTMLTemplateElement;
+  const app = $("div#app")!;
+  const resetBtn = $("button#reset")!;
+  const unmountBtn = $("button#unmount")!;
   const World = replaced(t2)();
   /*
   const Count = count(({}, ctx) => {

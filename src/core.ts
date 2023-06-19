@@ -15,7 +15,7 @@ import type {
   GetRange,
   TextInterpolation,
 } from "./types.js";
-import { arrayFrom, fori, isString, push } from "./util.js";
+import { arrayFrom, fori, push } from "./util.js";
 import { comment, doc, _delegate, _listen } from "./internal.js";
 export { comment } from "./internal.js";
 
@@ -40,22 +40,6 @@ export const attr: {
   value == null || value === false ? element.removeAttribute(name) : element.setAttribute(name, `${value}`);
 
 export const content = (node: Node, content: TextInterpolation) => (node.textContent = `${content}`);
-
-export const select: {
-  <S extends string>(host: ParentNode, selecor: S): ParseSelector<S> | null;
-  <S extends string>(selecor: S): ParseSelector<S> | null;
-} = <S extends string>(host: ParentNode | S, selecor?: S): ParseSelector<S> | null =>
-  isString(host) ? doc.querySelector(host) : host.querySelector(selecor!);
-
-export const anchor: {
-  (hid: string): HTMLTemplateElement | null;
-  (owner: ParentNode, hid: string): Element | null;
-} = (p1, p2?) => {
-  if (isString(p1)) {
-    return doc.querySelector(`template[\\#${p1}]`);
-  }
-  return p1.querySelector(`[\\#${p2}]`);
-};
 
 export const $: <S extends string>(selector: S) => ParseSelector<S> = /* #__PURE__ */ doc.querySelector.bind(doc);
 

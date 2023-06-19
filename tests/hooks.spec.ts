@@ -1,6 +1,6 @@
 import { replaced } from "../dist/template";
 import { useChildView, useCleanUpCollector } from "../dist/hooks";
-import { after, anchor, appendChild } from "../dist/core";
+import { after, appendChild } from "../dist/core";
 import { noop } from "../dist/util";
 import type { Rendered } from "../dist/types";
 describe("hooks.ts", () => {
@@ -64,7 +64,7 @@ describe("hooks.ts", () => {
         return [childViewDestroy, undefined, noop];
       });
       const App = replaced(`<div><p #p1>1</p><p #p2></p></div>`, (f) => ({
-        p2: anchor(f, "p2")!,
+        p2: f.querySelector("[\\#p2]")!,
       }))((_, { p2 }) => {
         useChildView(childFactory)(after(p2));
       });

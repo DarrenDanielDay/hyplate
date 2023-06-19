@@ -3,7 +3,6 @@ import {
   $$,
   access,
   after,
-  anchor,
   appendChild,
   attr,
   before,
@@ -13,7 +12,6 @@ import {
   element,
   moveRange,
   remove,
-  select,
   seqAfter,
   svg,
   content,
@@ -72,48 +70,6 @@ describe("core.ts", () => {
       const span = document.createElement("span");
       content(span, "the content");
       expect(span.textContent).toBe("the content");
-    });
-  });
-
-  describe("select", () => {
-    it("should select element in DOM subtree by CSS selector", () => {
-      const container = document.createElement("div");
-      const button = document.createElement("button");
-      button.id = "foo";
-      appendChild(container)(button);
-      const currentElement = select(container, "button#foo");
-      expect(currentElement).toBe(button);
-    });
-
-    it("should select DOM element from documnet", () => {
-      const node = document.createElement("div");
-      document.body.appendChild(node);
-      const currentElement = select("div");
-      expect(currentElement).toBe(node);
-    });
-  });
-
-  describe("anchor", () => {
-    beforeAll(() => {
-      document.body.innerHTML = `<template #t1>
-            <div #t></div>
-          </template>
-          <div id="parent">
-            <div id="child" #child></div>
-          </div>`;
-    });
-
-    it("it should get HTMLTemplateElement with a single string argument", () => {
-      const anchorReferenced = anchor("t1");
-      const template1 = document.querySelector(`template[\\#t1]`);
-      expect(anchorReferenced).toBe(template1);
-    });
-
-    it("it should get child element", () => {
-      const parentNode = document.getElementById("parent")!;
-      const childAnchorReferenced = anchor(parentNode, "child");
-      const childElement = document.getElementById("child");
-      expect(childAnchorReferenced).toBe(childElement);
     });
   });
 
