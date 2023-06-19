@@ -32,10 +32,15 @@ const useDepScope = (): [Set<Query<unknown>>, CleanUpFunc] => {
 
 class SourceImpl<T extends unknown> implements Source<T> {
   [$$HyplateSubscribers] = new Set<Subscriber<T>>();
-  constructor(private _val: T, private _differ: Differ) {}
+  #val: T;
+  #differ: Differ;
+  constructor(val: T, differ: Differ) {
+    this.#val = val;
+    this.#differ = differ;
+  }
   get val() {
     currentScope()?.add(this);
-    return this._val;
+    return this.#val;
   }
   sub(subscriber: Subscriber<T>): CleanUpFunc {
     this[$$HyplateSubscribers].add(subscriber);
@@ -44,10 +49,10 @@ class SourceImpl<T extends unknown> implements Source<T> {
     };
   }
   set(newVal: T): void {
-    if (this._differ(this._val, newVal)) {
+    if (this.#differ(this.#val, newVal)) {
       return;
     }
-    this._val = newVal;
+    this.#val = newVal;
     dispatch(this[$$HyplateSubscribers], newVal);
   }
 }
@@ -80,8 +85,13 @@ class QueryImpl<T extends unknown> implements Query<T> {
   #dirty = true;
   #current: T | null = null;
   #teardowns: CleanUpFunc[] = [];
+  #selector: () => T;
+  #differ: Differ;
   [$$HyplateSubscribers] = new Set<Subscriber<T>>();
-  constructor(private readonly _selector: () => T, private _differ: Differ) {}
+  constructor(selector: () => T, differ: Differ) {
+    this.#selector = selector;
+    this.#differ = differ;
+  }
   get val() {
     this.#lazyEvaluate();
     return this.#current!;
@@ -103,7 +113,7 @@ class QueryImpl<T extends unknown> implements Query<T> {
     }
     this.#dirty = false;
     const [newDeps, cleanupDepScope] = useDepScope();
-    this.#current = this._selector();
+    this.#current = this.#selector();
     cleanupDepScope();
     applyAll(this.#teardowns);
     this.#teardowns = [...newDeps].map((dep) => dep.sub(this.#dispatch));
@@ -112,7 +122,7 @@ class QueryImpl<T extends unknown> implements Query<T> {
     this.#dirty = true;
     const last = this.#current;
     this.#lazyEvaluate();
-    if (this._differ(last, this.#current)) {
+    if (this.#differ(last, this.#current)) {
       return;
     }
     dispatch(this[$$HyplateSubscribers], this.#current!);
