@@ -18,7 +18,6 @@ export const setDiffer = (differ: Differ | undefined | null) => {
 };
 
 export const enableBuiltinStore = () => {
-  // @ts-expect-error type should be configured
   configureBinding(watch, isQuery);
 };
 

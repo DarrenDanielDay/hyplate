@@ -6,6 +6,7 @@ const config = {
     "index.browser.esm.min": "./dist/index.js",
     "binding.browser.esm.min": "./dist/binding.js",
     "core.browser.esm.min": "./dist/core.js",
+    "defaults.browser.esm.min": "./dist/defaults.js",
     "directive.browser.esm.min": "./dist/directive.js",
     "elements.browser.esm.min": "./dist/elements.js",
     "hooks.browser.esm.min": "./dist/hooks.js",

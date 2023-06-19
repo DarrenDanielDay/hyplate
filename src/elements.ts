@@ -134,6 +134,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
         if (key.startsWith("attr:")) {
           const name = key.slice(5);
           if (isSubscribable(value)) {
+            // @ts-expect-error skip generic type check
             push(cleanups, $attr(this, name, value));
           } else {
             attr(this, name, value);

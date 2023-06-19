@@ -139,6 +139,7 @@ export const jsx: JSXFactory = (
         // @ts-expect-error for-in key access
         const value = attributes[key];
         if (isSubscribable(value)) {
+          // @ts-expect-error skip generic type check
           push(cleanups, $attr(el, key, value));
         } else {
           if (key.startsWith("on")) {

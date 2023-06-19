@@ -67,7 +67,9 @@
     "types.d.ts",
     "types.js",
     "elements.d.ts",
-    "elements.js"
+    "elements.js",
+    "defaults.d.ts",
+    "defaults.js"
   ],
   "exports": {
     ".": {
@@ -98,6 +100,12 @@
       "browser": "./dist/core.browser.esm.min.js",
       "import": "./dist/core.js",
       "default": "./dist/core.js"
+    },
+    "./defaults": {
+      "types": "./dist/defaults.d.ts",
+      "browser": "./dist/defaults.browser.esm.min.js",
+      "import": "./dist/defaults.js",
+      "default": "./dist/defaults.js"
     },
     "./directive": {
       "types": "./dist/directive.d.ts",
