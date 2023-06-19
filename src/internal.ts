@@ -96,6 +96,6 @@ export const isValidSlotContent = (node: unknown): node is NativeSlotContent => 
 
 export const reflection: Reflection<string> = /* #__PURE__ */ new Proxy({}, { get: (_, k) => k });
 
-export const $$HyplateQuery: unique symbol = Symbol.for("hyplate-query");
+export const $$HyplateQuery: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-query");
 
-export const $$HyplateComponent: unique symbol = Symbol.for("hyplate-component");
+export const $$HyplateComponent: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-component");
