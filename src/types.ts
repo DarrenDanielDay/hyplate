@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import type { $$HyplateSubscribers } from "./internal.js";
+import type { $$HyplateQuery } from "./internal.js";
 import type { Component } from "./elements.js";
 /**
  * `NaN` cannot represented in TypeScript types.
@@ -30,7 +30,7 @@ export interface Query<T extends unknown> {
   /**
    * @internal
    */
-  [$$HyplateSubscribers]: Set<Subscriber<T>>;
+  [$$HyplateQuery]: boolean;
   /**
    * @internal
    */
@@ -42,7 +42,7 @@ export interface Source<T extends unknown> extends Query<T> {
   set(newVal: T): void;
 }
 
-export type Subscriber<T extends unknown> = (latest: T) => void;
+export type Subscriber<T extends unknown> = (this: void, latest: T) => void;
 
 export interface Later<E> {
   current: E | null;

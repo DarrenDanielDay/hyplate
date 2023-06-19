@@ -1,6 +1,6 @@
 import { isSubscribable, $attr } from "./binding.js";
 import { attr } from "./core.js";
-import { reflection, addCleanUp } from "./internal.js";
+import { reflection, addCleanUp, $$HyplateComponent } from "./internal.js";
 import { mount, setRef } from "./jsx-runtime.js";
 import { slotName, assignSlotMap, insertSlotMap } from "./slot.js";
 import type {
@@ -22,6 +22,8 @@ const ce = customElements;
 
 export const define = /* #__PURE__ */ ce.define.bind(ce);
 
+export const isComponentClass = (fn: Function): fn is typeof Component => !!(fn as typeof Component)?.[$$HyplateComponent];
+
 export const component =
   (options: ClassComponentStatic) => (ctor: typeof Component<any, any>, _context?: ClassDecoratorContext) => {
     const { tag, observedAttributes, ...statics } = options;
@@ -40,7 +42,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
   /**
    * @internal
    */
-  static __hyplate_comp = true;
+  static [$$HyplateComponent] = true;
   /**
    * The shadow root init config except `mode`.
    * In hyplate, we force the `mode` option to be `open`.

@@ -6,11 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { applyAll, compare, err, __DEV__ } from "./util.js";
+import { applyAll, compare, __DEV__ } from "./util.js";
 import type { CleanUpFunc, Differ, Query, Source, Subscriber } from "./types.js";
 import { scopes } from "./util.js";
 import { configureBinding } from "./binding.js";
-import { $$HyplateSubscribers } from "./internal.js";
+import { $$HyplateQuery, _listen } from "./internal.js";
 
 let defaultDiffer: Differ = compare;
 export const setDiffer = (differ: Differ | undefined | null) => {
@@ -30,11 +30,12 @@ const useDepScope = (): [Set<Query<unknown>>, CleanUpFunc] => {
   return [deps, quitScope];
 };
 
-class SourceImpl<T extends unknown> implements Source<T> {
-  [$$HyplateSubscribers] = new Set<Subscriber<T>>();
+class SourceImpl<T extends unknown> extends EventTarget implements Source<T> {
+  [$$HyplateQuery] = true;
   #val: T;
   #differ: Differ;
   constructor(val: T, differ: Differ) {
+    super();
     this.#val = val;
     this.#differ = differ;
   }
@@ -43,17 +44,18 @@ class SourceImpl<T extends unknown> implements Source<T> {
     return this.#val;
   }
   sub(subscriber: Subscriber<T>): CleanUpFunc {
-    this[$$HyplateSubscribers].add(subscriber);
-    return () => {
-      this[$$HyplateSubscribers].delete(subscriber);
-    };
+    return _listen(this, STORE_CHANGE_EVENT, (e) => {
+      if (e instanceof CustomEvent) {
+        subscriber(e.detail);
+      }
+    });
   }
   set(newVal: T): void {
     if (this.#differ(this.#val, newVal)) {
       return;
     }
     this.#val = newVal;
-    dispatch(this[$$HyplateSubscribers], newVal);
+    dispatch(this, newVal);
   }
 }
 
@@ -63,7 +65,7 @@ export const source = <T extends unknown>(val: T, differ: Differ = defaultDiffer
 
 export const isQuery = (obj: unknown): obj is Query<unknown> =>
   // @ts-expect-error unknown key access
-  obj && !!obj[$$HyplateSubscribers];
+  !!obj?.[$$HyplateQuery];
 
 export const watch = <T extends unknown>(query: Query<T>, subscriber: Subscriber<T>): CleanUpFunc => {
   const unsubscribe = query.sub(subscriber);
@@ -71,24 +73,26 @@ export const watch = <T extends unknown>(query: Query<T>, subscriber: Subscriber
   return unsubscribe;
 };
 
-const dispatch = <T extends unknown>(subscribers: Set<Subscriber<T>>, newVal: T) => {
-  [...subscribers].forEach((sub) => {
-    try {
-      sub(newVal);
-    } catch (error) {
-      err(error);
-    }
-  });
+export const STORE_CHANGE_EVENT = "hyplate-store-data";
+
+const dispatch = <T extends unknown>(target: EventTarget, newVal: T) => {
+  target.dispatchEvent(
+    new CustomEvent(STORE_CHANGE_EVENT, {
+      detail: newVal,
+    })
+  );
 };
 
-class QueryImpl<T extends unknown> implements Query<T> {
+class QueryImpl<T extends unknown> extends EventTarget implements Query<T> {
   #dirty = true;
   #current: T | null = null;
   #teardowns: CleanUpFunc[] = [];
   #selector: () => T;
   #differ: Differ;
-  [$$HyplateSubscribers] = new Set<Subscriber<T>>();
+  #count = 0;
+  [$$HyplateQuery] = true;
   constructor(selector: () => T, differ: Differ) {
+    super();
     this.#selector = selector;
     this.#differ = differ;
   }
@@ -97,11 +101,16 @@ class QueryImpl<T extends unknown> implements Query<T> {
     return this.#current!;
   }
   sub(subscriber: Subscriber<T>): CleanUpFunc {
-    const subscribers = this[$$HyplateSubscribers];
-    subscribers.add(subscriber);
+    this.#count++;
+    const unsubscribe = _listen(this, STORE_CHANGE_EVENT, (e) => {
+      if (e instanceof CustomEvent) {
+        subscriber(e.detail);
+      }
+    });
     return () => {
-      subscribers.delete(subscriber);
-      if (!subscribers.size) {
+      unsubscribe();
+      this.#count--;
+      if (!this.#count) {
         applyAll(this.#teardowns);
       }
     };
@@ -125,7 +134,7 @@ class QueryImpl<T extends unknown> implements Query<T> {
     if (this.#differ(last, this.#current)) {
       return;
     }
-    dispatch(this[$$HyplateSubscribers], this.#current!);
+    dispatch(this, this.#current!);
   };
 }
 

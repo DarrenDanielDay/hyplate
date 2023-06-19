@@ -126,9 +126,6 @@ describe("store.ts", () => {
   describe("dispatch", () => {
     it("should continue to dispatch when some subscribers emitted errors", () => {
       const s = source(0);
-      const errorSpy = import.meta.jest.spyOn(console, "error");
-      errorSpy.mockImplementation(() => {});
-
       const cleanup1 = watch(s, (latest) => {
         if (latest === 1) {
           throw new Error("fake error");
@@ -140,11 +137,8 @@ describe("store.ts", () => {
       expect(subscriber).toBeCalledTimes(1);
       s.set(1);
       expect(subscriber).toBeCalledTimes(2);
-      expect(errorSpy).toBeCalledTimes(1);
       cleanup1();
       cleanup2();
-      errorSpy.mockReset();
-      errorSpy.mockRestore();
     });
   });
 });
