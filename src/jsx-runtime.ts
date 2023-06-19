@@ -31,12 +31,20 @@ export const mount: Renderer = (element, onto): Rendered<any> => {
   return element(attach);
 };
 
-export const create = (element: JSX.Element): Node => {
+/**
+ * Create DOM node with JSX expression. Expecting JSX expression has no binding pattern.
+ * Bindings will work, but cannot be unsubscribed.
+ * @param element JSX.Element
+ * @returns created node
+ */
+export const create = <T extends Node = Node>(element: JSX.Element): T => {
   const frag = fragment();
   mount(element, frag);
   if (frag.childNodes.length === 1) {
+    // @ts-expect-error skip generic type check
     return frag.firstChild!;
   }
+  // @ts-expect-error skip generic type check
   return frag;
 };
 
