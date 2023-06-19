@@ -6,8 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { applyAll, compare, __DEV__ } from "./util.js";
-import type { CleanUpFunc, Differ, Query, Source, Subscriber } from "./types.js";
+import { applyAll, compare, __DEV__, isInstance } from "./util.js";
+import type { CleanUpFunc, Differ, ObjectEventHandler, Query, Source, Subscriber } from "./types.js";
 import { scopes } from "./util.js";
 import { configureBinding } from "./binding.js";
 import { $$HyplateQuery, _listen } from "./internal.js";
@@ -43,11 +43,7 @@ class SourceImpl<T extends unknown> extends EventTarget implements Source<T> {
     return this.#val;
   }
   sub(subscriber: Subscriber<T>): CleanUpFunc {
-    return _listen(this, STORE_CHANGE_EVENT, (e) => {
-      if (e instanceof CustomEvent) {
-        subscriber(e.detail);
-      }
-    });
+    return _listen(this, STORE_CHANGE_EVENT, subscription(subscriber));
   }
   set(newVal: T): void {
     if (this.#differ(this.#val, newVal)) {
@@ -74,13 +70,36 @@ export const watch = <T extends unknown>(query: Query<T>, subscriber: Subscriber
 
 export const STORE_CHANGE_EVENT = "hyplate-store-data";
 
+const CE = CustomEvent;
+
 const dispatch = <T extends unknown>(target: EventTarget, newVal: T) => {
   target.dispatchEvent(
-    new CustomEvent(STORE_CHANGE_EVENT, {
+    new CE(STORE_CHANGE_EVENT, {
       detail: newVal,
     })
   );
 };
+
+const isStoreChangeEvent = isInstance(CE);
+
+/**
+ * Use class instead of extra to save memory.
+ */
+class Subscription<T> implements ObjectEventHandler<Event> {
+  #subscriber: Subscriber<T>;
+  constructor(subscriber: Subscriber<T>) {
+    this.#subscriber = subscriber;
+  }
+  handleEvent(event: Event): void {
+    if (isStoreChangeEvent(event)) {
+      // @ts-expect-error skip generic type check
+      (0, this.#subscriber)(event.detail);
+    }
+  }
+}
+
+const subscription = <T>(subscriber: Subscriber<T>): ObjectEventHandler<CustomEvent<T>> =>
+  new Subscription(subscriber);
 
 class QueryImpl<T extends unknown> extends EventTarget implements Query<T> {
   #dirty = true;
@@ -101,11 +120,7 @@ class QueryImpl<T extends unknown> extends EventTarget implements Query<T> {
   }
   sub(subscriber: Subscriber<T>): CleanUpFunc {
     this.#count++;
-    const unsubscribe = _listen(this, STORE_CHANGE_EVENT, (e) => {
-      if (e instanceof CustomEvent) {
-        subscriber(e.detail);
-      }
-    });
+    const unsubscribe = _listen(this, STORE_CHANGE_EVENT, subscription(subscriber));
     return () => {
       unsubscribe();
       this.#count--;
