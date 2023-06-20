@@ -29,7 +29,7 @@ const useDepScope = (): [Set<Query<unknown>>, CleanUpFunc] => {
   return [deps, quitScope];
 };
 
-class SourceImpl<T extends unknown> extends EventTarget implements Source<T> {
+export class SourceImpl<T extends unknown> extends EventTarget implements Source<T> {
   [$$HyplateQuery] = true;
   #val: T;
   #differ: Differ;
@@ -101,7 +101,7 @@ class Subscription<T> implements ObjectEventHandler<Event> {
 const subscription = <T>(subscriber: Subscriber<T>): ObjectEventHandler<CustomEvent<T>> =>
   new Subscription(subscriber);
 
-class QueryImpl<T extends unknown> extends EventTarget implements Query<T> {
+export class QueryImpl<T extends unknown> extends EventTarget implements Query<T> {
   #dirty = true;
   #current: T | null = null;
   #teardowns: CleanUpFunc[] = [];

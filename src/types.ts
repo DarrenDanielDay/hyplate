@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import type { $$HyplateQuery } from "./internal.js";
+import type { $$HyplateComponentMeta, $$HyplateQuery } from "./internal.js";
 import type { Component } from "./elements.js";
 /**
  * `NaN` cannot represented in TypeScript types.
@@ -152,11 +152,27 @@ export type ShadowRootConfig = Omit<ShadowRootInit, "mode">;
 
 export interface ClassComponentStatic {
   tag: string;
-  slotTag?: string;
-  shadowRootInit?: ShadowRootConfig;
-  defaultProps?: object;
-  observedAttributes?: string[];
+  slotTag: string;
+  /**
+   * CSS style sheets to apply to the shadow root.
+   */
+  styles: CSSStyleSheet[];
+  shadowRootInit: ShadowRootConfig;
+
+  observedAttributes: string[];
 }
+
+export interface ComponentMeta {
+  attributes?: Set<string>;
+}
+
+export type ComponentOptions = {
+  tag: string;
+  slotTag?: string;
+  styles?: CSSStyleSheet[];
+  shadowRootInit?: ShadowRootConfig;
+  observedAttributes?: string[];
+};
 
 export interface OnConnected {
   connectedCallback(): void;
@@ -210,13 +226,74 @@ export type WithChildren<C> = { children: C };
 export type WithRef<E> = { ref: Later<E> };
 
 export type Props<P extends PropsBase, C = undefined, E = undefined> = Omit<P, "children" | "ref"> &
-  (C extends undefined ? Partial<WithChildren<C>> : WithChildren<C>) &
+  (undefined extends C ? Partial<WithChildren<C>> : WithChildren<C>) &
   Partial<WithRef<E>>;
 
 export type FunctionalComponent<P extends PropsBase = PropsBase, C = undefined, E = void> = {
   (props: Props<P, C, E>): Mountable<E>;
   customRef?: boolean;
 };
+
+export type ClassComponentProps<P extends PropsBase, S extends string> = Omit<P, "children" | "ref"> & {
+  children?: SlotMap<S>;
+};
+
+export type ClassComponentRawProps<P extends PropsBase, S extends string, T> = Omit<P, "children" | "ref"> & {
+  children?: SlotMap<S>;
+  ref?: Later<T>;
+};
+export interface ComponentClass extends ClassComponentStatic {
+  /**
+   * @internal
+   */
+  [$$HyplateComponentMeta]: ComponentMeta;
+  new <P extends PropsBase = PropsBase, S extends string = string>(
+    props?: ClassComponentProps<P, S>
+  ): ClassComponentInstance<P, S>;
+}
+
+export interface ClassComponentInstance<P extends PropsBase = PropsBase, S extends string = string>
+  extends HTMLElement {
+  /**
+   * In a hyplate class component, the `shadowRoot` property is ensured to be not null.
+   */
+  shadowRoot: ShadowRoot;
+  /**
+   * Initialized in `setup`.
+   */
+  props: Partial<P>;
+  /**
+   * Infer slot names with type magic.
+   */
+  slots: Reflection<S>;
+  /**
+   * Clean up function collection.
+   */
+  cleanups: CleanUpFunc[];
+  /**
+   * The props setup step.
+   * You can override this to do the initialization stuff.
+   * Remember to call `super.setup(props)` first to ensure the default behavior.
+   */
+  setup(props?: ClassComponentRawProps<P, S, this> | undefined): void;
+  /**
+   * The render function, should behave like functional components.
+   */
+  render(): Mountable<any>;
+  /**
+   * The mount steps. Manually assign the slots or insert named slots,
+   * and then attach the component instance to the parent view.
+   * @param attach the attach function
+   * @returns rendered result
+   */
+  mount(attach?: AttachFunc): Rendered<this>;
+  /**
+   * The unmount steps.
+   */
+  unmount(): void;
+}
+
+export type PropsOf<T> = T extends ClassComponentInstance<infer P, any> ? P : never;
 
 export type ContextFactory<Context extends {}> = (fragment: DocumentFragment) => Context;
 
@@ -302,7 +379,9 @@ export interface JSXFactory {
   <T extends typeof Component<any, any>>(
     type: T,
     props: JSX.IntrinsicClassAttributes<InstanceType<T>> &
-      (InstanceType<T> extends Component<infer P, infer S> ? Props<P, SlotMap<S> | undefined, InstanceType<T>> : never),
+      (InstanceType<T> extends ClassComponentInstance<infer P, infer S>
+        ? ClassComponentRawProps<P, S, InstanceType<T>>
+        : never),
     ...childre: JSXChild[]
   ): JSX.Element;
 }
@@ -2368,9 +2447,10 @@ declare global {
     interface ElementChildrenAttribute {
       children: {};
     }
-    interface IntrinsicClassAttributes<T extends Component<PropsBase, string>>
+    interface IntrinsicClassAttributes<T extends ClassComponentInstance<PropsBase, string>>
       extends ClassComponentNativeAttributes<T> {
       ref?: Later<T>;
+      // [attribute: AttributePattern]: BindingPattern<AttributeInterpolation>;
       [attribute: AttributePattern]: BindingPattern<AttributeInterpolation>;
     }
     type JSXEventHandlerAttributes<E extends globalThis.Element> = {

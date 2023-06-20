@@ -1,15 +1,20 @@
 import { isSubscribable, $attr } from "./binding.js";
 import { attr } from "./core.js";
-import { reflection, addCleanUp, $$HyplateComponent } from "./internal.js";
+import { reflection, addCleanUp, $$HyplateComponentMeta, enterComponentCtx, quitComponentCtx } from "./internal.js";
 import { mount, setRef } from "./jsx-runtime.js";
 import { slotName, assignSlotMap, insertSlotMap } from "./slot.js";
 import type {
   AttachFunc,
+  ClassComponentInstance,
+  ClassComponentProps,
+  ClassComponentRawProps,
   ClassComponentStatic,
   CleanUpFunc,
+  ComponentClass,
+  ComponentMeta,
+  ComponentOptions,
   Later,
   Mountable,
-  Props,
   PropsBase,
   Reflection,
   Rendered,
@@ -22,32 +27,55 @@ const ce = customElements;
 
 export const define = /* #__PURE__ */ ce.define.bind(ce);
 
-export const isComponentClass = (fn: Function): fn is typeof Component => !!(fn as typeof Component)?.[$$HyplateComponent];
+export const isComponentClass = (fn: Function): fn is ComponentClass =>
+  !!(fn as ComponentClass)?.[$$HyplateComponentMeta];
 
-export const component =
-  (options: ClassComponentStatic) => (ctor: typeof Component<any, any>, _context?: ClassDecoratorContext) => {
-    const { tag, observedAttributes, ...statics } = options;
-    if (observedAttributes) {
-      defineProp(ctor, "observedAttributes", { get: () => observedAttributes });
-    }
-    patch(ctor, statics);
-    // @ts-expect-error abstract class usage
-    define(tag, ctor);
-    // @ts-expect-error assign to readonly field
-    ctor.tag = tag;
+const observedAttributeProperty = "observedAttributes";
+
+export const component = (options: ComponentOptions) => {
+  const meta: ComponentMeta = {};
+  enterComponentCtx(meta);
+  return (_ctor: ClassComponentStatic, context: ClassDecoratorContext) => {
+    context.addInitializer(function () {
+      // @ts-expect-error convert type of `this`
+      const cls: ComponentClass = this;
+      cls[$$HyplateComponentMeta] = meta;
+      const { tag, [observedAttributeProperty]: observedAttributes, ...statics } = options;
+      cls.tag = tag;
+      if (!Object.hasOwn(cls, observedAttributeProperty)) {
+        // when `observedAttributes` is not explicitly defined in client class
+        if (observedAttributes) {
+          // If defined in `component` decorator, use it directly.
+          defineProp(cls, observedAttributeProperty, { get: () => observedAttributes });
+        } else {
+          // Otherwise use attributes collected in metadata.
+          const { attributes } = meta;
+          if (attributes) {
+            defineProp(cls, observedAttributeProperty, { get: () => [...attributes] });
+          }
+        }
+      }
+      patch(cls, statics);
+      define(tag, cls);
+      quitComponentCtx();
+    });
   };
+};
 
 export { component as CustomElement, component as WebComponent };
-export abstract class Component<P extends PropsBase = PropsBase, S extends string = string> extends HTMLElement {
+export const Component: ComponentClass = class<P extends PropsBase = PropsBase, S extends string = string>
+  extends HTMLElement
+  implements ClassComponentInstance<P, S>
+{
   /**
    * @internal
    */
-  static [$$HyplateComponent] = true;
+  static [$$HyplateComponentMeta] = {};
   /**
    * The shadow root init config except `mode`.
    * In hyplate, we force the `mode` option to be `open`.
    */
-  public static readonly shadowRootInit?: ShadowRootConfig;
+  public static readonly shadowRootInit: ShadowRootConfig = {};
   /**
    * The custom element name. Must be present, or it will explode.
    */
@@ -60,68 +88,27 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
   public static get slotTag(): string {
     return slotName(this.tag);
   }
-  /**
-   * CSS style sheets to apply to the shadow root.
-   */
   static styles: CSSStyleSheet[] = [];
-  /**
-   * If the component instance is created by HTML tag directly, the default props will be used.
-   * Only useful when you want to use the component directly by its tag name.
-   * Note that these default props will never be merged with given props in JSX.
-   * If you want to use a factory function, you can define a static `getter` like this:
-   * ```js
-   * class MyComponent extends Component {
-   *   static get defaultProps() {
-   *     return {
-   *       foo: "bar",
-   *     };
-   *   }
-   * }
-   * ```
-   */
-  public static defaultProps?: PropsBase;
-  /**
-   * By default, hyplate class component will not observe any attribute.
-   * Currently TypeScript cannot declare a static field/getter field.
-   * This getter is just for the type hint.
-   */
   static get observedAttributes(): string[] {
     return [];
   }
-  /**
-   * In a hyplate class component, the `shadowRoot` property is ensured to be not null.
-   */
+
   public declare shadowRoot: ShadowRoot;
-  /**
-   * Initialized in `setup`.
-   */
-  public props!: P;
-  /**
-   * Infer slot names with type magic.
-   */
+  public props!: Partial<P>;
   public slots: Reflection<S> = reflection;
-  /**
-   * Clean up function collection.
-   */
   public cleanups: CleanUpFunc[] = [];
   #children: SlotMap<S> | undefined;
   #rendered: Rendered<this> | undefined;
-  #newTarget: typeof Component<any, any>;
-  public constructor(props?: Props<P, SlotMap<S> | undefined, {}>) {
+  #newTarget: ComponentClass;
+  public constructor(props?: ClassComponentProps<P, S>) {
     super();
-    const newTarget = (this.#newTarget = new.target);
-    // @ts-expect-error cannot use `this` for Exposed
-    this.setup(props ?? newTarget.defaultProps);
+    this.#newTarget = new.target;
+    this.setup(props);
   }
-  /**
-   * The props setup step.
-   * You can override this to do the initialization stuff.
-   * Remember to call `super.setup(props)` first to ensure the default behavior.
-   */
-  public setup(props: Props<P, SlotMap<S> | undefined, this>): void {
+
+  public setup(props: ClassComponentRawProps<P, S, this> | undefined): void {
     let ref: Later<this> | undefined, children: SlotMap<S> | undefined;
-    // @ts-expect-error later updated type
-    const others: P = {};
+    const others: Partial<P> = {};
     const { cleanups } = this;
     for (const key in props) {
       // @ts-expect-error for in property access
@@ -151,16 +138,11 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
     this.props = others;
     this.#children = children;
   }
-  /**
-   * The render function, should behave like the functional component.
-   */
-  public abstract render(): Mountable<any>;
-  /**
-   * The mount steps. Manually assign the slots or insert named slots,
-   * and then attach the component instance to the parent view.
-   * @param attach the attach function
-   * @returns rendered result
-   */
+
+  public render(): Mountable<any> {
+    throw new Error("You should implement `render` in your component subclass");
+  }
+
   public mount(attach?: AttachFunc): Rendered<this> {
     let rendered = this.#rendered;
     if (rendered) {
@@ -168,7 +150,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
     }
     const newTarget = this.#newTarget;
     const { shadowRootInit } = newTarget;
-    const slotAssignment = shadowRootInit?.slotAssignment;
+    const slotAssignment = shadowRootInit.slotAssignment;
     const shadow = this.attachShadow({
       ...shadowRootInit,
       mode: "open",
@@ -190,9 +172,7 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
     attach?.(this);
     return rendered;
   }
-  /**
-   * The unmount steps.
-   */
+
   public unmount(): void {
     if (this.#rendered) {
       applyAll(this.cleanups);
@@ -200,4 +180,11 @@ export abstract class Component<P extends PropsBase = PropsBase, S extends strin
       this.#rendered = void 0;
     }
   }
-}
+
+  /**
+   * Decleared to supress type errors.
+   */
+  declare connectedCallback: () => void;
+  declare disconnectedCallback: () => void;
+  declare attributeChangedCallback: (name: string, oldValue: string | null, newValue: string | null) => void;
+};

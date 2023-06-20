@@ -7,13 +7,14 @@
  */
 import type {
   CleanUpFunc,
+  ComponentMeta,
   EventHandlerOptions,
   FunctionalEventHanlder,
   Handler,
   NativeSlotContent,
   Reflection,
 } from "./types.js";
-import { err, fori, isInstance, noop, push, __DEV__ } from "./util.js";
+import { err, fori, isInstance, noop, push, __DEV__, scopes } from "./util.js";
 
 export const doc = document;
 
@@ -94,8 +95,10 @@ const isElement = /* #__PURE__ */ isInstance(Element);
 
 export const isValidSlotContent = (node: unknown): node is NativeSlotContent => isText(node) || isElement(node);
 
+export const [enterComponentCtx, quitComponentCtx, currentComponentCtx] = /* #__PURE__ */ scopes<ComponentMeta>();
+
 export const reflection: Reflection<string> = /* #__PURE__ */ new Proxy({}, { get: (_, k) => k });
 
 export const $$HyplateQuery: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-query");
 
-export const $$HyplateComponent: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-component");
+export const $$HyplateComponentMeta: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-component-meta");

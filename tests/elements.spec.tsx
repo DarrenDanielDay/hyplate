@@ -23,6 +23,7 @@ describe("elements.ts", () => {
       })
       class ClassComponent0 extends Component {
         override render() {
+          this.attachInternals
           return <div></div>;
         }
       }
@@ -50,7 +51,7 @@ describe("elements.ts", () => {
         tag: "test-class-component-3",
       })
       class ClassComponent3 extends Component {
-        static shadowRootInit?: Omit<ShadowRootInit, "mode"> | undefined = {
+        static shadowRootInit: Omit<ShadowRootInit, "mode">  = {
           slotAssignment: "manual",
         };
         slot3 = jsxRef<HTMLSlotElement>();
