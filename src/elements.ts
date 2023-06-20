@@ -151,10 +151,12 @@ export const Component: ComponentClass = class<P extends PropsBase = PropsBase, 
     const newTarget = this.#newTarget;
     const { shadowRootInit } = newTarget;
     const slotAssignment = shadowRootInit.slotAssignment;
-    const shadow = this.attachShadow({
-      ...shadowRootInit,
-      mode: "open",
-    });
+    const shadow =
+      this.shadowRoot ??
+      this.attachShadow({
+        ...shadowRootInit,
+        mode: "open",
+      });
     shadow.adoptedStyleSheets = [...this.#newTarget.styles];
     const [cleanup] = mount(this.render(), shadow);
     addCleanUp(this.cleanups, cleanup);
