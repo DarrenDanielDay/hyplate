@@ -190,5 +190,36 @@ describe("store.ts", () => {
       expect(fn).toBeCalledTimes(2);
       unsubscribe();
     });
+    it("should work with multiple signals", () => {
+      const msg$ = signal("");
+      const count$ = signal(0);
+      let times = 0;
+      const fn = import.meta.jest.fn(() => {
+        const msg = msg$();
+        const count = count$();
+        switch (times) {
+          case 0:
+            expect(msg).toBe("");
+            expect(count).toBe(0);
+            break;
+          case 1:
+            expect(msg).toBe("hello world");
+            expect(count).toBe(0);
+            break;
+          case 2:
+            expect(msg).toBe("hello world");
+            expect(count).toBe(1);
+            break;
+        }
+        times++;
+      });
+      const cleanup = effect(fn);
+      expect(fn).toBeCalledTimes(1);
+      msg$.set("hello world");
+      expect(fn).toBeCalledTimes(2);
+      count$.set(1);
+      expect(fn).toBeCalledTimes(3);
+      cleanup();
+    });
   });
 });
