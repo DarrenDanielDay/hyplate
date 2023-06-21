@@ -2,7 +2,7 @@ import { resetBinding } from "../dist/binding";
 import { appendChild, element } from "../dist/core";
 import { If, Show } from "../dist/directive";
 import { create, createElement, Fragment, h, jsx, jsxRef, jsxs, mount, unmount } from "../dist/jsx-runtime";
-import { source } from "../dist/store";
+import { signal } from "../dist/signals";
 import type { AttachFunc, FunctionalComponent, JSXChild, ObjectEventHandler, Rendered } from "../dist/types";
 import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
@@ -34,7 +34,7 @@ describe("jsx-runtime.ts", () => {
     });
 
     it("should work with functional component", () => {
-      const condition = source(false);
+      const condition = signal(false);
       const el1 = <If condition={condition} then={() => <div>yes</div>} else={() => <div>no</div>}></If>;
       const el2 = (
         <Show when={condition} fallback={() => <div>no</div>}>
@@ -226,7 +226,7 @@ describe("jsx-runtime.ts", () => {
       cleanup();
     });
     it("should create binding for attributes", () => {
-      const disabled = source(false);
+      const disabled = signal(false);
       const mountable = <button disabled={disabled}></button>;
       const [cleaup, button]: Rendered<HTMLButtonElement> = mount(mountable, attach);
       expect(button.disabled).toBeFalsy();

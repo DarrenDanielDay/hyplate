@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import type { $$HyplateComponentMeta, $$HyplateQuery } from "./internal.js";
+import type { $$HyplateComponentMeta, $$HyplateSignal } from "./internal.js";
 import type { Component } from "./elements.js";
 /**
  * `NaN` cannot represented in TypeScript types.
@@ -26,21 +26,50 @@ export type SubscribeFunc = <T>(subscribable: Subscribable<T>, subscriber: Subsc
 
 export type SubscribableTester = (value: unknown) => value is Subscribable<unknown>;
 
-export interface Query<T extends unknown> {
+export interface SignalMembers<T extends unknown> {
+  [$$HyplateSignal]: boolean;
+  /**
+   * `Signal` in hyplate is implemented with `EventTarget`.
+   * This property exposes the raw event target object.
+   */
+  readonly target: EventTarget;
   /**
    * @internal
    */
-  [$$HyplateQuery]: boolean;
+  get(): T;
   /**
    * @internal
+   * This method is internal implementation detail. May be changed in the future. 
    */
-  sub(subscriber: Subscriber<T>): CleanUpFunc;
-  readonly val: T;
+  subscribe(subscriber: Subscriber<T>): CleanUpFunc;
 }
 
-export interface Source<T extends unknown> extends Query<T> {
-  set(newVal: T): void;
+export interface SignalGetter<T extends unknown> {
+  (this: void): T;
 }
+
+export interface Signal<T extends unknown> extends SignalGetter<T>, SignalMembers<T> {}
+
+export interface WritableSignalMembers<T extends unknown> extends SignalMembers<T> {
+  /**
+   * Set the signal value.
+   * @param newVal the new signal value to dispatch
+   */
+  set(newValue: T): void;
+  /**
+   * Mutate the old value and dispatch signal data.
+   * Comparator of the signal will be ignored. It will always dispatch a signal update.
+   * @param mutation mutation
+   */
+  mutate(mutation: (oldValue: T) => void): void;
+  /**
+   * Compute a new value from the previous one, and then `set()` the signal data.
+   * @param reducer reduce function
+   */
+  update(reducer: (previous: T) => T): void;
+}
+
+export interface WritableSignal<T extends unknown> extends SignalGetter<T>, WritableSignalMembers<T> {}
 
 export type Subscriber<T extends unknown> = (this: void, latest: T) => void;
 
@@ -51,7 +80,7 @@ export interface Later<E> {
 /**
  * Should return true if the two value is treated as same.
  */
-export type Differ = <T>(a: T, b: T) => boolean;
+export type Comparator = <T>(a: T, b: T) => boolean;
 
 export type TextInterpolation = string | number | bigint | boolean;
 

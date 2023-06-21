@@ -10,5 +10,5 @@ export * from "./jsx-runtime.js";
 export * from "./directive.js";
 export { useChildView, useCleanUp, useCleanUpCollector } from "./hooks.js";
 export * from "./binding.js";
-export * from "./store.js";
+export * from "./signals.js";
 export * from "./template.js";

@@ -59,7 +59,7 @@ const addChild = (child: JSXChild, attach: AttachFunc) => {
     attach(child);
     return noop;
   }
-  if (isFunction(child)) {
+  if (isFunction(child) && !isSubscribable(child)) {
     return mount(child, attach)[0];
   }
   return $text`${child}`(attach);

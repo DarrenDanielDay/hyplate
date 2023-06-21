@@ -1,7 +1,7 @@
-import { enableBuiltinStore } from "../dist/store";
+import { enableBuiltinSignals } from "../dist/signals";
 declare module "../dist/types.js" {
-  export interface Subscribable<T> extends Query<T> {}
+  export interface Subscribable<T> extends Signal<T> {}
 }
 export const setHyplateStore = () => {
-  enableBuiltinStore();
+  enableBuiltinSignals();
 };

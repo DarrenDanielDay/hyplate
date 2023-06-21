@@ -3,15 +3,15 @@ import { replaced, shadowed } from "../dist/template.js";
 import count from "./components/count/count.template.js";
 */
 import { useCleanUp, useChildView } from "../dist/hooks.js";
-import { enableBuiltinStore, query, source } from "../dist/store.js";
+import { computed, effect, signal } from "../dist/signals.js";
 import { For, Show } from "../dist/directive.js";
-import { listen as bindEvent, appendChild, seqAfter, element, $ } from "../dist/core.js";
+import { listen as bindEvent, appendChild, seqAfter, element, $, listen } from "../dist/core.js";
 import { jsxRef, mount, unmount } from "../dist/jsx-runtime.js";
 import { $attr, $text } from "../dist/binding.js";
 import { useBinding } from "../dist/toolkit.js";
-import { LifecycleCallbacks } from "hyplate/types.js";
+import type { LifecycleCallbacks, Signal } from "hyplate/types.js";
 import { Component, CustomElement } from "../dist/elements.js";
-enableBuiltinStore();
+import { attribute } from "../dist/defaults.js";
 @CustomElement({
   tag: "hyplate-counter-demo",
   shadowRootInit: {
@@ -19,7 +19,9 @@ enableBuiltinStore();
   },
   observedAttributes: ["id"],
 })
-class CountComponent extends Component<{ msg: string }, "insert-here"> implements LifecycleCallbacks {
+class CountComponent extends Component<{ msg: string; id?: string }, "insert-here"> implements LifecycleCallbacks {
+  @attribute("id")
+  accessor id$: Signal<string | null>;
   connectedCallback() {
     console.log("connected", arguments);
   }
@@ -33,12 +35,12 @@ class CountComponent extends Component<{ msg: string }, "insert-here"> implement
     console.log("attribute changed", arguments);
   }
   public override render(): JSX.Element {
-    const count = source(0);
+    const count = signal(0);
     return (
       <div>
-        <p>Hello, class component!</p>
+        <p>Hello, class component! id = {this.id$}</p>
         <slot name={this.slots["insert-here"]}></slot>
-        <button onClick={() => count.set(count.val + 1)}>
+        <button onClick={() => count.set(count() + 1)}>
           {this.props.msg} clicked {count}
         </button>
       </div>
@@ -84,31 +86,31 @@ function main() {
     doubleContainer: anchor(f, "double")!,
     oddDisabledBtn: anchor(f, "odd-disabled")!,
   }))(({ user }: { user: string }, { addButton, oddDisabledBtn, doubleContainer }) => {
-    const count = source(0);
-    const double = query(() => count.val * 2);
+    const count = signal(0);
+    const double = computed(() => count() * 2);
     useCleanUp($text`${user} clicked ${count} times.`(appendChild(addButton)));
     useCleanUp($text`double of count: ${double}`(appendChild(doubleContainer)));
-    const disabled = query(() => count.val % 2 === 1);
+    const disabled = computed(() => count() % 2 === 1);
     useCleanUp($attr(oddDisabledBtn, "disabled", disabled));
     useBinding(addButton).event("click", () => {
       console.log("click!");
-      count.set(count.val + 1);
+      count.set(count() + 1);
     });
     const listItem = (text: string) => ({
-      text: source(text),
+      text: signal(text),
     });
-    const list = source([listItem("aaa"), listItem("bbb"), listItem("ccc")]);
+    const list = signal([listItem("aaa"), listItem("bbb"), listItem("ccc")]);
     useChildView(
       <>
-        <Show when={query(() => count.val % 2 === 0)}>{() => <div>mod 2 = 0</div>}</Show>
-        <Show when={query(() => count.val % 3)} fallback={() => <div>mod 3 = 0</div>}>
+        <Show when={computed(() => count() % 2 === 0)}>{() => <div>mod 2 = 0</div>}</Show>
+        <Show when={computed(() => count() % 3)} fallback={() => <div>mod 3 = 0</div>}>
           {(mod) => {
             console.log(`mod changed: ${mod}`);
             return (
               <div>
                 mod 3 = 1 or 2
                 <>
-                  <div style={query(() => (count.val % 3 === 1 ? `color: red` : `color: blue`))}>fragment</div>
+                  <div style={computed(() => (count() % 3 === 1 ? `color: red` : `color: blue`))}>fragment</div>
                   <div>supported</div>
                 </>
               </div>
@@ -139,7 +141,7 @@ function main() {
                   <div class="row">
                     <button
                       onClick={() => {
-                        const originalList = list.val;
+                        const originalList = list();
                         const splitIndex = +moveIndexInput.current!.value;
                         if (!(0 <= splitIndex && splitIndex < originalList.length)) {
                           return;
@@ -151,7 +153,7 @@ function main() {
                         ];
                         console.log(
                           `moved list:`,
-                          newList.map((it) => it.text.val)
+                          newList.map((it) => it.text())
                         );
                         list.set(newList);
                       }}
@@ -163,7 +165,7 @@ function main() {
                   <div class="row">
                     <button
                       onClick={() => {
-                        const originalList = list.val;
+                        const originalList = list();
                         const random = Math.floor(Math.random() * originalList.length);
                         console.log(`Insert ${item.text} at index ${random}`);
                         list.set([
@@ -179,7 +181,7 @@ function main() {
                     </button>
                     <button
                       onClick={() => {
-                        list.set(list.val.filter((it) => it !== item));
+                        list.set(list().filter((it) => it !== item));
                       }}
                     >
                       delete
@@ -268,3 +270,22 @@ function main() {
 }
 
 main();
+
+const count = signal(0);
+const double = computed(() => count() * 2);
+const increase = () => count.update((c) => c + 1);
+const unsubscribe1 = effect(() => {
+  console.log(`exec effect 1 ${count()} ${double()}`);
+});
+const unsubscribe2 = effect(() => {
+  console.log(`exec effect 2 ${double()}`);
+});
+const unsubscribe3 = effect(() => {
+  console.log(`exec effect 3 ${count()}`);
+});
+increase();
+increase();
+// logs exec effect 1/2/3 3 times
+unsubscribe1();
+unsubscribe2();
+unsubscribe3();

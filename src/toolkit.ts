@@ -14,7 +14,7 @@ import type {
   AttributesMap,
   BindingHost,
   BindingPattern,
-  Differ,
+  Comparator,
   Events,
   EventType,
   FunctionalEventHanlder,
@@ -24,9 +24,9 @@ import type {
 } from "./types.js";
 import { isObject, strictEqual } from "./util.js";
 
-export const alwaysDifferent: Differ = () => false;
+export const alwaysDifferent: Comparator = () => false;
 
-export const deepDiffer: Differ = (a, b) => {
+export const deepDiffer: Comparator = (a, b) => {
   if (!isObject(a) || !isObject(b)) {
     // Compare identity for cases of functions & primitives.
     return strictEqual(a, b);

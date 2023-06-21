@@ -1,11 +1,11 @@
 // import type {} from "typed-query-selector";
 import { Component } from "./elements.js";
 import { $$HyplateComponentMeta, currentComponentCtx } from "./internal.js";
-import { enableBuiltinStore, query, source } from "./store.js";
+import { enableBuiltinSignals, computed, signal } from "./signals.js";
 import type { AttributeDecorator, AttributeKeys, ClassComponentInstance, PropsOf } from "./types.js";
-enableBuiltinStore();
+enableBuiltinSignals();
 declare module "./types.js" {
-  export interface Subscribable<T> extends Query<T> {}
+  export interface Subscribable<T> extends Signal<T> {}
   export interface ClassComponentInstance<P extends PropsBase = PropsBase, S extends string = string>
     extends OnConnected,
       OnDisconnected,
@@ -19,7 +19,7 @@ declare module "./types.js" {
    * @internal
    */
   interface ComponentInstanceMeta {
-    attributes?: Record<PropertyKey, Source<string | null>>;
+    attributes?: Record<PropertyKey, WritableSignal<string | null>>;
   }
   export type AttributeKeys<T> = Extract<keyof PropsOf<T>, string> & {};
   export type AttributeDecorator<T, R> = (
@@ -57,10 +57,10 @@ export const attribute: {
       const instance = this as ClassComponentInstance<any, any>;
       const meta = (instance[$$HyplateComponentMeta] ??= {});
       const attributes = (meta.attributes ??= {});
-      const src = (attributes[name] ??= source<string | null>(instance.getAttribute(name)));
+      const src = (attributes[name] ??= signal<string | null>(instance.getAttribute(name)));
       if (transform) {
-        return query(() => {
-          const value = src.val;
+        return computed(() => {
+          const value = src();
           return value == null ? null : transform(value);
         });
       }

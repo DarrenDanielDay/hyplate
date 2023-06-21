@@ -1,4 +1,4 @@
-import { source } from "../dist/store";
+import { signal } from "../dist/signals";
 import {
   applyAll,
   err,
@@ -57,18 +57,18 @@ describe("util.ts", () => {
       expect(isString("")).toBeTruthy();
       expect(isString(noop)).toBeFalsy();
       expect(isString(1)).toBeFalsy();
-      expect(isString(source(null))).toBeFalsy();
+      expect(isString(signal(null))).toBeFalsy();
     });
     it("should test object", () => {
       expect(isObject("")).toBeFalsy();
       expect(isObject(1)).toBeFalsy();
-      expect(isObject(source(null))).toBeTruthy();
+      expect(isObject(signal(null))).toBeFalsy();
     });
     it("should test function", () => {
       expect(isFunction("")).toBeFalsy();
       expect(isFunction(noop)).toBeTruthy();
       expect(isFunction(1)).toBeFalsy();
-      expect(isFunction(source(null))).toBeFalsy();
+      expect(isFunction(signal(null))).toBeTruthy();
     });
   });
   describe("applyAll", () => {

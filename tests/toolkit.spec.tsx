@@ -2,13 +2,11 @@ import { element } from "../dist/core";
 import { alwaysDifferent, deepDiffer, useBinding } from "../dist/toolkit";
 // @ts-expect-error internal exports
 import { enterHooks, quitHooks } from "../dist/hooks";
-import type { CleanUpFunc, OnAttributeChanged } from "../dist/types";
-import { source } from "../dist/store";
+import type { CleanUpFunc } from "../dist/types";
+import { signal } from "../dist/signals";
 import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
 import { resetBinding } from "../dist/binding";
-import { mount, unmount } from "../dist/jsx-runtime";
-import { mock, reset } from "./slot-mock";
 describe("toolkit.ts", () => {
   describe("always different", () => {
     it("should always return false", () => {
@@ -56,11 +54,11 @@ describe("toolkit.ts", () => {
       const el = element("div");
       document.body.appendChild(el);
       const binding = useBinding(el);
-      binding.attr("id", source("aaa"));
+      binding.attr("id", signal("aaa"));
       expect(el.id).toBe("aaa");
-      binding.text`Using useBind().content ${0} ${source(1)}`;
+      binding.text`Using useBind().content ${0} ${signal(1)}`;
       expect(el.textContent).toBe(`Using useBind().content 0 1`);
-      binding.content(source("Now changed"));
+      binding.content(signal("Now changed"));
       expect(el.textContent).toBe("Now changed");
       const handler = import.meta.jest.fn();
       binding.event("click", handler);

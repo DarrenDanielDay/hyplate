@@ -3,9 +3,9 @@ import { appendChild, content } from "../dist/core";
 import { If, Show, For } from "../dist/directive";
 import { useCleanUp } from "../dist/hooks";
 import { jsxRef, mount, unmount } from "../dist/jsx-runtime";
-import { query, source } from "../dist/store";
+import { computed, signal } from "../dist/signals";
 import { pure } from "../dist/template";
-import type { AttachFunc, Mountable, Query, Source } from "../dist/types";
+import type { AttachFunc, Mountable, Signal, WritableSignal } from "../dist/types";
 import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
 describe("directive.ts", () => {
@@ -27,7 +27,7 @@ describe("directive.ts", () => {
       container.remove();
     });
     it("should create view when data of `that` is true", () => {
-      const condition = source(true);
+      const condition = signal(true);
       const mountable = <If condition={condition} then={() => <span>then</span>}></If>;
       const rendered = mount(mountable, attach);
       expect(container.textContent).toBe("then");
@@ -35,7 +35,7 @@ describe("directive.ts", () => {
       expect(container.textContent).toBe("");
     });
     it("should destroy view when data of `that` changed to falsy", () => {
-      const condition = source(true);
+      const condition = signal(true);
       const mountable = <If condition={condition} then={() => <span>then</span>}></If>;
       const [cleanup] = mount(mountable, attach);
       expect(container.textContent).toBe("then");
@@ -44,7 +44,7 @@ describe("directive.ts", () => {
       cleanup();
     });
     it("should create false result view with else", () => {
-      const condition = source(true);
+      const condition = signal(true);
       const mountable = <If condition={condition} then={() => <span>then</span>} else={() => <span>else</span>}></If>;
       const [cleanup] = mount(mountable, attach);
       expect(container.textContent).toBe("then");
@@ -53,9 +53,9 @@ describe("directive.ts", () => {
       cleanup();
     });
     it("should re-create view with changed condition", () => {
-      const src = source({});
+      const src = signal({});
       // @ts-expect-error
-      const condition: Query<boolean> = query(() => src.val);
+      const condition: Signal<boolean> = computed(() => src());
       const ref = jsxRef<HTMLButtonElement>();
       const mountable = <If condition={condition} then={() => <button ref={ref}>then</button>}></If>;
       const [cleanup] = mount(mountable, attach);
@@ -68,9 +68,9 @@ describe("directive.ts", () => {
     });
     it("should not create view with unchanged condition", () => {
       const obj = {};
-      const src = source(obj);
+      const src = signal(obj);
       // @ts-expect-error
-      const condition: Query<boolean> = query(() => src.val);
+      const condition: Signal<boolean> = computed(() => src());
       const ref = jsxRef<HTMLButtonElement>();
       const mountable = <If condition={condition} then={() => <button ref={ref}>then</button>}></If>;
       const [cleanup] = mount(mountable, attach);
@@ -104,7 +104,7 @@ describe("directive.ts", () => {
       };
       const Comp2: Mountable<F> = () => [noop, { bar: 222 }, noop];
       const ref = jsxRef<T | F>();
-      const cond = source(false);
+      const cond = signal(false);
       const rendered = mount(<If ref={ref} condition={cond} then={() => Comp1} else={() => Comp2}></If>, container);
       expect(ref.current).toStrictEqual<F>({ bar: 222 });
       cond.set(true);
@@ -142,11 +142,11 @@ describe("directive.ts", () => {
     };
     let container: HTMLDivElement;
     let attach: AttachFunc;
-    let list: Source<Item[]>;
+    let list: WritableSignal<Item[]>;
     const renderChildImpl = (item: Item) => <span>{item.val}</span>;
     let renderChild: jest.Mock<ReturnType<typeof renderChildImpl>, Parameters<typeof renderChildImpl>>;
     beforeEach(() => {
-      list = source<Item[]>(Array.from({ length: 10 }, (_, i) => ({ val: i })));
+      list = signal<Item[]>(Array.from({ length: 10 }, (_, i) => ({ val: i })));
       container = document.createElement("div");
       document.body.appendChild(container);
       renderChild = import.meta.jest.fn(renderChildImpl);
@@ -168,7 +168,7 @@ describe("directive.ts", () => {
       const warnSpy = import.meta.jest.spyOn(console, "warn");
       warnSpy.mockImplementation(() => {});
       mount(<For of={list}>{renderChild}</For>, attach);
-      const arr = list.val;
+      const arr = list();
       list.set([arr[1], arr[0], arr[0], arr[9]]);
       expect(warnSpy).toBeCalled();
       warnSpy.mockReset();
@@ -183,7 +183,7 @@ describe("directive.ts", () => {
     it("should perform insert", () => {
       mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
-      const listContent = list.val;
+      const listContent = list();
       const newList: Item[] = [
         ...listContent.slice(0, 3),
         { val: -1 },
@@ -198,7 +198,7 @@ describe("directive.ts", () => {
     it("should perform move", () => {
       mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
-      const listContent = list.val;
+      const listContent = list();
       const item2 = listContent[2]!;
       const item5 = listContent[5]!;
       const newList: Item[] = [...listContent.slice(0, 2), item5, item2, ...listContent.slice(6)];
@@ -209,7 +209,7 @@ describe("directive.ts", () => {
     it("should perform remove", () => {
       mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
-      const listContent = list.val;
+      const listContent = list();
       const newList: Item[] = [...listContent.slice(0, 2), ...listContent.slice(3)];
       list.set(newList);
       expect(renderChild).toBeCalledTimes(10);
@@ -218,7 +218,7 @@ describe("directive.ts", () => {
     it("should perform remove and move", () => {
       mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
-      const listContent = list.val;
+      const listContent = list();
       const [a, b, c, d, e, , , , i, j] = listContent;
       const newList: Item[] = [a, b, d, e, c, i, j];
       list.set(newList);
@@ -228,7 +228,7 @@ describe("directive.ts", () => {
     it("should cover LIS", () => {
       mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
-      const arr = list.val;
+      const arr = list();
       const newList: Item[] = [arr[2], arr[1], arr[5], arr[3], arr[6], arr[4], arr[8], arr[9], arr[7]];
       list.set(newList);
       expect(renderChild).toBeCalledTimes(10);
@@ -238,7 +238,7 @@ describe("directive.ts", () => {
       mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
       expect(container.textContent).toBe("0123456789");
-      const [a, b, c, d, e, f, g, h, i, j] = list.val;
+      const [a, b, c, d, e, f, g, h, i, j] = list();
       list.set([a, b, d, e, c, { val: 10 }, g, h, i, j]);
       expect(renderChild).toBeCalledTimes(11);
       expect(container.textContent).toBe("01342106789");
@@ -253,7 +253,7 @@ describe("directive.ts", () => {
       mount(<For of={list}>{renderChild}</For>, attach);
       expect(renderChild).toBeCalledTimes(10);
       expect(container.textContent).toBe("0@1@2@3@4@5@6@7@8@9@");
-      const [a, b, c, d, e, f, g, h, i, j] = list.val;
+      const [a, b, c, d, e, f, g, h, i, j] = list();
       list.set([a, b, d, e, c, { val: 10 }, g, h, i, j]);
       expect(renderChild).toBeCalledTimes(11);
       expect(container.textContent).toBe("0@1@3@4@2@10@6@7@8@9@");
@@ -272,7 +272,7 @@ describe("directive.ts", () => {
       const rendered = mount(<For of={list}>{(item) => <Component {...item} />}</For>, attach);
       expect(createMock).toBeCalledTimes(10);
       expect(container.textContent).toBe("0123456789");
-      const [a, b, c, d, e, f, g, h, i, j] = list.val;
+      const [a, b, c, d, e, f, g, h, i, j] = list();
       list.set([a, b, d, e, c, { val: 10 }, g, h, i, j]);
       expect(createMock).toBeCalledTimes(11);
       expect(container.textContent).toBe("01342106789");

@@ -99,6 +99,6 @@ export const [enterComponentCtx, quitComponentCtx, currentComponentCtx] = /* #__
 
 export const reflection: Reflection<string> = /* #__PURE__ */ new Proxy({}, { get: (_, k) => k });
 
-export const $$HyplateQuery: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-query");
+export const $$HyplateSignal: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-signal");
 
 export const $$HyplateComponentMeta: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-component-meta");

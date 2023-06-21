@@ -1,6 +1,6 @@
 import { $attr, $content, $text, isSubscribable, resetBinding, subscribe } from "../dist/binding";
 import { appendChild, element } from "../dist/core";
-import { source } from "../dist/store";
+import { signal } from "../dist/signals";
 import { setHyplateStore } from "./configure-store";
 
 describe("binding.ts", () => {
@@ -12,7 +12,7 @@ describe("binding.ts", () => {
       resetBinding();
     });
     it("should bind textContent", () => {
-      const data = source("1");
+      const data = signal("1");
       const p = element("p");
       $content(p, data);
       expect(p.textContent).toBe("1");
@@ -29,7 +29,7 @@ describe("binding.ts", () => {
     });
     it("should bind textContent with reactive store", () => {
       const p = document.createElement("p");
-      const a1 = source(1);
+      const a1 = signal(1);
       const fn = $text`print: ${a1}`(appendChild(p));
       expect(p.textContent).toBe("print: 1");
       a1.set(2);
@@ -74,7 +74,7 @@ describe("binding.ts", () => {
       resetBinding();
     });
     it("should bind attribute", () => {
-      const disabled = source(false);
+      const disabled = signal(false);
       const button = document.createElement("button");
       const cleanup = $attr(button, "disabled", disabled);
       expect(button.disabled).toBeFalsy();
@@ -98,7 +98,7 @@ describe("binding.ts", () => {
     });
     it("should emit warning if not configured", () => {
       resetBinding();
-      const s = source(0);
+      const s = signal(0);
       subscribe(s, () => {});
       expect(warnSpy).toBeCalledTimes(2);
       isSubscribable(s);

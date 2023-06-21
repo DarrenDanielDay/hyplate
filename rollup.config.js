@@ -12,7 +12,7 @@ const config = {
     "hooks.browser.esm.min": "./dist/hooks.js",
     "identifiers.browser.esm.min": "./dist/identifiers.js",
     "jsx-runtime.browser.esm.min": "./dist/jsx-runtime.js",
-    "store.browser.esm.min": "./dist/store.js",
+    "signals.browser.esm.min": "./dist/signals.js",
     "template.browser.esm.min": "./dist/template.js",
     "toolkit.browser.esm.min": "./dist/toolkit.js",
   },

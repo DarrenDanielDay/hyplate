@@ -2,7 +2,7 @@ import { resetBinding } from "../dist/binding";
 import { element } from "../dist/core";
 import { Component, CustomElement } from "../dist/elements";
 import { jsxRef, mount, unmount } from "../dist/jsx-runtime";
-import { source } from "../dist/store";
+import { signal } from "../dist/signals";
 import type { OnAttributeChanged, OnConnected } from "../dist/types";
 import { setHyplateStore } from "./configure-store";
 import { mock, reset } from "./slot-mock";
@@ -23,7 +23,7 @@ describe("elements.ts", () => {
       })
       class ClassComponent0 extends Component {
         override render() {
-          this.attachInternals
+          this.attachInternals;
           return <div></div>;
         }
       }
@@ -51,7 +51,7 @@ describe("elements.ts", () => {
         tag: "test-class-component-3",
       })
       class ClassComponent3 extends Component {
-        static shadowRootInit: Omit<ShadowRootInit, "mode">  = {
+        static shadowRootInit: Omit<ShadowRootInit, "mode"> = {
           slotAssignment: "manual",
         };
         slot3 = jsxRef<HTMLSlotElement>();
@@ -91,7 +91,7 @@ describe("elements.ts", () => {
       })
       class WrapperClassComponent extends Component {
         render(): JSX.Element {
-          const lang = source("");
+          const lang = signal("");
           return (
             <>
               {/* no slot */}

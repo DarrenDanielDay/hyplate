@@ -142,12 +142,12 @@
       "import": "./dist/jsx-runtime.js",
       "default": "./dist/jsx-runtime.js"
     },
-    "./store": {
-      "types": "./dist/store.d.ts",
-      "browser": "./dist/store.browser.esm.min.js",
-      "node": "./dist/store.js",
-      "import": "./dist/store.js",
-      "default": "./dist/store.js"
+    "./signals": {
+      "types": "./dist/signals.d.ts",
+      "browser": "./dist/signals.browser.esm.min.js",
+      "node": "./dist/signals.js",
+      "import": "./dist/signals.js",
+      "default": "./dist/signals.js"
     },
     "./template": {
       "types": "./dist/template.d.ts",
