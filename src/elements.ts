@@ -178,6 +178,7 @@ export const Component: ComponentClass = class<P extends PropsBase = PropsBase, 
   public unmount(): void {
     if (this.#rendered) {
       applyAll(this.cleanups);
+      this.cleanups.length = 0;
       this.shadowRoot.innerHTML = "";
       this.#rendered = void 0;
     }
