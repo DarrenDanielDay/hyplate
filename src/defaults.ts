@@ -2,7 +2,7 @@
 import { Component } from "./elements.js";
 import { $$HyplateComponentMeta, currentComponentCtx } from "./internal.js";
 import { enableBuiltinSignals, computed, signal } from "./signals.js";
-import type { AttributeDecorator, AttributeKeys, ClassComponentInstance, PropsOf } from "./types.js";
+import type { AttributeDecorator, AttributeKeys, ClassComponentInstance, PropsOf, Signal } from "./types.js";
 enableBuiltinSignals();
 declare module "./types.js" {
   export interface Subscribable<T> extends Signal<T> {}
@@ -21,7 +21,7 @@ declare module "./types.js" {
   interface ComponentInstanceMeta {
     attributes?: Record<PropertyKey, WritableSignal<string | null>>;
   }
-  export type AttributeKeys<T> = Extract<keyof PropsOf<T>, string> & {};
+  export type AttributeKeys<T> = Extract<keyof PropsOf<T>, string>;
   export type AttributeDecorator<T, R> = (
     target: ClassAccessorDecoratorTarget<T, Subscribable<R | null>>,
     context: ClassAccessorDecoratorContext<T, Subscribable<R | null>>
@@ -48,26 +48,32 @@ export const attribute: {
     PropsOf<T>[K]
   >;
   <T, K extends AttributeKeys<T>>(name: K): AttributeDecorator<T, Extract<PropsOf<T>[K], string>>;
-} = (name, transform?: (value: string) => unknown) => (_target, _context) => {
-  const currentMeta = currentComponentCtx()!;
-  const attributes = (currentMeta.attributes ??= new Set());
-  attributes.add(name);
-  return {
-    init(_value) {
-      const instance = this as ClassComponentInstance<any, any>;
-      const meta = (instance[$$HyplateComponentMeta] ??= {});
-      const attributes = (meta.attributes ??= {});
-      const src = (attributes[name] ??= signal<string | null>(instance.getAttribute(name)));
-      if (transform) {
-        return computed(() => {
-          const value = src();
-          return value == null ? null : transform(value);
-        });
-      }
-      return src;
-    },
-    set(_value) {
-      throw new Error(`Cannot set binded attribute. It's read-only.`);
-    },
+  <T>(name: string): AttributeDecorator<T, string>;
+} =
+  (name: string, transform?: (value: string) => any) =>
+  (
+    _target: ClassAccessorDecoratorTarget<any, any>,
+    _context: ClassAccessorDecoratorContext<any, any>
+  ): ClassAccessorDecoratorResult<ClassComponentInstance<any, any>, Signal<any>> => {
+    const currentMeta = currentComponentCtx()!;
+    const attributes = (currentMeta.attributes ??= new Set());
+    attributes.add(name);
+    return {
+      init(_value) {
+        const instance = this as ClassComponentInstance<any, any>;
+        const meta = (instance[$$HyplateComponentMeta] ??= {});
+        const attributes = (meta.attributes ??= {});
+        const src = (attributes[name] ??= signal<string | null>(instance.getAttribute(name)));
+        if (transform) {
+          return computed(() => {
+            const value = src();
+            return value == null ? null : transform(value);
+          });
+        }
+        return src;
+      },
+      set(_value) {
+        throw new Error(`Cannot set binded attribute. It's read-only.`);
+      },
+    };
   };
-};
