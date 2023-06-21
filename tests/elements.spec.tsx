@@ -181,6 +181,15 @@ describe("elements.ts", () => {
       // expect(container.firstElementChild?.shadowRoot?.innerHTML).toBe("<div>auto mount</div>");
       // expect(el.shadowRoot).toBeTruthy();
     });
+    it("should emit error without override `render`", () => {
+      @CustomElement({
+        tag: "error-component-1",
+      })
+      class ErrorComponent extends Component {}
+      expect(() => {
+        mount(<ErrorComponent></ErrorComponent>, document.body);
+      }).toThrow(/render/i);
+    });
   });
   describe("CustomElement", () => {
     it("should define static fields", () => {
