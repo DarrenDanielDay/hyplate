@@ -12,3 +12,4 @@ export { useChildView, useCleanUp, useCleanUpCollector } from "./hooks.js";
 export * from "./binding.js";
 export * from "./signals.js";
 export * from "./template.js";
+export * from "./defaults.js";
