@@ -14,7 +14,7 @@ import type {
   CleanUpFunc,
   ContextFactory,
   FunctionalComponentTemplateFactory,
-  HyplateElement,
+  ExposedElement,
   TemplateContext,
 } from "./types.js";
 import { applyAll, applyAllStatic, defineProp, fori, isFunction, once, patch } from "./util.js";
@@ -31,7 +31,7 @@ export const shadowed: FunctionalComponentTemplateFactory = (input, contextFacto
       const localCleanups: CleanUpFunc[] = [];
       const slots = props.children;
       // @ts-expect-error dynamic created element
-      const host: HyplateElement<unknown> = element(elementTag);
+      const host: ExposedElement<unknown> = element(elementTag);
       attach(host);
       const shadow = host.attachShadow({ mode: "open", slotAssignment: "manual" });
       const fragment = clone(t.content);

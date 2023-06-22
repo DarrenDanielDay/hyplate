@@ -1,8 +1,8 @@
 import { isSubscribable, resetBinding } from "../dist/binding";
 import { attr } from "../dist/core";
-import { attribute } from "../dist/defaults";
+import { Attribute } from "../dist/defaults";
 import { nil } from "../dist/directive";
-import { Component, component } from "../dist/elements";
+import { HyplateElement, Component } from "../dist/elements";
 import { effect, isSignal, signal } from "../dist/signals";
 import type { AttachFunc, Mountable, Rendered, Signal } from "../dist/types";
 describe("defaults.ts", () => {
@@ -15,10 +15,10 @@ describe("defaults.ts", () => {
   it("should auto mount and unmount", () => {
     const mounted = import.meta.jest.fn();
     const unmounted = import.meta.jest.fn();
-    @component({
+    @Component({
       tag: "test-auto-mount",
     })
-    class TestAutoMount extends Component {
+    class TestAutoMount extends HyplateElement {
       override render(): Mountable<any> {
         return nil;
       }
@@ -46,16 +46,16 @@ describe("defaults.ts", () => {
       document.body.innerHTML = "";
     });
     it("should return signal of attribute changes", () => {
-      @component({ tag: "test-attribute-decorator" })
-      class TestAttribute extends Component<{ message: string; count: number }> {
-        @attribute("message")
+      @Component({ tag: "test-attribute-decorator" })
+      class TestAttribute extends HyplateElement<{ message: string; count: number }> {
+        @Attribute("message")
         accessor msg!: Signal<string | null>;
-        @attribute("not-in-props")
+        @Attribute("not-in-props")
         accessor notInProps!: Signal<string | null>;
-        @attribute("count", Number)
+        @Attribute("count", Number)
         accessor count!: Signal<number | null>;
         // @ts-expect-error typescript should emit error here
-        @attribute("countt", Number)
+        @Attribute("countt", Number)
         accessor countt!: Signal<number | null>;
         render(): Mountable<any> {
           return nil;

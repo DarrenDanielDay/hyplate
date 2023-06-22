@@ -5,8 +5,8 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import type { $$HyplateComponentMeta, $$HyplateSignal } from "./internal.js";
-import type { Component } from "./elements.js";
+import type { $$HyplateElementMeta, $$HyplateSignal } from "./internal.js";
+import type { HyplateElement } from "./elements.js";
 /**
  * `NaN` cannot represented in TypeScript types.
  * @see https://developer.mozilla.org/en-US/docs/Glossary/Falsy
@@ -223,7 +223,7 @@ export interface OnAttributeChanged {
  */
 export interface LifecycleCallbacks extends OnConnected, OnDisconnected, OnAdopted, OnAttributeChanged {}
 
-export interface HyplateElement<T> extends HTMLElement {
+export interface ExposedElement<T> extends HTMLElement {
   readonly exposed: T;
 }
 
@@ -275,7 +275,7 @@ export interface ComponentClass extends ClassComponentStatic {
   /**
    * @internal
    */
-  [$$HyplateComponentMeta]: ComponentMeta;
+  [$$HyplateElementMeta]: ComponentMeta;
   new <P extends PropsBase = PropsBase, S extends string = string>(
     props?: ClassComponentProps<P, S>
   ): ClassComponentInstance<P, S>;
@@ -405,7 +405,7 @@ export interface JSXFactory {
   /**
    * class component overload
    */
-  <T extends typeof Component<any, any>>(
+  <T extends typeof HyplateElement<any, any>>(
     type: T,
     props: JSX.IntrinsicClassAttributes<InstanceType<T>> &
       (InstanceType<T> extends ClassComponentInstance<infer P, infer S>

@@ -2,7 +2,7 @@ import { appendChild, listen } from "../dist/core";
 import { useCleanUp } from "../dist/hooks";
 import { mount, unmount } from "../dist/jsx-runtime";
 import { basedOnURL, contextFactory, pure, replaced, shadowed, template } from "../dist/template";
-import type { HyplateElement, Mountable } from "../dist/types";
+import type { ExposedElement, Mountable } from "../dist/types";
 import { noop } from "../dist/util";
 import { mock, reset } from "./slot-mock";
 describe("template.ts", () => {
@@ -89,7 +89,7 @@ describe("template.ts", () => {
         return {};
       });
       const [unmount, exposed] = mount(Comopnent({}), appendChild(document.body));
-      const el = document.body.lastChild as HyplateElement<unknown>;
+      const el = document.body.lastChild as ExposedElement<unknown>;
       expect(el.exposed).toBe(exposed);
       expect(() => {
         // @ts-expect-error readonly property

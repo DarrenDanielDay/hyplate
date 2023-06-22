@@ -1,6 +1,6 @@
 // import type {} from "typed-query-selector";
-import { Component } from "./elements.js";
-import { $$HyplateComponentMeta, currentComponentCtx } from "./internal.js";
+import { HyplateElement } from "./elements.js";
+import { $$HyplateElementMeta, currentComponentCtx } from "./internal.js";
 import { enableBuiltinSignals, computed, signal } from "./signals.js";
 import type { AttributeDecorator, AttributeKeys, ClassComponentInstance, PropsOf, Signal } from "./types.js";
 enableBuiltinSignals();
@@ -13,7 +13,7 @@ declare module "./types.js" {
     /**
      * @internal
      */
-    [$$HyplateComponentMeta]?: ComponentInstanceMeta;
+    [$$HyplateElementMeta]?: ComponentInstanceMeta;
   }
   /**
    * @internal
@@ -28,7 +28,7 @@ declare module "./types.js" {
   ) => ClassAccessorDecoratorResult<T, Subscribable<R | null>>;
 }
 
-const ComponentPrototype = Component.prototype as ClassComponentInstance;
+const ComponentPrototype = HyplateElement.prototype as ClassComponentInstance;
 
 ComponentPrototype.connectedCallback = function () {
   this.mount();
@@ -39,10 +39,10 @@ ComponentPrototype.disconnectedCallback = function () {
 };
 
 ComponentPrototype.attributeChangedCallback = function (name, _oldValue, newValue) {
-  this[$$HyplateComponentMeta]?.attributes?.[name].set(newValue);
+  this[$$HyplateElementMeta]?.attributes?.[name].set(newValue);
 };
 
-export const attribute: {
+export const Attribute: {
   <T, K extends AttributeKeys<T>>(name: K, transform: (value: string) => PropsOf<T>[K]): AttributeDecorator<
     T,
     PropsOf<T>[K]
@@ -61,7 +61,7 @@ export const attribute: {
     return {
       init(_value) {
         const instance = this as ClassComponentInstance<any, any>;
-        const meta = (instance[$$HyplateComponentMeta] ??= {});
+        const meta = (instance[$$HyplateElementMeta] ??= {});
         const attributes = (meta.attributes ??= {});
         const src = (attributes[name] ??= signal<string | null>(instance.getAttribute(name)));
         if (transform) {

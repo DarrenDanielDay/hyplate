@@ -1,6 +1,6 @@
 import { isSubscribable, $attr } from "./binding.js";
 import { attr } from "./core.js";
-import { reflection, addCleanUp, $$HyplateComponentMeta, enterComponentCtx, quitComponentCtx } from "./internal.js";
+import { reflection, addCleanUp, $$HyplateElementMeta, enterComponentCtx, quitComponentCtx } from "./internal.js";
 import { mount, setRef } from "./jsx-runtime.js";
 import { slotName, assignSlotMap, insertSlotMap } from "./slot.js";
 import type {
@@ -8,7 +8,6 @@ import type {
   ClassComponentInstance,
   ClassComponentProps,
   ClassComponentRawProps,
-  ClassComponentStatic,
   CleanUpFunc,
   ComponentClass,
   ComponentMeta,
@@ -28,18 +27,18 @@ const ce = customElements;
 export const define = /* #__PURE__ */ ce.define.bind(ce);
 
 export const isComponentClass = (fn: Function): fn is ComponentClass =>
-  !!(fn as ComponentClass)?.[$$HyplateComponentMeta];
+  !!(fn as ComponentClass)?.[$$HyplateElementMeta];
 
 const observedAttributeProperty = "observedAttributes";
 
-export const component = (options: ComponentOptions) => {
+export const Component = (options: ComponentOptions) => {
   const meta: ComponentMeta = {};
   enterComponentCtx(meta);
-  return (_ctor: ClassComponentStatic, context: ClassDecoratorContext) => {
+  return (_ctor: abstract new (...args: any[]) => HTMLElement, context: ClassDecoratorContext) => {
     context.addInitializer(function () {
       // @ts-expect-error convert type of `this`
       const cls: ComponentClass = this;
-      cls[$$HyplateComponentMeta] = meta;
+      cls[$$HyplateElementMeta] = meta;
       const { tag, [observedAttributeProperty]: observedAttributes, ...statics } = options;
       cls.tag = tag;
       if (!Object.hasOwn(cls, observedAttributeProperty)) {
@@ -62,15 +61,15 @@ export const component = (options: ComponentOptions) => {
   };
 };
 
-export { component as CustomElement, component as WebComponent };
-export const Component: ComponentClass = class<P extends PropsBase = PropsBase, S extends string = string>
+export { Component as CustomElement, Component as WebComponent };
+export const HyplateElement: ComponentClass = class<P extends PropsBase = PropsBase, S extends string = string>
   extends HTMLElement
   implements ClassComponentInstance<P, S>
 {
   /**
    * @internal
    */
-  static [$$HyplateComponentMeta] = {};
+  static [$$HyplateElementMeta] = {};
   /**
    * The shadow root init config except `mode`.
    * In hyplate, we force the `mode` option to be `open`.

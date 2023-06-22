@@ -1,6 +1,6 @@
 import { resetBinding } from "../dist/binding";
 import { element } from "../dist/core";
-import { Component, CustomElement } from "../dist/elements";
+import { HyplateElement, CustomElement } from "../dist/elements";
 import { jsxRef, mount, unmount } from "../dist/jsx-runtime";
 import { signal } from "../dist/signals";
 import type { OnAttributeChanged, OnConnected } from "../dist/types";
@@ -21,7 +21,7 @@ describe("elements.ts", () => {
       @CustomElement({
         tag: "test-class-component-0",
       })
-      class ClassComponent0 extends Component {
+      class ClassComponent0 extends HyplateElement {
         override render() {
           this.attachInternals;
           return <div></div>;
@@ -30,7 +30,7 @@ describe("elements.ts", () => {
       @CustomElement({
         tag: "test-class-component-1",
       })
-      class ClassComponent1 extends Component<{ msg: string }, "slot1" | "slot2"> {
+      class ClassComponent1 extends HyplateElement<{ msg: string }, "slot1" | "slot2"> {
         override render(): JSX.Element {
           return (
             <div>
@@ -50,7 +50,7 @@ describe("elements.ts", () => {
       @CustomElement({
         tag: "test-class-component-3",
       })
-      class ClassComponent3 extends Component {
+      class ClassComponent3 extends HyplateElement {
         static shadowRootInit: Omit<ShadowRootInit, "mode"> = {
           slotAssignment: "manual",
         };
@@ -72,7 +72,7 @@ describe("elements.ts", () => {
       @CustomElement({
         tag: "test-class-component-4",
       })
-      class ClassComponent4 extends Component {
+      class ClassComponent4 extends HyplateElement {
         render(): JSX.Element {
           return (
             <div>
@@ -89,7 +89,7 @@ describe("elements.ts", () => {
       @CustomElement({
         tag: "test-class-component-wrapper",
       })
-      class WrapperClassComponent extends Component {
+      class WrapperClassComponent extends HyplateElement {
         render(): JSX.Element {
           const lang = signal("");
           return (
@@ -145,7 +145,7 @@ describe("elements.ts", () => {
       unmount(rendered);
     });
   });
-  describe("Component", () => {
+  describe("HyplateElement", () => {
     beforeEach(() => {
       document.body.innerHTML = "";
     });
@@ -153,13 +153,13 @@ describe("elements.ts", () => {
       document.body.innerHTML = "";
     });
     it("should have no observed attributes", () => {
-      expect(Component.observedAttributes ?? []).toStrictEqual([]);
+      expect(HyplateElement.observedAttributes ?? []).toStrictEqual([]);
     });
     it("should not perform mount more than once", () => {
       @CustomElement({
         tag: "test-auto-mount",
       })
-      class AutoMount extends Component implements OnConnected {
+      class AutoMount extends HyplateElement implements OnConnected {
         render() {
           return <div>auto mount</div>;
         }
@@ -185,7 +185,7 @@ describe("elements.ts", () => {
       @CustomElement({
         tag: "error-component-1",
       })
-      class ErrorComponent extends Component {}
+      class ErrorComponent extends HyplateElement {}
       expect(() => {
         mount(<ErrorComponent></ErrorComponent>, document.body);
       }).toThrow(/render/i);
@@ -201,7 +201,7 @@ describe("elements.ts", () => {
         },
         observedAttributes: ["id"],
       })
-      class MyComponent extends Component<{ msg: string }, "the-slot"> implements OnAttributeChanged {
+      class MyComponent extends HyplateElement<{ msg: string }, "the-slot"> implements OnAttributeChanged {
         render(): JSX.Element {
           return (
             <div>

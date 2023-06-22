@@ -101,4 +101,4 @@ export const reflection: Reflection<string> = /* #__PURE__ */ new Proxy({}, { ge
 
 export const $$HyplateSignal: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-signal");
 
-export const $$HyplateComponentMeta: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-component-meta");
+export const $$HyplateElementMeta: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-element-meta");

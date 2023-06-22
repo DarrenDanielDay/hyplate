@@ -10,8 +10,8 @@ import { jsxRef, mount, unmount } from "../dist/jsx-runtime.js";
 import { $attr, $text } from "../dist/binding.js";
 import { useBinding } from "../dist/toolkit.js";
 import type { LifecycleCallbacks, Signal } from "hyplate/types.js";
-import { Component, CustomElement } from "../dist/elements.js";
-import { attribute } from "../dist/defaults.js";
+import { HyplateElement, CustomElement } from "../dist/elements.js";
+import { Attribute } from "../dist/defaults.js";
 @CustomElement({
   tag: "hyplate-counter-demo",
   shadowRootInit: {
@@ -19,8 +19,8 @@ import { attribute } from "../dist/defaults.js";
   },
   observedAttributes: ["id"],
 })
-class CountComponent extends Component<{ msg: string; id?: string }, "insert-here"> implements LifecycleCallbacks {
-  @attribute("id")
+class CountComponent extends HyplateElement<{ msg: string; id?: string }, "insert-here"> implements LifecycleCallbacks {
+  @Attribute("id")
   accessor id$: Signal<string | null>;
   connectedCallback() {
     console.log("connected", arguments);

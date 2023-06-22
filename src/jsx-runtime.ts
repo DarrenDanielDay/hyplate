@@ -7,8 +7,9 @@
  */
 import { $attr, $text, isSubscribable } from "./binding.js";
 import { appendChild, attr, fragment, element, svg, removeRange, mathml } from "./core.js";
-import { isComponentClass, type Component } from "./elements.js";
+import { isComponentClass } from "./elements.js";
 import { addCleanUp, isFragment, isNode, _delegate, _listen } from "./internal.js";
+import type { ClassComponentInstance, ComponentClass } from "./types.js";
 import type {
   JSXChildNode,
   FunctionalComponent,
@@ -102,7 +103,7 @@ let currentElementFactory: (name: string, options: ElementCreationOptions | unde
 
 // @ts-expect-error unchecked overload
 export const jsx: JSXFactory = (
-  type: FunctionalComponent | typeof Component | string,
+  type: FunctionalComponent | ComponentClass | string,
   props: Partial<Props<PropsBase, JSXChildNode, {}>>,
   ...children: JSXChild[]
 ): JSX.Element => {
@@ -175,7 +176,7 @@ export const jsx: JSXFactory = (
   if (isComponentClass(type)) {
     return (attach) => {
       // @ts-expect-error Dynamic Implementation
-      const instance: Component = new type(props);
+      const instance: ClassComponentInstance<T> = new type(props);
       return instance.mount(attach);
     };
   }
