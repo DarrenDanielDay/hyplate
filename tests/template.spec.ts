@@ -5,6 +5,7 @@ import { basedOnURL, contextFactory, pure, replaced, shadowed, template } from "
 import type { ExposedElement, Mountable } from "../dist/types";
 import { noop } from "../dist/util";
 import { mock, reset } from "./dom-api-mock";
+import { useDocumentClear } from "./test-util";
 describe("template.ts", () => {
   beforeAll(() => {
     mock();
@@ -25,12 +26,7 @@ describe("template.ts", () => {
     });
   });
   describe("shadowed", () => {
-    beforeEach(() => {
-      document.body.innerHTML = "";
-    });
-    afterEach(() => {
-      document.body.innerHTML = "";
-    });
+    useDocumentClear();
     it("should create shadow root with given tag", () => {
       const App = shadowed(`<div>1</div><div>2</div><div>3</div>`)(noop, "span");
       const [cleanup, , getRange] = mount(App({}), appendChild(document.body));

@@ -5,6 +5,7 @@ import { nil } from "../dist/directive";
 import { HyplateElement, Component } from "../dist/elements";
 import { effect, isSignal, signal } from "../dist/signals";
 import type { AttachFunc, Mountable, Rendered, Signal } from "../dist/types";
+import { useDocumentClear } from "./test-util";
 describe("defaults.ts", () => {
   afterAll(() => {
     resetBinding();
@@ -60,12 +61,7 @@ describe("defaults.ts", () => {
     expect(fn).toBeCalledWith(2);
   });
   describe("attribute decorator", () => {
-    beforeEach(() => {
-      document.body.innerHTML = "";
-    });
-    afterEach(() => {
-      document.body.innerHTML = "";
-    });
+    useDocumentClear();
     it("should return signal of attribute changes", () => {
       @Component({ tag: "test-attribute-decorator" })
       class TestAttribute extends HyplateElement<{ message: string; count: number }> {

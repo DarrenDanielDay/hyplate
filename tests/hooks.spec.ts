@@ -3,14 +3,10 @@ import { useChildView, useCleanUpCollector } from "../dist/hooks";
 import { after, appendChild } from "../dist/core";
 import { noop } from "../dist/util";
 import type { Rendered } from "../dist/types";
+import { useDocumentClear } from "./test-util";
 describe("hooks.ts", () => {
   describe("basic hooks", () => {
-    beforeEach(() => {
-      document.body.innerHTML = "";
-    });
-    afterEach(() => {
-      document.body.innerHTML = "";
-    });
+    useDocumentClear();
     it("should emit error when calling hooks outside setup", () => {
       expect(() => {
         useCleanUpCollector();
@@ -51,12 +47,7 @@ describe("hooks.ts", () => {
     });
   });
   describe("advanced hooks", () => {
-    beforeEach(() => {
-      document.body.innerHTML = "";
-    });
-    afterEach(() => {
-      document.body.innerHTML = "";
-    });
+    useDocumentClear();
 
     it("should create and destroy child view", () => {
       const childViewDestroy = import.meta.jest.fn();

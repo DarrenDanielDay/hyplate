@@ -7,6 +7,7 @@ import { signal } from "../dist/signals";
 import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
 import { resetBinding } from "../dist/binding";
+import { useDocumentClear } from "./test-util";
 describe("toolkit.ts", () => {
   describe("always different", () => {
     it("should always return false", () => {
@@ -33,9 +34,7 @@ describe("toolkit.ts", () => {
     beforeAll(() => {
       setHyplateStore();
     });
-    afterEach(() => {
-      document.body.innerHTML = "";
-    });
+    useDocumentClear();
     afterAll(() => {
       resetBinding();
     });

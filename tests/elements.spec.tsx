@@ -7,6 +7,7 @@ import { signal } from "../dist/signals";
 import type { Mountable, OnAttributeChanged, OnConnected } from "../dist/types";
 import { setHyplateStore } from "./configure-store";
 import { mock, reset } from "./dom-api-mock";
+import { useDocumentClear } from "./test-util";
 
 describe("elements.ts", () => {
   beforeAll(() => {
@@ -147,12 +148,7 @@ describe("elements.ts", () => {
     });
   });
   describe("HyplateElement", () => {
-    beforeEach(() => {
-      document.body.innerHTML = "";
-    });
-    afterEach(() => {
-      document.body.innerHTML = "";
-    });
+    useDocumentClear();
     it("should have no observed attributes", () => {
       expect(HyplateElement.observedAttributes ?? []).toStrictEqual([]);
     });

@@ -18,6 +18,7 @@ import {
   delegate,
 } from "../dist/core";
 import { template } from "../dist/template";
+import { useDocumentClear } from "./test-util";
 
 describe("core.ts", () => {
   describe("element", () => {
@@ -74,9 +75,7 @@ describe("core.ts", () => {
   });
 
   describe("$", () => {
-    afterEach(() => {
-      document.body.innerHTML = "";
-    });
+    useDocumentClear();
     it("should perform `querySelector`", () => {
       const node = element("div");
       const list = [];
@@ -91,9 +90,7 @@ describe("core.ts", () => {
   });
 
   describe("$$", () => {
-    afterEach(() => {
-      document.body.innerHTML = "";
-    });
+    useDocumentClear();
     it("should perform `querySelectorAll`", () => {
       const node = element("div");
       const list = [];
@@ -123,9 +120,7 @@ describe("core.ts", () => {
   });
 
   describe("delegate", () => {
-    afterEach(() => {
-      document.body.innerHTML = "";
-    });
+    useDocumentClear();
     it("should bind delegated event", () => {
       const fn = import.meta.jest.fn();
       const buttonElement = document.createElement("button");
