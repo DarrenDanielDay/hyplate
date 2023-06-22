@@ -7,8 +7,7 @@
  */
 import { $attr, $text, isSubscribable } from "./binding.js";
 import { appendChild, attr, fragment, element, svg, removeRange, mathml } from "./core.js";
-import { isComponentClass } from "./elements.js";
-import { addCleanUp, isFragment, isNode, _delegate, _listen } from "./internal.js";
+import { addCleanUp, isFragment, isNode, _delegate, _listen, $$HyplateElementMeta } from "./internal.js";
 import type { ClassComponentInstance, ComponentClass } from "./types.js";
 import type {
   JSXChildNode,
@@ -26,6 +25,9 @@ import type {
   JSXFactory,
 } from "./types.js";
 import { applyAllStatic, fori, isArray, isFunction, isObject, isString, noop, push, __DEV__ } from "./util.js";
+
+export const isComponentClass = (fn: Function): fn is ComponentClass =>
+  !!(fn as ComponentClass)?.[$$HyplateElementMeta];
 
 export const mount: Renderer = (element, onto): Rendered<any> => {
   const attach = isNode(onto) ? appendChild(onto) : onto;

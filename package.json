@@ -69,7 +69,9 @@
     "elements.d.ts",
     "elements.js",
     "defaults.d.ts",
-    "defaults.js"
+    "defaults.js",
+    "signals.d.ts",
+    "signals.js"
   ],
   "exports": {
     ".": {

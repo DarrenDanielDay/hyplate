@@ -6,7 +6,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 import type { $$HyplateElementMeta, $$HyplateSignal } from "./internal.js";
-import type { HyplateElement } from "./elements.js";
 /**
  * `NaN` cannot represented in TypeScript types.
  * @see https://developer.mozilla.org/en-US/docs/Glossary/Falsy
@@ -415,7 +414,7 @@ export interface JSXFactory {
   /**
    * class component overload
    */
-  <T extends typeof HyplateElement<any, any>>(
+  <T extends ComponentClass>(
     type: T,
     props: JSX.IntrinsicClassAttributes<InstanceType<T>> &
       (InstanceType<T> extends ClassComponentInstance<infer P, infer S>

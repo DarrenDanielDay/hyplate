@@ -26,9 +26,6 @@ const ce = customElements;
 
 export const define = /* #__PURE__ */ ce.define.bind(ce);
 
-export const isComponentClass = (fn: Function): fn is ComponentClass =>
-  !!(fn as ComponentClass)?.[$$HyplateElementMeta];
-
 const observedAttributeProperty = "observedAttributes";
 
 export const Component = (options: ComponentOptions) => {
