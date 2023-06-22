@@ -139,6 +139,10 @@ export const HyplateElement: ComponentClass = class<P extends PropsBase = PropsB
     this.#children = children;
   }
 
+  public effect(callback: () => CleanUpFunc): void {
+    addCleanUp(this.cleanups, callback());
+  }
+
   public render(): Mountable<any> {
     throw new Error("You should implement `render` in your component subclass");
   }
@@ -193,4 +197,5 @@ export const HyplateElement: ComponentClass = class<P extends PropsBase = PropsB
   declare connectedCallback: () => void;
   declare disconnectedCallback: () => void;
   declare attributeChangedCallback: (name: string, oldValue: string | null, newValue: string | null) => void;
+  declare autorun: (callback: () => void) => void;
 };

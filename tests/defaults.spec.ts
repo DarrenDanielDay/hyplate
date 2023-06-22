@@ -38,6 +38,27 @@ describe("defaults.ts", () => {
     expect(mounted).toBeCalledTimes(1);
     expect(unmounted).toBeCalledTimes(1);
   });
+  it("should auto run and subscribe effect", () => {
+    const count = signal(0);
+    const fn = import.meta.jest.fn();
+    @Component({
+      tag: "test-auto-run",
+    })
+    class TestAutoRun extends HyplateElement {
+      override render(): Mountable<any> {
+        this.autorun(() => {
+          fn(count());
+        });
+        return nil;
+      }
+    }
+    document.body.appendChild(new TestAutoRun());
+    expect(fn).toBeCalledWith(0);
+    count.set(1);
+    expect(fn).toBeCalledWith(1);
+    count.set(2);
+    expect(fn).toBeCalledWith(2);
+  });
   describe("attribute decorator", () => {
     beforeEach(() => {
       document.body.innerHTML = "";

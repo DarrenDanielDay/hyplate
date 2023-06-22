@@ -210,6 +210,22 @@ describe("elements.ts", () => {
       expect(internals).toBeTruthy();
       unmount(rendered);
     });
+    it("should register effect cleanup", () => {
+      const cleanup = import.meta.jest.fn();
+      @CustomElement({
+        tag: "test-effect",
+      })
+      class TestEffect extends HyplateElement {
+        override render(): Mountable<any> {
+          this.effect(() => cleanup);
+          return nil;
+        }
+      }
+      const rendered = mount(<TestEffect />, document.body);
+      expect(cleanup).toBeCalledTimes(0);
+      unmount(rendered);
+      expect(cleanup).toBeCalledTimes(1);
+    });
   });
   describe("CustomElement", () => {
     it("should define static fields", () => {

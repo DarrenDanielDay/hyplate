@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import { applyAll, compare, __DEV__, isInstance, isFunction } from "./util.js";
+import { applyAll, compare, __DEV__, isInstance, isFunction, noop } from "./util.js";
 import type {
   CleanUpFunc,
   Comparator,
@@ -147,7 +147,7 @@ export const effect = (callback: () => void): CleanUpFunc => {
     teardowns = [...newDeps].map((dep) => dep.subscribe(run));
   };
   run();
-  return () => applyAll(teardowns);
+  return teardowns.length ? () => applyAll(teardowns) : noop;
 };
 
 const dispatch = <T extends unknown>(signal: SignalMembers<T>, newVal: T) => {

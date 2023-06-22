@@ -1,5 +1,6 @@
 import { alwaysDifferent } from "../dist/toolkit";
 import { computed, effect, setComparator, signal, watch } from "../dist/signals";
+import { noop } from "../dist/util";
 
 describe("store.ts", () => {
   describe("setDiffer", () => {
@@ -160,6 +161,9 @@ describe("store.ts", () => {
       const unsubscribe = effect(fn);
       expect(fn).toBeCalledTimes(1);
       unsubscribe();
+    });
+    it("should return noop when no dependency collected", () => {
+      expect(effect(() => {})).toBe(noop);
     });
 
     it("should re-run when dependencies are updated", () => {

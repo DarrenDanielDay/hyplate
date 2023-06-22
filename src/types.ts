@@ -39,7 +39,7 @@ export interface SignalMembers<T extends unknown> {
   get(): T;
   /**
    * @internal
-   * This method is internal implementation detail. May be changed in the future. 
+   * This method is internal implementation detail. May be changed in the future.
    */
   subscribe(subscriber: Subscriber<T>): CleanUpFunc;
 }
@@ -310,6 +310,11 @@ export interface ClassComponentInstance<P extends PropsBase = PropsBase, S exten
    * Remember to call `super.setup(props)` first to ensure the default behavior.
    */
   setup(props?: ClassComponentRawProps<P, S, this> | undefined): void;
+  /**
+   * Execute an effect callback which should return a `cleanup` function.
+   * The `cleanup` function will be executed when component unmount.
+   */
+  effect(callback: () => CleanUpFunc): void;
   /**
    * The render function, should behave like functional components.
    */

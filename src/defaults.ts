@@ -1,7 +1,7 @@
 // import type {} from "typed-query-selector";
 import { HyplateElement } from "./elements.js";
-import { $$HyplateElementMeta, currentComponentCtx } from "./internal.js";
-import { enableBuiltinSignals, computed, signal } from "./signals.js";
+import { $$HyplateElementMeta, addCleanUp, currentComponentCtx } from "./internal.js";
+import { enableBuiltinSignals, computed, signal, effect } from "./signals.js";
 import type { AttributeDecorator, AttributeKeys, ClassComponentInstance, PropsOf, Signal } from "./types.js";
 enableBuiltinSignals();
 declare module "./types.js" {
@@ -14,6 +14,10 @@ declare module "./types.js" {
      * @internal
      */
     [$$HyplateElementMeta]?: ComponentInstanceMeta;
+    /**
+     * Short for `this.effect(() => effect(callback))`.
+     */
+    autorun(callback: () => void): void;
   }
   /**
    * @internal
@@ -40,6 +44,10 @@ ComponentPrototype.disconnectedCallback = function () {
 
 ComponentPrototype.attributeChangedCallback = function (name, _oldValue, newValue) {
   this[$$HyplateElementMeta]?.attributes?.[name].set(newValue);
+};
+
+ComponentPrototype.autorun = function (callback) {
+  addCleanUp(this.cleanups, effect(callback));
 };
 
 export const Attribute: {
