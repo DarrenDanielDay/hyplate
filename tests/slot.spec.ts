@@ -1,5 +1,5 @@
 import { assignSlot, insertSlot } from "../dist/slot";
-import { mock, reset } from "./slot-mock";
+import { mock, reset } from "./dom-api-mock";
 describe("slot.ts", () => {
   beforeAll(mock);
   afterAll(reset);

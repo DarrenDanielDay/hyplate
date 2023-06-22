@@ -18,42 +18,60 @@ import { Attribute } from "../dist/defaults.js";
     slotAssignment: "manual",
   },
   observedAttributes: ["id"],
+  formAssociated: true,
 })
-class CountComponent extends HyplateElement<{ msg: string; id?: string }, "insert-here"> implements LifecycleCallbacks {
+class CountComponent
+  extends HyplateElement<{ msg: string; id?: string; name?: string }, "insert-here">
+  implements LifecycleCallbacks
+{
   @Attribute("id")
   accessor id$: Signal<string | null>;
-  connectedCallback() {
+  @Attribute("name")
+  accessor name$: Signal<string | null>;
+  override connectedCallback() {
+    super.connectedCallback();
     console.log("connected", arguments);
   }
-  disconnectedCallback(): void {
+  override disconnectedCallback(): void {
+    super.disconnectedCallback();
     console.log("disconnected", arguments);
   }
   adoptedCallback(): void {
     console.log("adopted", arguments);
   }
-  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+  override attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    super.attributeChangedCallback(name, oldValue, newValue);
     console.log("attribute changed", arguments);
   }
+  count = signal(0);
+  inputEl = jsxRef<HTMLInputElement>();
   public override render(): JSX.Element {
-    const count = signal(0);
     return (
       <div>
         <p>Hello, class component! id = {this.id$}</p>
+        <input ref={this.inputEl}></input>
         <slot name={this.slots["insert-here"]}></slot>
-        <button onClick={() => count.set(count() + 1)}>
-          {this.props.msg} clicked {count}
+        <button onClick={() => this.count.mutate((c) => c + 1)}>
+          {this.props.msg} clicked {this.count}
         </button>
+        <button on:click={() => this.testForm()}>test insert form data</button>
       </div>
     );
   }
+  public testForm() {
+    const internals = this.internals!;
+    internals.setFormValue(this.inputEl.current!.value);
+    const fd = new FormData(internals.form!);
+    alert(fd.get(this.name$()!));
+  }
 }
 function main() {
-  const container = element("div");
+  const container = element("form");
   const anchor = (frag: DocumentFragment, selector: string) => frag.querySelector(`[\\#${selector}]`);
   appendChild(document.body)(container);
   const r = jsxRef<CountComponent>();
   mount(
-    <CountComponent msg="ohhhh" ref={r} attr:id="class-count">
+    <CountComponent msg="ohhhh" ref={r} attr:id="class-count" attr:name="the-name">
       {{
         "insert-here": (
           <>
@@ -64,6 +82,7 @@ function main() {
     </CountComponent>,
     container
   );
+  console.log(new FormData());
   console.log(r);
   const t1 = $("[\\#t1]") as HTMLTemplateElement;
   const t2 = $("[\\#t2]") as HTMLTemplateElement;

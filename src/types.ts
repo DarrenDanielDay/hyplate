@@ -187,8 +187,8 @@ export interface ClassComponentStatic {
    */
   styles: CSSStyleSheet[];
   shadowRootInit: ShadowRootConfig;
-
   observedAttributes: string[];
+  formAssociated: boolean;
 }
 
 export interface ComponentMeta {
@@ -201,6 +201,7 @@ export type ComponentOptions = {
   styles?: CSSStyleSheet[];
   shadowRootInit?: ShadowRootConfig;
   observedAttributes?: string[];
+  formAssociated?: boolean;
 };
 
 export interface OnConnected {
@@ -287,6 +288,10 @@ export interface ClassComponentInstance<P extends PropsBase = PropsBase, S exten
    * In a hyplate class component, the `shadowRoot` property is ensured to be not null.
    */
   shadowRoot: ShadowRoot;
+  /**
+   * The internals returned when calling `attachInternals()` if the element is marked as `formAssociated`.
+   */
+  internals?: ElementInternals;
   /**
    * Initialized in `setup`.
    */

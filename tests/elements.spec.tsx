@@ -1,11 +1,12 @@
 import { resetBinding } from "../dist/binding";
 import { element } from "../dist/core";
+import { nil } from "../dist/directive";
 import { HyplateElement, CustomElement } from "../dist/elements";
 import { jsxRef, mount, unmount } from "../dist/jsx-runtime";
 import { signal } from "../dist/signals";
-import type { OnAttributeChanged, OnConnected } from "../dist/types";
+import type { Mountable, OnAttributeChanged, OnConnected } from "../dist/types";
 import { setHyplateStore } from "./configure-store";
-import { mock, reset } from "./slot-mock";
+import { mock, reset } from "./dom-api-mock";
 
 describe("elements.ts", () => {
   beforeAll(() => {
@@ -181,7 +182,7 @@ describe("elements.ts", () => {
       // expect(container.firstElementChild?.shadowRoot?.innerHTML).toBe("<div>auto mount</div>");
       // expect(el.shadowRoot).toBeTruthy();
     });
-    it("should emit error without override `render`", () => {
+    it("should emit error if user code does not override `render`", () => {
       @CustomElement({
         tag: "error-component-1",
       })
@@ -189,6 +190,25 @@ describe("elements.ts", () => {
       expect(() => {
         mount(<ErrorComponent></ErrorComponent>, document.body);
       }).toThrow(/render/i);
+    });
+    it("should attach internals with `formAssociated`: true", () => {
+      @CustomElement({ tag: "test-attach-internals", formAssociated: true })
+      class TestAttachInternals extends HyplateElement {
+        render(): Mountable<any> {
+          return nil;
+        }
+      }
+      const formRef = jsxRef<HTMLFormElement>();
+      const componentRef = jsxRef<TestAttachInternals>();
+      const rendered = mount(
+        <form ref={formRef}>
+          <TestAttachInternals ref={componentRef} attr:name="foo"></TestAttachInternals>
+        </form>,
+        document.body
+      );
+      const internals = componentRef.current!.internals;
+      expect(internals).toBeTruthy();
+      unmount(rendered);
     });
   });
   describe("CustomElement", () => {

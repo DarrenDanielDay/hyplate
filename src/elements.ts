@@ -91,8 +91,9 @@ export const HyplateElement: ComponentClass = class<P extends PropsBase = PropsB
   static get observedAttributes(): string[] {
     return [];
   }
-
+  public static formAssociated: boolean;
   public declare shadowRoot: ShadowRoot;
+  public declare internals?: ElementInternals;
   public props!: Partial<P>;
   public slots: Reflection<S> = reflection;
   public cleanups: CleanUpFunc[] = [];
@@ -148,7 +149,7 @@ export const HyplateElement: ComponentClass = class<P extends PropsBase = PropsB
       return rendered;
     }
     const newTarget = this.#newTarget;
-    const { shadowRootInit } = newTarget;
+    const { shadowRootInit, formAssociated } = newTarget;
     const slotAssignment = shadowRootInit.slotAssignment;
     const shadow =
       this.shadowRoot ??
@@ -156,6 +157,9 @@ export const HyplateElement: ComponentClass = class<P extends PropsBase = PropsB
         ...shadowRootInit,
         mode: "open",
       });
+    if (formAssociated) {
+      this.internals ??= this.attachInternals();
+    }
     shadow.adoptedStyleSheets = [...this.#newTarget.styles];
     const [cleanup] = mount(this.render(), shadow);
     addCleanUp(this.cleanups, cleanup);

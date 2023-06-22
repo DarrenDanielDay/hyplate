@@ -4,7 +4,7 @@ import { mount, unmount } from "../dist/jsx-runtime";
 import { basedOnURL, contextFactory, pure, replaced, shadowed, template } from "../dist/template";
 import type { ExposedElement, Mountable } from "../dist/types";
 import { noop } from "../dist/util";
-import { mock, reset } from "./slot-mock";
+import { mock, reset } from "./dom-api-mock";
 describe("template.ts", () => {
   beforeAll(() => {
     mock();

@@ -6,7 +6,7 @@ import { signal } from "../dist/signals";
 import type { AttachFunc, FunctionalComponent, JSXChild, ObjectEventHandler, Rendered } from "../dist/types";
 import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
-import { mock, reset } from "./slot-mock";
+import { mock, reset } from "./dom-api-mock";
 describe("jsx-runtime.ts", () => {
   beforeAll(() => {
     setHyplateStore();
