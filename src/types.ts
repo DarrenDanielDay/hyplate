@@ -311,7 +311,7 @@ export interface ClassComponentInstance<P extends PropsBase = PropsBase, S exten
    */
   setup(props?: ClassComponentRawProps<P, S, this> | undefined): void;
   /**
-   * Execute an effect callback which should return a `cleanup` function.
+   * Execute an effect callback which should return a `cleanup` function when the component is mounted.
    * The `cleanup` function will be executed when component unmount.
    */
   effect(callback: () => CleanUpFunc): void;

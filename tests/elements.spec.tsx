@@ -206,15 +206,19 @@ describe("elements.ts", () => {
       expect(internals).toBeTruthy();
       unmount(rendered);
     });
-    it("should register effect cleanup", () => {
+    it("should execute effect callback after component mount and register effect cleanup", () => {
       const cleanup = import.meta.jest.fn();
       @CustomElement({
         tag: "test-effect",
       })
       class TestEffect extends HyplateElement {
         override render(): Mountable<any> {
-          this.effect(() => cleanup);
-          return nil;
+          const ref = jsxRef<HTMLDivElement>();
+          this.effect(() => {
+            expect(ref.current).toBeInstanceOf(window.HTMLDivElement);
+            return cleanup;
+          });
+          return <div ref={ref}></div>;
         }
       }
       const rendered = mount(<TestEffect />, document.body);

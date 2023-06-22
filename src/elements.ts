@@ -20,7 +20,7 @@ import type {
   ShadowRootConfig,
   SlotMap,
 } from "./types.js";
-import { applyAll, defineProp, patch, push } from "./util.js";
+import { applyAll, defineProp, fori, patch, push } from "./util.js";
 
 const ce = customElements;
 
@@ -99,6 +99,7 @@ export const HyplateElement: ComponentClass = class<P extends PropsBase = PropsB
   public cleanups: CleanUpFunc[] = [];
   #children: SlotMap<S> | undefined;
   #rendered: Rendered<this> | undefined;
+  #effects: (() => CleanUpFunc)[] | null = null;
   #newTarget: ComponentClass;
   public constructor(props?: ClassComponentProps<P, S>) {
     super();
@@ -140,7 +141,10 @@ export const HyplateElement: ComponentClass = class<P extends PropsBase = PropsB
   }
 
   public effect(callback: () => CleanUpFunc): void {
-    addCleanUp(this.cleanups, callback());
+    const effects = this.#effects;
+    if (effects) {
+      push(effects, callback);
+    }
   }
 
   public render(): Mountable<any> {
@@ -152,6 +156,7 @@ export const HyplateElement: ComponentClass = class<P extends PropsBase = PropsB
     if (rendered) {
       return rendered;
     }
+    this.#effects = [];
     const newTarget = this.#newTarget;
     const { shadowRootInit, formAssociated } = newTarget;
     const slotAssignment = shadowRootInit.slotAssignment;
@@ -179,6 +184,8 @@ export const HyplateElement: ComponentClass = class<P extends PropsBase = PropsB
     }
     rendered = this.#rendered = [() => this.unmount(), this, () => [this, this]];
     attach?.(this);
+    fori(this.#effects, (cb) => addCleanUp(this.cleanups, cb()));
+    this.#effects = null;
     return rendered;
   }
 
