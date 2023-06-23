@@ -4,7 +4,7 @@ import { noop } from "../dist/util";
 import { dispatch } from "../dist/binding";
 import { useSignals } from "./configure-store";
 
-describe("store.ts", () => {
+describe("signals.ts", () => {
   describe("setDiffer", () => {
     it("should set comparator as given", () => {
       setComparator(alwaysDifferent);
@@ -52,6 +52,9 @@ describe("store.ts", () => {
       src.set("1");
       expect(subscriber).toBeCalledTimes(1);
       cleanup();
+    });
+    it("should expose target", () => {
+      expect(signal(0).target).toBeInstanceOf(EventTarget);
     });
     describe("mutate", () => {
       it("should dispatch with same object", () => {
@@ -148,6 +151,9 @@ describe("store.ts", () => {
       src.set(3);
       expect(evaluate).toBeCalledTimes(2);
       expect(watcher).toBeCalledTimes(2);
+    });
+    it("should expose target", () => {
+      expect(computed(() => 0).target).toBeInstanceOf(EventTarget);
     });
   });
   describe("dispatch", () => {

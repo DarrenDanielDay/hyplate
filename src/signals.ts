@@ -48,7 +48,7 @@ const createSignal = <T, M extends SignalMembers<T>>(members: M): M & SignalGett
       }
     }
   }
-  get[$$HyplateSignal] = true;
+  Object.assign(get, members);
   get.proto = proto;
   // @ts-expect-error mutated type
   return get;
