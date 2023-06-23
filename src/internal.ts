@@ -91,7 +91,7 @@ export const isTemplate = /* #__PURE__ */ isInstance(HTMLTemplateElement);
 
 const isText = /* #__PURE__ */ isInstance(Text);
 
-const isElement = /* #__PURE__ */ isInstance(Element);
+export const isElement = /* #__PURE__ */ isInstance(Element);
 
 export const isValidSlotContent = (node: unknown): node is NativeSlotContent => isText(node) || isElement(node);
 

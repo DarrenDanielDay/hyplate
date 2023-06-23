@@ -18,7 +18,7 @@ import {
   delegate,
 } from "../dist/core";
 import { template } from "../dist/template";
-import { useDocumentClear } from "./test-util";
+import { useConsoleSpy, useDocumentClear } from "./test-util";
 
 describe("core.ts", () => {
   describe("element", () => {
@@ -121,6 +121,7 @@ describe("core.ts", () => {
 
   describe("delegate", () => {
     useDocumentClear();
+    const spy = useConsoleSpy();
     it("should bind delegated event", () => {
       const fn = import.meta.jest.fn();
       const buttonElement = document.createElement("button");
@@ -135,8 +136,6 @@ describe("core.ts", () => {
       expect(fn).toBeCalledTimes(2);
     });
     it("should continue and error when error happens", () => {
-      const fn = import.meta.jest.spyOn(console, "error");
-      fn.mockImplementation(() => {});
       const buttonElement = document.createElement("button");
       const container = document.createElement("div");
       container.appendChild(buttonElement);
@@ -152,9 +151,7 @@ describe("core.ts", () => {
       buttonElement.click();
       // And the handlers should be invoked in the same order like bubbling.
       expect(callSequence).toStrictEqual(["button", "container"]);
-      expect(fn).toBeCalledTimes(1);
-      fn.mockReset();
-      fn.mockRestore();
+      expect(spy.error).toBeCalledTimes(1);
     });
   });
 

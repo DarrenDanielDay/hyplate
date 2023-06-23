@@ -8,6 +8,7 @@ import { pure } from "../dist/template";
 import type { AttachFunc, Mountable, Signal, WritableSignal } from "../dist/types";
 import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
+import { useConsoleSpy } from "./test-util";
 describe("directive.ts", () => {
   beforeAll(() => {
     setHyplateStore();
@@ -26,6 +27,7 @@ describe("directive.ts", () => {
     afterEach(() => {
       container.remove();
     });
+    const spy = useConsoleSpy();
     it("should create view when data of `that` is true", () => {
       const condition = signal(true);
       const mountable = <If condition={condition} then={() => <span>then</span>}></If>;
@@ -82,15 +84,11 @@ describe("directive.ts", () => {
       cleanup();
     });
     it("should emit warning when no children provided", () => {
-      const warnSpy = import.meta.jest.spyOn(console, "warn");
-      warnSpy.mockImplementation(() => {});
       // @ts-expect-error invalid usage
       const [cleanup, , getRange] = (<If></If>)(attach);
       expect(getRange()).toBeUndefined();
-      expect(warnSpy).toBeCalledTimes(1);
+      expect(spy.warn).toBeCalledTimes(1);
       cleanup();
-      warnSpy.mockReset();
-      warnSpy.mockRestore();
     });
     it("should expose reference of currently rendered", () => {
       type T = {
@@ -123,16 +121,13 @@ describe("directive.ts", () => {
     afterEach(() => {
       container.remove();
     });
+    const spy = useConsoleSpy();
     it("should emit warning when no children given", () => {
-      const warnSpy = import.meta.jest.spyOn(console, "warn");
-      warnSpy.mockImplementation(() => {});
       // @ts-expect-error invalid usage
       const [cleanup, , getRange] = (<Show></Show>)(attach);
       expect(getRange()).toBeUndefined();
-      expect(warnSpy).toBeCalledTimes(1);
+      expect(spy.warn).toBeCalledTimes(1);
       cleanup();
-      warnSpy.mockReset();
-      warnSpy.mockRestore();
     });
   });
 
@@ -155,24 +150,17 @@ describe("directive.ts", () => {
     afterEach(() => {
       container.remove();
     });
+    const spy = useConsoleSpy();
     it("should emit error when children is not a function", () => {
-      const warnSpy = import.meta.jest.spyOn(console, "error");
-      warnSpy.mockImplementation(() => {});
       // @ts-expect-error invalid usage
       <For of={list}></For>;
-      expect(warnSpy).toBeCalledTimes(1);
-      warnSpy.mockReset();
-      warnSpy.mockRestore();
+      expect(spy.error).toBeCalledTimes(1);
     });
     it("should emit warning when duplicated children found", () => {
-      const warnSpy = import.meta.jest.spyOn(console, "warn");
-      warnSpy.mockImplementation(() => {});
       mount(<For of={list}>{renderChild}</For>, attach);
       const arr = list();
       list.set([arr[1], arr[0], arr[0], arr[9]]);
-      expect(warnSpy).toBeCalled();
-      warnSpy.mockReset();
-      warnSpy.mockRestore();
+      expect(spy.warn).toBeCalled();
     });
     it("should render list", () => {
       const rendered = mount(<For of={list}>{(item: Item) => <span>{item.val}</span>}</For>, attach);

@@ -12,6 +12,7 @@ import {
   scopes,
   warned,
 } from "../dist/util";
+import { useConsoleSpy } from "./test-util";
 describe("util.ts", () => {
   describe("patch", () => {
     it("should be alias of `Object.assign`", () => {
@@ -81,36 +82,25 @@ describe("util.ts", () => {
     });
   });
   describe("err", () => {
-    let errorSpy: jest.SpyInstance;
-    beforeEach(() => {
-      errorSpy = import.meta.jest.spyOn(console, "error");
-      errorSpy.mockImplementation(() => {});
-    });
-    afterEach(() => {
-      errorSpy.mockReset();
-      errorSpy.mockRestore();
-    });
+    const spy = useConsoleSpy();
     it("should log error stack", () => {
       const error = new Error();
       err(error);
-      expect(errorSpy).toBeCalledTimes(1);
+      expect(spy.error).toBeCalledTimes(1);
     });
     it("should log JSON", () => {
       const error = { foo: "bar" };
       err(error);
-      expect(errorSpy).toBeCalledWith(`[ERROR]: ${JSON.stringify(error)}`);
+      expect(spy.error).toBeCalledWith(`[ERROR]: ${JSON.stringify(error)}`);
     });
   });
   describe("warn", () => {
+    const spy = useConsoleSpy();
     it("should warn message in console under development mode", () => {
-      const warnSpy = import.meta.jest.spyOn(console, "warn");
-      warnSpy.mockImplementation(() => {});
       const obj = {};
       const returned = warned("The message", obj);
       expect(returned).toBe(obj);
-      expect(warnSpy).toBeCalledWith("The message");
-      warnSpy.mockReset();
-      warnSpy.mockRestore();
+      expect(spy.warn).toBeCalledWith("The message");
     });
   });
 

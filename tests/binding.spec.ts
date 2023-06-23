@@ -2,6 +2,7 @@ import { $attr, $content, $text, isSubscribable, resetBinding, subscribe } from 
 import { appendChild, element } from "../dist/core";
 import { signal } from "../dist/signals";
 import { setHyplateStore } from "./configure-store";
+import { useConsoleSpy } from "./test-util";
 
 describe("binding.ts", () => {
   describe("bindText", () => {
@@ -27,6 +28,7 @@ describe("binding.ts", () => {
     afterAll(() => {
       resetBinding();
     });
+    const spy = useConsoleSpy();
     it("should bind textContent with reactive store", () => {
       const p = document.createElement("p");
       const a1 = signal(1);
@@ -46,23 +48,15 @@ describe("binding.ts", () => {
     });
 
     it("should emit error when called with invalid templates arguments", () => {
-      const fn = import.meta.jest.spyOn(console, "error");
-      fn.mockImplementation(() => {});
       // @ts-expect-error invalid usage
       $text(["111", "222", "333"], "");
-      expect(fn).toBeCalled();
-      fn.mockReset();
-      fn.mockRestore();
+      expect(spy.error).toBeCalled();
     });
 
     it("should emit error when called with non-reactive object child expression", () => {
-      const fn = import.meta.jest.spyOn(console, "error");
-      fn.mockImplementation(() => {});
       // @ts-expect-error invalid usage
       $text(["111", "222"], {});
-      expect(fn).toBeCalled();
-      fn.mockReset();
-      fn.mockRestore();
+      expect(spy.error).toBeCalled();
     });
   });
 
@@ -87,22 +81,14 @@ describe("binding.ts", () => {
   });
 
   describe("warnings", () => {
-    let warnSpy: jest.SpyInstance;
-    beforeEach(() => {
-      warnSpy = import.meta.jest.spyOn(console, "warn");
-      warnSpy.mockImplementation(() => {});
-    });
-    afterEach(() => {
-      warnSpy.mockReset();
-      warnSpy.mockRestore();
-    });
+    const spy = useConsoleSpy();
     it("should emit warning if not configured", () => {
       resetBinding();
       const s = signal(0);
       subscribe(s, () => {});
-      expect(warnSpy).toBeCalledTimes(2);
+      expect(spy.warn).toBeCalledTimes(2);
       isSubscribable(s);
-      expect(warnSpy).toBeCalledTimes(3);
+      expect(spy.warn).toBeCalledTimes(3);
     });
   });
 });

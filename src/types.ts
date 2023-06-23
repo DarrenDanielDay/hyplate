@@ -429,7 +429,7 @@ type GeneralAttributeType = string | number | boolean | undefined | null;
 type EnumeratedValues<E extends string> = E | (string & {});
 
 type ElementAttributes<E extends Element> = {
-  ref?: Later<E>;
+  ref?: Later<E> | E;
 };
 
 //#region shared attribute enum values

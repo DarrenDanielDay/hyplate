@@ -7,6 +7,7 @@ import type { AttachFunc, FunctionalComponent, JSXChild, ObjectEventHandler, Ren
 import { noop } from "../dist/util";
 import { setHyplateStore } from "./configure-store";
 import { mock, reset } from "./dom-api-mock";
+import { useConsoleSpy } from "./test-util";
 describe("jsx-runtime.ts", () => {
   beforeAll(() => {
     setHyplateStore();
@@ -56,6 +57,7 @@ describe("jsx-runtime.ts", () => {
     afterEach(() => {
       container.remove();
     });
+    const spy = useConsoleSpy();
     it("should create document element", () => {
       const render = <span></span>;
       const el1 = mount(render, attach)[1];
@@ -238,20 +240,6 @@ describe("jsx-runtime.ts", () => {
       disabled.set(true);
       expect(button.disabled).toBeFalsy();
     });
-    /*
-    // This test case is inactivated because the `isSubscribable` check API is exposed to user.
-    it("should emit warning when object attribute is not a reactive source/query", () => {
-      const warnSpy = import.meta.jest.spyOn(console, "error");
-      warnSpy.mockImplementation(() => {});
-      const item = { val: "item-id" };
-      expect(() => {
-        (<span id={item}></span>)(attach);
-      }).toThrow();
-      expect(warnSpy).toBeCalledTimes(1);
-      warnSpy.mockReset();
-      warnSpy.mockRestore();
-    });
-    //*/
     it("should bind functional event handler", () => {
       const handler = import.meta.jest.fn();
       const mountable = <button onClick={handler}></button>;
@@ -386,6 +374,20 @@ describe("jsx-runtime.ts", () => {
         </div>,
         attach
       );
+      unmount(rendered);
+    });
+    it("should use provided element as ref", () => {
+      const el = element("div");
+      const rendered = mount(<div ref={el} class="added-in-jsx"></div>, container);
+      expect(container.firstChild).toBe(el);
+      expect(el.getAttribute("class")).toBe("added-in-jsx");
+      unmount(rendered);
+    });
+    it("should emit warning when tags does not match", () => {
+      const el = element("main");
+      const rendered = mount(<footer ref={el}></footer>, container);
+      expect(spy.warn).toBeCalled();
+      expect(container.firstChild).toBe(el);
       unmount(rendered);
     });
   });

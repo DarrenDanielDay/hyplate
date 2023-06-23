@@ -44,12 +44,12 @@ class CountComponent
     console.log("attribute changed", arguments);
   }
   count = signal(0);
-  inputEl = jsxRef<HTMLInputElement>();
+  inputEl = element("input");
   public override render(): JSX.Element {
     return (
       <div>
         <p>Hello, class component! id = {this.id$}</p>
-        <input ref={this.inputEl}></input>
+        <input ref={this.inputEl} class="foo"></input>
         <slot name={this.slots["insert-here"]}></slot>
         <button onClick={() => this.count.mutate((c) => c + 1)}>
           {this.props.msg} clicked {this.count}
@@ -60,7 +60,7 @@ class CountComponent
   }
   public testForm() {
     const internals = this.internals!;
-    internals.setFormValue(this.inputEl.current!.value);
+    internals.setFormValue(this.inputEl.value);
     const fd = new FormData(internals.form!);
     alert(fd.get(this.name$()!));
   }
@@ -82,8 +82,7 @@ function main() {
     </CountComponent>,
     container
   );
-  console.log(new FormData());
-  console.log(r);
+  console.log(r.current);
   const t1 = $("[\\#t1]") as HTMLTemplateElement;
   const t2 = $("[\\#t2]") as HTMLTemplateElement;
   const app = $("div#app")!;

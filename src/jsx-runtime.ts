@@ -7,7 +7,7 @@
  */
 import { $attr, $text, isSubscribable } from "./binding.js";
 import { appendChild, attr, fragment, element, svg, removeRange, mathml } from "./core.js";
-import { addCleanUp, isFragment, isNode, _delegate, _listen, $$HyplateElementMeta } from "./internal.js";
+import { addCleanUp, isFragment, isNode, _delegate, _listen, $$HyplateElementMeta, isElement } from "./internal.js";
 import type { ClassComponentInstance, ComponentClass } from "./types.js";
 import type {
   JSXChildNode,
@@ -24,7 +24,7 @@ import type {
   Renderer,
   JSXFactory,
 } from "./types.js";
-import { applyAllStatic, fori, isArray, isFunction, isObject, isString, noop, push, __DEV__ } from "./util.js";
+import { applyAllStatic, fori, isArray, isFunction, isObject, isString, noop, push, __DEV__, warn } from "./util.js";
 
 export const isComponentClass = (fn: Function): fn is ComponentClass =>
   !!(fn as ComponentClass)?.[$$HyplateElementMeta];
@@ -120,6 +120,7 @@ export const jsx: JSXFactory = (
       const isForeignObject = type === "foreignObject";
       const isMath = type === "math";
       const changnigFactory = isSvg || isForeignObject || isMath;
+      const { children, ref, ...attributes } = props;
       //#region enter xml namespaced element creation scope
       if (isSvg) {
         // @ts-expect-error Skipped type check for svg children.
@@ -129,13 +130,22 @@ export const jsx: JSXFactory = (
         currentElementFactory = mathml;
       }
       //#endregion
-      const el = currentElementFactory(type, "is" in props && isString(props.is) ? { is: props.is } : void 0);
+      let el: Element;
       if (isForeignObject) {
         currentElementFactory = element;
       }
-      const { children, ref, ...attributes } = props;
-      if (ref) {
-        setRef(ref, el);
+      if (!isElement(ref)) {
+        el = currentElementFactory(type, "is" in props && isString(props.is) ? { is: props.is } : void 0);
+        if (ref) {
+          setRef(ref, el);
+        }
+      } else {
+        if (__DEV__ && type !== ref.tagName.toLowerCase()) {
+          warn(
+            `Tags of JSX and provided element reference does not match: "${type}" in JSX but "${ref.tagName.toLowerCase()}" in ref`
+          );
+        }
+        el = ref;
       }
       const [cleanups] = children != null ? renderChild(children, appendChild(el)) : [[]];
       for (const key in attributes) {
