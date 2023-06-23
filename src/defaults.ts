@@ -6,6 +6,7 @@ import type { AttributeDecorator, AttributeKeys, ClassComponentInstance, PropsOf
 enableBuiltinSignals();
 declare module "./types.js" {
   export interface Subscribable<T> extends Signal<T> {}
+  export interface WritableSubscribable<T> extends WritableSignal<T> {}
   export interface ClassComponentInstance<P extends PropsBase = PropsBase, S extends string = string>
     extends OnConnected,
       OnDisconnected,
