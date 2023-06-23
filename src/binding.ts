@@ -1,4 +1,5 @@
 import { attr, content, text } from "./core.js";
+import { _listen } from "./internal.js";
 import type {
   AttachFunc,
   AttributeInterpolation,
@@ -6,6 +7,14 @@ import type {
   BindingPattern,
   CleanUpFunc,
   DispatchFunc,
+  InputModelMap,
+  InputModelOptions,
+  InputModelProperties,
+  InputModelProperty,
+  InputModelTypes,
+  ModelOptions,
+  ModelableElement,
+  ObjectEventHandler,
   Subscribable,
   SubscribableTester,
   SubscribeFunc,
@@ -13,7 +22,7 @@ import type {
   WritableSubscribable,
   WritableTester,
 } from "./types.js";
-import { applyAllStatic, err, isObject, noop, push, warn, __DEV__ } from "./util.js";
+import { applyAllStatic, err, isObject, noop, push, warn, __DEV__, isInstance } from "./util.js";
 
 const defaultSubscribe: SubscribeFunc = (subscribable, subscriber) => {
   if (__DEV__) {
@@ -126,3 +135,74 @@ export const $attr: {
   (el: Element, name: string, subscribable: Subscribable<AttributeInterpolation>): CleanUpFunc;
 } = (el: Element, name: string, subscribable: Subscribable<AttributeInterpolation>) =>
   subscribe(subscribable, (attribute) => attr(el, name, attribute));
+
+const isInput = isInstance(HTMLInputElement);
+
+const propMap: InputModelProperties = {
+  string: "value",
+  boolean: "checked",
+  number: "valueAsNumber",
+  date: "valueAsDate",
+};
+
+const defaultInputModelOptions: InputModelOptions & ModelOptions = {
+  as: "string",
+  on: "input",
+};
+
+const defaultOtherModelOptions: ModelOptions = {
+  on: "change",
+};
+const defaultModelProperty = "value";
+class ModelSubscription<T> implements ObjectEventHandler<Event> {
+  #source;
+  #property;
+  constructor(source: WritableSubscribable<T>, property: InputModelProperty | false) {
+    this.#source = source;
+    this.#property = property;
+  }
+  handleEvent(event: Event): void {
+    const target = event.target;
+    if (this.#property) {
+      dispatch(this.#source, (target as HTMLInputElement)[this.#property] as T);
+    } else {
+      dispatch(this.#source, (target as ModelableElement<T>).value);
+    }
+  }
+}
+
+export const $model: {
+  (input: HTMLInputElement, writable: WritableSubscribable<string>, options?: Partial<ModelOptions>): CleanUpFunc;
+  <T extends keyof InputModelMap>(
+    input: HTMLInputElement,
+    writable: WritableSubscribable<InputModelMap[T][1]>,
+    options: InputModelOptions<T> & Partial<ModelOptions>
+  ): CleanUpFunc;
+  <T>(el: ModelableElement<T>, writable: WritableSubscribable<T>, options?: Partial<ModelOptions>): CleanUpFunc;
+} = (
+  el: Element,
+  writable: WritableSubscribable<InputModelTypes>,
+  options?: Partial<InputModelOptions & ModelOptions>
+): CleanUpFunc => {
+  const usingInput = isInput(el);
+  const resolvedOptions = usingInput
+    ? {
+        ...defaultInputModelOptions,
+        ...options,
+      }
+    : {
+        ...defaultOtherModelOptions,
+        ...options,
+      };
+  const { as, on } = resolvedOptions;
+  const property = usingInput ? propMap[as!] ?? defaultModelProperty : defaultModelProperty;
+  const unsubscribeChange = subscribe(writable, (latest) => {
+    // @ts-expect-error dynamic property setter
+    el[property] = latest;
+  });
+  const unsubscribeEvent = _listen(el, on, new ModelSubscription(writable, usingInput && property));
+  return () => {
+    unsubscribeEvent();
+    unsubscribeChange();
+  };
+};

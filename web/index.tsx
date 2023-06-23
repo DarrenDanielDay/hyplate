@@ -7,7 +7,7 @@ import { computed, effect, signal } from "../dist/signals.js";
 import { For, Show } from "../dist/directive.js";
 import { listen as bindEvent, appendChild, seqAfter, element, $, listen } from "../dist/core.js";
 import { jsxRef, mount, unmount } from "../dist/jsx-runtime.js";
-import { $attr, $text } from "../dist/binding.js";
+import { $attr, $model, $text } from "../dist/binding.js";
 import { useBinding } from "../dist/toolkit.js";
 import type { LifecycleCallbacks, Signal } from "hyplate/types.js";
 import { HyplateElement, CustomElement } from "../dist/elements.js";
@@ -44,12 +44,29 @@ class CountComponent
     console.log("attribute changed", arguments);
   }
   count = signal(0);
-  inputEl = element("input");
+  dateInput = element("input");
+  date = signal<Date | null>(new Date());
+  textInput = element("input");
+  text = signal("init value");
   public override render(): JSX.Element {
+    this.effect(() => {
+      Object.assign(window, { component: this });
+      return $model(this.dateInput, this.date, { as: "date" });
+    });
+    this.effect(() => {
+      return $model(this.textInput, this.text, { on: "change" });
+    });
+    this.autorun(() => {
+      console.log(`date`, this.date());
+    });
+    this.autorun(() => {
+      console.log(`text`, this.text());
+    });
     return (
       <div>
         <p>Hello, class component! id = {this.id$}</p>
-        <input ref={this.inputEl} class="foo"></input>
+        <input ref={this.textInput} class="foo"></input>
+        <input ref={this.dateInput} type="date"></input>
         <slot name={this.slots["insert-here"]}></slot>
         <button onClick={() => this.count.mutate((c) => c + 1)}>
           {this.props.msg} clicked {this.count}
@@ -60,7 +77,7 @@ class CountComponent
   }
   public testForm() {
     const internals = this.internals!;
-    internals.setFormValue(this.inputEl.value);
+    internals.setFormValue(this.dateInput.value);
     const fd = new FormData(internals.form!);
     alert(fd.get(this.name$()!));
   }

@@ -159,11 +159,11 @@ declare global {
   interface EventTarget {
     [handler: `_${string}`]: FunctionalEventHanlder<EventTarget, Event>;
   }
+  /**
+   * @internal
+   * This is the internal type declaration for event delegate mode.
+   */
   interface Document {
-    /**
-     * @internal
-     * This is the internal type declaration for event delegate mode.
-     */
     $$delegates: Set<string> | undefined;
   }
 }
@@ -178,6 +178,35 @@ export type DelegateHost<T extends Element> = <E extends Events<T>>(
   event: E,
   handler: FunctionalEventHanlder<T, EventType<T, E>>
 ) => CleanUpFunc;
+
+export interface InputModelMap {
+  string: ["value", string];
+  boolean: ["checked", boolean];
+  number: ["valueAsNumber", number];
+  date: ["valueAsDate", Date | null];
+}
+
+export type InputModelProperties = {
+  [K in keyof InputModelMap]: InputModelMap[K][0];
+};
+
+export type InputModelProperty = InputModelProperties[keyof InputModelProperties];
+
+export type InputModelTypes = {
+  [K in keyof InputModelMap]: HTMLInputElement[InputModelMap[K][0]];
+}[keyof InputModelMap];
+
+export interface ModelableElement<T> extends Element {
+  value: T;
+}
+
+export interface ModelOptions {
+  on: "change" | "input" | "blur";
+}
+
+export interface InputModelOptions<T extends keyof InputModelMap = keyof InputModelMap> {
+  as: T;
+}
 
 export interface Hooks {
   /**

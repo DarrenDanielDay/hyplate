@@ -1,11 +1,22 @@
-import { $attr, $content, $text, dispatch, isSubscribable, isWritable, resetBinding, subscribe } from "../dist/binding";
-import { appendChild, element } from "../dist/core";
+import {
+  $attr,
+  $content,
+  $model,
+  $text,
+  dispatch,
+  isSubscribable,
+  isWritable,
+  resetBinding,
+  subscribe,
+} from "../dist/binding";
+import { appendChild, attr, element } from "../dist/core";
 import { signal } from "../dist/signals";
 import { useSignals } from "./configure-store";
+import { mockChange, mockInput } from "./dom-api-mock";
 import { useConsoleSpy } from "./test-util";
 
 describe("binding.ts", () => {
-  describe("bindText", () => {
+  describe("$content", () => {
     useSignals();
     it("should bind textContent", () => {
       const data = signal("1");
@@ -16,7 +27,7 @@ describe("binding.ts", () => {
       expect(p.textContent).toBe("2");
     });
   });
-  describe("interpolation", () => {
+  describe("$text", () => {
     useSignals();
     const spy = useConsoleSpy();
     it("should bind textContent with reactive store", () => {
@@ -50,7 +61,7 @@ describe("binding.ts", () => {
     });
   });
 
-  describe("bindAttr", () => {
+  describe("$attr", () => {
     useSignals();
     it("should bind attribute", () => {
       const disabled = signal(false);
@@ -62,6 +73,116 @@ describe("binding.ts", () => {
       cleanup();
       disabled.set(false);
       expect(button.disabled).toBeTruthy();
+    });
+  });
+  describe("$model", () => {
+    useSignals();
+    it("should bind <input>", () => {
+      const input = element("input");
+      const text = signal("init");
+
+      const observer = import.meta.jest.fn();
+      const unsubscribe1 = subscribe(text, observer);
+      expect(observer).toBeCalledTimes(1);
+
+      expect(input.value).toBe("");
+      const unsubscribe2 = $model(input, text);
+      expect(input.value).toBe("init");
+      mockInput(input, "inita");
+      expect(text()).toBe("inita");
+      expect(observer).toBeCalledTimes(2);
+      unsubscribe1();
+      unsubscribe2();
+      // test unbind logic
+      mockInput(input, "initab");
+      expect(observer).toBeCalledTimes(2);
+    });
+    it("should bind <input type='number'>", () => {
+      const input = element("input");
+      attr(input, "type", "number");
+      const count = signal(0);
+
+      const observer = import.meta.jest.fn();
+      const unsubscribe1 = subscribe(count, observer);
+      expect(observer).toBeCalledTimes(1);
+      expect(input.valueAsNumber).toBeNaN();
+      const unsubscribe2 = $model(input, count, { as: "number" });
+      expect(input.valueAsNumber).toBe(0);
+
+      mockInput(input, "123");
+      expect(count()).toBe(123);
+      expect(input.valueAsNumber).toBe(123);
+      expect(observer).toBeCalledTimes(2);
+      unsubscribe1();
+      unsubscribe2();
+    });
+    it("should bind <input type='date'>", () => {
+      const input = element("input");
+      attr(input, "type", "date");
+      const initDate = new Date();
+      const date = signal(initDate);
+
+      const observer = import.meta.jest.fn();
+      const unsubscribe1 = subscribe(date, observer);
+      expect(observer).toBeCalledTimes(1);
+
+      expect(input.valueAsDate).toBeNull();
+      const unsubscribe2 = $model(input, date, { as: "date" });
+      expect(input.valueAsDate).not.toBeNull();
+      const newDate = new Date(initDate.getTime() + 1e6);
+
+      mockInput(input, newDate.toDateString());
+      expect(+date()).not.toBe(+initDate);
+      expect(observer).toBeCalledTimes(2);
+      unsubscribe1();
+      unsubscribe2();
+    });
+    it("should bind <select>", () => {
+      const select = element("select");
+      const options = ["", "a", "b", "c"];
+      select.append(
+        ...options.map((o) => {
+          const option = element("option");
+          option.value = o;
+          return option;
+        })
+      );
+
+      const selectedValue = signal("a");
+      const observer = import.meta.jest.fn();
+      const unsubscribe1 = subscribe(selectedValue, observer);
+      expect(observer).toBeCalledTimes(1);
+
+      expect(select.value).toBe("");
+      const unsubscribe2 = $model(select, selectedValue);
+      expect(select.value).toBe("a");
+
+      mockChange(select, "b");
+      expect(selectedValue()).toBe("b");
+      expect(observer).toBeCalledTimes(2);
+      unsubscribe1();
+      unsubscribe2();
+    });
+    it("should bypass unknown `as` value as `text`", () => {
+      const input = element("input");
+      const text = signal("init");
+
+      const observer = import.meta.jest.fn();
+      const unsubscribe1 = subscribe(text, observer);
+      expect(observer).toBeCalledTimes(1);
+
+      expect(input.value).toBe("");
+      // @ts-expect-error invalid usage
+      const unsubscribe2 = $model(input, text, { as: "typo" });
+      expect(input.value).toBe("init");
+      mockInput(input, "inita");
+      expect(text()).toBe("inita");
+      expect(observer).toBeCalledTimes(2);
+      unsubscribe1();
+      unsubscribe2();
+      // test unbind logic
+      mockInput(input, "initab");
+      expect(observer).toBeCalledTimes(2);
     });
   });
 
