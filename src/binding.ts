@@ -5,10 +5,13 @@ import type {
   AttributesMap,
   BindingPattern,
   CleanUpFunc,
+  DispatchFunc,
   Subscribable,
   SubscribableTester,
   SubscribeFunc,
   TextInterpolation,
+  WritableSubscribable,
+  WritableTester,
 } from "./types.js";
 import { applyAllStatic, err, isObject, noop, push, warn, __DEV__ } from "./util.js";
 
@@ -30,17 +33,40 @@ const defaultIsSubscribable = (value: unknown): value is Subscribable<unknown> =
 };
 export let isSubscribable: SubscribableTester = defaultIsSubscribable;
 
-export const configureBinding: (subscribe: SubscribeFunc, isSubscribable: SubscribableTester) => void = (
-  sub,
-  canSub
-) => {
-  subscribe = sub;
-  isSubscribable = canSub;
+const defaultDispatch: DispatchFunc = (writable, value) => {
+  if (__DEV__) {
+    warn(`No "dispatch" function configured. No new value will be dispatched, this is a noop.`);
+    warn({ writable, value });
+  }
+};
+export let dispatch = defaultDispatch;
+
+const defaultIsWritable = (value: unknown): value is WritableSubscribable<unknown> => {
+  if (__DEV__) {
+    warn(`No "isWritable" function configured.`);
+  }
+  return isObject(value);
+};
+
+export let isWritable: WritableTester = defaultIsWritable;
+
+export const configureBinding: (
+  subscribe: SubscribeFunc,
+  isSubscribable: SubscribableTester,
+  dispatch: DispatchFunc,
+  isWritable: WritableTester
+) => void = (_subscribe, _isSubscribable, _dispatch, _isWritable) => {
+  subscribe = _subscribe;
+  isSubscribable = _isSubscribable;
+  dispatch = _dispatch;
+  isWritable = _isWritable;
 };
 
 export const resetBinding = () => {
   subscribe = defaultSubscribe;
   isSubscribable = defaultIsSubscribable;
+  dispatch = defaultDispatch;
+  isWritable = defaultIsWritable;
 };
 
 export const $content = (node: Node, subscribable: Subscribable<TextInterpolation>) =>

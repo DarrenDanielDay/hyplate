@@ -1,4 +1,3 @@
-import { resetBinding } from "../dist/binding";
 import { appendChild, content } from "../dist/core";
 import { If, Show, For } from "../dist/directive";
 import { useCleanUp } from "../dist/hooks";
@@ -7,15 +6,10 @@ import { computed, signal } from "../dist/signals";
 import { pure } from "../dist/template";
 import type { AttachFunc, Mountable, Signal, WritableSignal } from "../dist/types";
 import { noop } from "../dist/util";
-import { setHyplateStore } from "./configure-store";
+import { useSignals } from "./configure-store";
 import { useConsoleSpy } from "./test-util";
 describe("directive.ts", () => {
-  beforeAll(() => {
-    setHyplateStore();
-  });
-  afterAll(() => {
-    resetBinding();
-  });
+  useSignals();
   describe("if", () => {
     let container: HTMLDivElement;
     let attach: AttachFunc;

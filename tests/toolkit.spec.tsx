@@ -5,8 +5,7 @@ import { enterHooks, quitHooks } from "../dist/hooks";
 import type { CleanUpFunc } from "../dist/types";
 import { signal } from "../dist/signals";
 import { noop } from "../dist/util";
-import { setHyplateStore } from "./configure-store";
-import { resetBinding } from "../dist/binding";
+import { useSignals } from "./configure-store";
 import { useDocumentClear } from "./test-util";
 describe("toolkit.ts", () => {
   describe("always different", () => {
@@ -31,13 +30,8 @@ describe("toolkit.ts", () => {
     });
   });
   describe("use bind", () => {
-    beforeAll(() => {
-      setHyplateStore();
-    });
+    useSignals();
     useDocumentClear();
-    afterAll(() => {
-      resetBinding();
-    });
     it("should call hooks", () => {
       expect(() => {
         useBinding(element("div"));

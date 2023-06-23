@@ -5,16 +5,15 @@ import { create, createElement, Fragment, h, jsx, jsxRef, jsxs, mount, unmount }
 import { signal } from "../dist/signals";
 import type { AttachFunc, FunctionalComponent, JSXChild, ObjectEventHandler, Rendered } from "../dist/types";
 import { noop } from "../dist/util";
-import { setHyplateStore } from "./configure-store";
+import { useSignals } from "./configure-store";
 import { mock, reset } from "./dom-api-mock";
 import { useConsoleSpy } from "./test-util";
 describe("jsx-runtime.ts", () => {
+  useSignals();
   beforeAll(() => {
-    setHyplateStore();
     mock();
   });
   afterAll(() => {
-    resetBinding();
     reset();
   });
   describe("JSX syntax", () => {

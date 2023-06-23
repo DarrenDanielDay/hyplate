@@ -17,6 +17,7 @@ import type {
   WritableSignalMembers,
   SignalMembers,
   SignalGetter,
+  DispatchFunc,
 } from "./types.js";
 import { scopes } from "./util.js";
 import { configureBinding } from "./binding.js";
@@ -30,9 +31,14 @@ export const isSignal = (obj: unknown): obj is Signal<unknown> =>
   // @ts-expect-error unknown key access
   !!obj?.[$$HyplateSignal];
 
+export const isWritableSignal = (obj: unknown): obj is WritableSignal<unknown> =>
+  isSignal(obj) && obj.proto === WritableSignalImpl.prototype;
+
 const createSignal = <T, M extends SignalMembers<T>>(members: M): M & SignalGetter<T> => {
-  const get = members.get.bind(members);
-  const descriptors = Object.getOwnPropertyDescriptors(Object.getPrototypeOf(members));
+  // @ts-expect-error mutated type
+  const get: Partial<M & SignalGetter<T>> = members.get.bind(members);
+  const proto = Object.getPrototypeOf(members);
+  const descriptors = Object.getOwnPropertyDescriptors(proto);
   for (const method in descriptors) {
     if (method !== "constructor") {
       const { value } = descriptors[method];
@@ -42,8 +48,8 @@ const createSignal = <T, M extends SignalMembers<T>>(members: M): M & SignalGett
       }
     }
   }
-  // @ts-expect-error mutated type
   get[$$HyplateSignal] = true;
+  get.proto = proto;
   // @ts-expect-error mutated type
   return get;
 };
@@ -58,7 +64,7 @@ export const setComparator = (comparator: Comparator | undefined | null) => {
 };
 
 export const enableBuiltinSignals = () => {
-  configureBinding(watch, isSignal);
+  configureBinding(watch, isSignal, write as DispatchFunc, isWritableSignal);
 };
 
 const [enterScope, quitScope, currentScope] = /* #__PURE__ */ scopes<Set<SignalMembers<any>>>();
@@ -130,6 +136,14 @@ export const watch = <T extends unknown>(signal: Signal<T>, subscriber: Subscrib
   subscriber(signal.get());
   return unsubscribe;
 };
+
+/**
+ * Write value to a writable signal.
+ * Just a convert of method call `signal.set(value)` to function call `write(signal, value)`.
+ * @param signal writable signal
+ * @param value new value
+ */
+export const write = <T extends unknown>(signal: WritableSignal<T>, value: T) => signal.set(value);
 
 /**
  * Run `callback` immediately, subscribe to the signals used in `callback`.

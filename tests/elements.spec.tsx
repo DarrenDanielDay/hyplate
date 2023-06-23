@@ -5,17 +5,16 @@ import { HyplateElement, CustomElement } from "../dist/elements";
 import { jsxRef, mount, unmount } from "../dist/jsx-runtime";
 import { signal } from "../dist/signals";
 import type { Mountable, OnAttributeChanged, OnConnected } from "../dist/types";
-import { setHyplateStore } from "./configure-store";
+import { useSignals } from "./configure-store";
 import { mock, reset } from "./dom-api-mock";
 import { useDocumentClear } from "./test-util";
 
 describe("elements.ts", () => {
+  useSignals();
   beforeAll(() => {
-    setHyplateStore();
     mock();
   });
   afterAll(() => {
-    resetBinding();
     reset();
   });
   describe("usage", () => {

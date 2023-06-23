@@ -1,6 +1,8 @@
 import { alwaysDifferent } from "../dist/toolkit";
-import { computed, effect, setComparator, signal, watch } from "../dist/signals";
+import { computed, effect, isSignal, isWritableSignal, setComparator, signal, watch } from "../dist/signals";
 import { noop } from "../dist/util";
+import { dispatch } from "../dist/binding";
+import { useSignals } from "./configure-store";
 
 describe("store.ts", () => {
   describe("setDiffer", () => {
@@ -16,6 +18,17 @@ describe("store.ts", () => {
       expect(subscriber).toBeCalledTimes(3);
       setComparator(null);
       cleanup();
+    });
+  });
+  describe("checker", () => {
+    it("should check signal type", () => {
+      expect(isSignal({})).toBeFalsy();
+      expect(isSignal(() => 0)).toBeFalsy();
+      const count = signal(0);
+      expect(isSignal(count)).toBeTruthy();
+      const double = computed(() => count() * 2);
+      expect(isWritableSignal(count)).toBeTruthy();
+      expect(isWritableSignal(double)).toBeFalsy();
     });
   });
   describe("signal", () => {
@@ -224,6 +237,21 @@ describe("store.ts", () => {
       count$.set(1);
       expect(fn).toBeCalledTimes(3);
       cleanup();
+    });
+  });
+  describe("enableBuiltinSignals", () => {
+    useSignals();
+    it("should write signal value correctly", () => {
+      let times = 0;
+      const s = signal(0);
+      const fn = import.meta.jest.fn(() => {
+        expect(s()).toBe(times);
+      });
+      effect(fn);
+      dispatch(s, ++times);
+      dispatch(s, ++times);
+      dispatch(s, ++times);
+      expect(fn).toBeCalledTimes(4);
     });
   });
 });

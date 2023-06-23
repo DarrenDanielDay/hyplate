@@ -19,11 +19,17 @@ export type CleanUpFunc = () => void;
 // @ts-ignore unused type parameter for geneic extension
 export interface Subscribable<T> {}
 
+export interface WritableSubscribable<T> extends Subscribable<T> {}
+
 export type BindingPattern<T> = T | Subscribable<T>;
 
 export type SubscribeFunc = <T>(subscribable: Subscribable<T>, subscriber: Subscriber<T>) => CleanUpFunc;
 
 export type SubscribableTester = (value: unknown) => value is Subscribable<unknown>;
+
+export type DispatchFunc = <T>(writable: WritableSubscribable<T>, value: T) => void;
+
+export type WritableTester = (value: unknown) => value is WritableSubscribable<unknown>;
 
 export interface SignalMembers<T extends unknown> {
   [$$HyplateSignal]: boolean;
@@ -41,6 +47,11 @@ export interface SignalMembers<T extends unknown> {
    * This method is internal implementation detail. May be changed in the future.
    */
   subscribe(subscriber: Subscriber<T>): CleanUpFunc;
+  /**
+   * @internal
+   * This object is internal implementation detail. May be changed in the future.
+   */
+  proto?: object;
 }
 
 export interface SignalGetter<T extends unknown> {

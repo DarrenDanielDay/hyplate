@@ -1,17 +1,12 @@
-import { $attr, $content, $text, isSubscribable, resetBinding, subscribe } from "../dist/binding";
+import { $attr, $content, $text, dispatch, isSubscribable, isWritable, resetBinding, subscribe } from "../dist/binding";
 import { appendChild, element } from "../dist/core";
 import { signal } from "../dist/signals";
-import { setHyplateStore } from "./configure-store";
+import { useSignals } from "./configure-store";
 import { useConsoleSpy } from "./test-util";
 
 describe("binding.ts", () => {
   describe("bindText", () => {
-    beforeAll(() => {
-      setHyplateStore();
-    });
-    afterAll(() => {
-      resetBinding();
-    });
+    useSignals();
     it("should bind textContent", () => {
       const data = signal("1");
       const p = element("p");
@@ -22,12 +17,7 @@ describe("binding.ts", () => {
     });
   });
   describe("interpolation", () => {
-    beforeAll(() => {
-      setHyplateStore();
-    });
-    afterAll(() => {
-      resetBinding();
-    });
+    useSignals();
     const spy = useConsoleSpy();
     it("should bind textContent with reactive store", () => {
       const p = document.createElement("p");
@@ -61,12 +51,7 @@ describe("binding.ts", () => {
   });
 
   describe("bindAttr", () => {
-    beforeAll(() => {
-      setHyplateStore();
-    });
-    afterAll(() => {
-      resetBinding();
-    });
+    useSignals();
     it("should bind attribute", () => {
       const disabled = signal(false);
       const button = document.createElement("button");
@@ -89,6 +74,10 @@ describe("binding.ts", () => {
       expect(spy.warn).toBeCalledTimes(2);
       isSubscribable(s);
       expect(spy.warn).toBeCalledTimes(3);
+      isWritable(s);
+      expect(spy.warn).toBeCalledTimes(4);
+      dispatch(s, 1);
+      expect(spy.warn).toBeCalledTimes(6);
     });
   });
 });
