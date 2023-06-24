@@ -11,7 +11,7 @@ import { $attr, $model, $text } from "../dist/binding.js";
 import { useBinding } from "../dist/toolkit.js";
 import type { LifecycleCallbacks, Signal } from "hyplate/types.js";
 import { HyplateElement, CustomElement } from "../dist/elements.js";
-import { Attribute } from "../dist/defaults.js";
+import { Attribute, useAutoRun } from "../dist/defaults.js";
 @CustomElement({
   tag: "hyplate-counter-demo",
   shadowRootInit: {
@@ -318,3 +318,23 @@ increase();
 unsubscribe1();
 unsubscribe2();
 unsubscribe3();
+
+const SignalDemo = () => {
+  const text = signal("init value");
+  useAutoRun(() => {
+    console.log("latest text: ", text());
+  });
+  const changeToRandom = () => {
+    text.set(Math.random().toString());
+  };
+  console.log("execute only once");
+  return (
+    <div>
+      <input h-model={text}></input>
+      <p>reflected text: {text}</p>
+      <button onClick={changeToRandom}>change to random</button>
+    </div>
+  );
+};
+
+mount(<SignalDemo />, document.body);

@@ -1,10 +1,11 @@
 import { isSubscribable, resetBinding } from "../dist/binding";
 import { attr } from "../dist/core";
-import { Attribute } from "../dist/defaults";
+import { Attribute, useAutoRun } from "../dist/defaults";
 import { nil } from "../dist/directive";
 import { HyplateElement, Component } from "../dist/elements";
+import { jsx, mount, unmount } from "../dist/jsx-runtime";
 import { effect, isSignal, signal } from "../dist/signals";
-import type { AttachFunc, Mountable, Rendered, Signal } from "../dist/types";
+import type { AttachFunc, FC, Mountable, Rendered, Signal } from "../dist/types";
 import { useDocumentClear } from "./test-util";
 describe("defaults.ts", () => {
   afterAll(() => {
@@ -109,6 +110,27 @@ describe("defaults.ts", () => {
         instance.msg = signal("");
       }).toThrow(/read-only/i);
       cleanup();
+    });
+  });
+  describe("useAutoRun", () => {
+    useDocumentClear();
+    it("should call `useEffect`", () => {
+      expect(document.body.innerHTML).toBe("");
+      const mockCleanUp = import.meta.jest.fn();
+      const mockEffectCallback = import.meta.jest.fn(() => {
+        expect(document.body.innerHTML).toBe("<div></div>");
+        return mockCleanUp;
+      });
+      const Component: FC = () => {
+        useAutoRun(mockEffectCallback);
+        return jsx("div");
+      };
+      expect(mockEffectCallback).toBeCalledTimes(0);
+      const rendered = mount(jsx(Component), document.body);
+      expect(mockCleanUp).toBeCalledTimes(0);
+      expect(mockEffectCallback).toBeCalledTimes(1);
+      unmount(rendered);
+      expect(mockCleanUp).toBeCalledTimes(1);
     });
   });
 });

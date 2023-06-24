@@ -1,8 +1,9 @@
 // import type {} from "typed-query-selector";
 import { HyplateElement } from "./elements.js";
+import { useEffect } from "./hooks.js";
 import { $$HyplateElementMeta, currentComponentCtx } from "./internal.js";
 import { enableBuiltinSignals, computed, signal, effect } from "./signals.js";
-import type { AttributeDecorator, AttributeKeys, ClassComponentInstance, PropsOf, Signal } from "./types.js";
+import type { AttributeDecorator, AttributeKeys, ClassComponentInstance, Effect, PropsOf, Signal } from "./types.js";
 enableBuiltinSignals();
 declare module "./types.js" {
   export interface Subscribable<T> extends Signal<T> {}
@@ -50,6 +51,8 @@ ComponentPrototype.attributeChangedCallback = function (name, _oldValue, newValu
 ComponentPrototype.autorun = function (callback) {
   this.effect(() => effect(callback));
 };
+
+export const useAutoRun = (callback: Effect) => useEffect(() => effect(callback));
 
 export const Attribute: {
   <T, K extends AttributeKeys<T>>(name: K, transform: (value: string) => PropsOf<T>[K]): AttributeDecorator<
