@@ -6,8 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 import { addCleanUp } from "./internal.js";
-import type { AttachFunc, CleanUpFunc, Hooks, Mountable } from "./types.js";
-import { scopes } from "./util.js";
+import type { AttachFunc, CleanUpFunc, Effect, Hooks, Mountable } from "./types.js";
+import { push, scopes } from "./util.js";
 
 /**
  * @internal
@@ -46,3 +46,16 @@ export const useChildView =
   };
 
 export const useCleanUp = (cleanup: CleanUpFunc) => resolveHooks().useCleanUpCollector()(cleanup);
+
+/**
+ * @internal
+ */
+export const [enterEffectScope, quitEffectScope, currentEffectScope] = /* #__PURE__ */ scopes<Effect[]>();
+
+export const useEffect = (callback: Effect) => {
+  const autoRuns = currentEffectScope();
+  if (!autoRuns) {
+    throw new Error("Invalid hook call. Current scope is not in a functional component.");
+  }
+  push(autoRuns, callback);
+};

@@ -1,9 +1,11 @@
 import { replaced } from "../dist/template";
-import { useChildView, useCleanUpCollector } from "../dist/hooks";
+import { useEffect, useChildView, useCleanUpCollector, useCleanUp } from "../dist/hooks";
 import { after, appendChild } from "../dist/core";
 import { noop } from "../dist/util";
-import type { Rendered } from "../dist/types";
+import type { FC, Rendered } from "../dist/types";
 import { useDocumentClear } from "./test-util";
+import { jsx, mount, unmount } from "../dist/jsx-runtime";
+import { nil } from "../dist/directive";
 describe("hooks.ts", () => {
   describe("basic hooks", () => {
     useDocumentClear();
@@ -44,6 +46,32 @@ describe("hooks.ts", () => {
       const [cleanup] = App({})(appendChild(document.body));
       cleanup();
       expect(cleanupMock).toBeCalledTimes(1);
+    });
+    describe("useAutoRun", () => {
+      useDocumentClear();
+      it("should emit error if it's not used in functional component scope", () => {
+        expect(() => {
+          useEffect(() => {});
+        }).toThrow(/invalid/i);
+      });
+      it("should execute effect after mounted", () => {
+        expect(document.body.innerHTML).toBe("");
+        const mockCleanUp = import.meta.jest.fn();
+        const mockEffectCallback = import.meta.jest.fn(() => {
+          expect(document.body.innerHTML).toBe("<div></div>");
+          return mockCleanUp;
+        });
+        const Component: FC = () => {
+          useEffect(mockEffectCallback);
+          return jsx("div");
+        };
+        expect(mockEffectCallback).toBeCalledTimes(0);
+        const rendered = mount(jsx(Component), document.body);
+        expect(mockCleanUp).toBeCalledTimes(0);
+        expect(mockEffectCallback).toBeCalledTimes(1);
+        unmount(rendered);
+        expect(mockCleanUp).toBeCalledTimes(1);
+      });
     });
   });
   describe("advanced hooks", () => {

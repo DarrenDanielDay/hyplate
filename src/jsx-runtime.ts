@@ -7,13 +7,16 @@
  */
 import { $attr, $model, $text, isSubscribable, isWritable } from "./binding.js";
 import { appendChild, attr, fragment, element, svg, removeRange, mathml } from "./core.js";
+import { enterEffectScope, quitEffectScope } from "./hooks.js";
 import { addCleanUp, isFragment, isNode, _delegate, _listen, $$HyplateElementMeta, isElement } from "./internal.js";
 import type {
   ClassComponentInstance,
   ComponentClass,
+  Effect,
   InputModelOptions,
   ModelOptions,
   ModelableElement,
+  Mountable,
 } from "./types.js";
 import type {
   JSXChildNode,
@@ -30,7 +33,19 @@ import type {
   Renderer,
   JSXFactory,
 } from "./types.js";
-import { applyAllStatic, fori, isArray, isFunction, isObject, isString, noop, push, __DEV__, warn, err } from "./util.js";
+import {
+  applyAllStatic,
+  fori,
+  isArray,
+  isFunction,
+  isObject,
+  isString,
+  noop,
+  push,
+  __DEV__,
+  warn,
+  err,
+} from "./util.js";
 
 export const isComponentClass = (fn: Function): fn is ComponentClass =>
   !!(fn as ComponentClass)?.[$$HyplateElementMeta];
@@ -102,6 +117,26 @@ const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
     addCleanUp(cleanups, addChild(children, attach));
   }
   return [cleanups, () => (begin && end ? ([begin, end] as const) : void 0)] as const;
+};
+
+const createFunctionalComponentMountable = (fc: FunctionalComponent, props: object): Mountable<any> => {
+  const effects: Effect[] = [];
+  enterEffectScope(effects);
+  const mountable = fc(props);
+  quitEffectScope();
+  return (attach) => {
+    const rendered = mount(mountable, attach);
+    const [userCleanup, ...others] = rendered;
+    const cleanups: CleanUpFunc[] = [];
+    addCleanUp(cleanups, userCleanup);
+    fori(effects, (callback) => {
+      const cleanup = callback();
+      if (cleanup) {
+        push(cleanups, cleanup);
+      }
+    });
+    return [applyAllStatic(cleanups), ...others];
+  };
 };
 
 const isObjectEventHandler = (v: unknown): v is ObjectEventHandler<any> =>
@@ -225,18 +260,15 @@ export const jsx: JSXFactory = (
     };
   }
   if (type.customRef) {
-    // @ts-expect-error Dynamic Implementation
-    return type(props);
+    return createFunctionalComponentMountable(type, props);
   }
   const { ref, ...otherProps } = props;
-  // @ts-expect-error Dynamic Implementation
-  const mountable = type(otherProps);
+  const mountable = createFunctionalComponentMountable(type, otherProps);
   if (!ref) {
     return mountable;
   }
   return (attach) => {
-    const rendered = mountable(attach);
-    // @ts-expect-error Dynamic Implementation
+    const rendered = mount(mountable, attach);
     setRef(ref, rendered[1]);
     return rendered;
   };
