@@ -186,6 +186,12 @@ export interface InputModelMap {
   date: ["valueAsDate", Date | null];
 }
 
+export type InputModelDirective = {
+  [K in keyof InputModelMap as `h-model${K extends "string" ? "" | `:${K}` : `:${K}`}`]?: WritableSubscribable<
+    InputModelMap[K][1]
+  >;
+};
+
 export type InputModelProperties = {
   [K in keyof InputModelMap]: InputModelMap[K][0];
 };
@@ -2611,7 +2617,8 @@ declare global {
       input: JSXAttributes<
         JSXTypeConfig extends { strictInput: boolean } ? InputAttributes : HTMLInputElementAttributes,
         HTMLInputElement
-      >;
+      > &
+        InputModelDirective;
       ins: JSXAttributes<HTMLModElementAttributes, HTMLModElement>;
       kbd: JSXAttributes<GlobalAttributes, HTMLElement>;
       label: JSXAttributes<HTMLLabelElementAttributes, HTMLLabelElement>;

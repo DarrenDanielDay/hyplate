@@ -49,13 +49,7 @@ class CountComponent
   textInput = element("input");
   text = signal("init value");
   public override render(): JSX.Element {
-    this.effect(() => {
-      Object.assign(window, { component: this });
-      return $model(this.dateInput, this.date, { as: "date" });
-    });
-    this.effect(() => {
-      return $model(this.textInput, this.text, { on: "change" });
-    });
+    Object.assign(window, { component: this });
     this.autorun(() => {
       console.log(`date`, this.date());
     });
@@ -65,8 +59,8 @@ class CountComponent
     return (
       <div>
         <p>Hello, class component! id = {this.id$}</p>
-        <input ref={this.textInput} class="foo"></input>
-        <input ref={this.dateInput} type="date"></input>
+        <input ref={this.textInput} h-model={this.text} class="foo"></input>
+        <input ref={this.dateInput} type="date" h-model:date={this.date}></input>
         <slot name={this.slots["insert-here"]}></slot>
         <button onClick={() => this.count.mutate((c) => c + 1)}>
           {this.props.msg} clicked {this.count}

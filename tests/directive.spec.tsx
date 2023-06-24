@@ -1,4 +1,4 @@
-import { appendChild, content } from "../dist/core";
+import { appendChild, content, element } from "../dist/core";
 import { If, Show, For } from "../dist/directive";
 import { useCleanUp } from "../dist/hooks";
 import { jsxRef, mount, unmount } from "../dist/jsx-runtime";
@@ -7,7 +7,8 @@ import { pure } from "../dist/template";
 import type { AttachFunc, Mountable, Signal, WritableSignal } from "../dist/types";
 import { noop } from "../dist/util";
 import { useSignals } from "./configure-store";
-import { useConsoleSpy } from "./test-util";
+import { mockChange, mockInput } from "./dom-api-mock";
+import { useConsoleSpy, useDocumentClear } from "./test-util";
 describe("directive.ts", () => {
   useSignals();
   describe("if", () => {
@@ -260,6 +261,49 @@ describe("directive.ts", () => {
       expect(container.textContent).toBe("01342106789");
       unmount(rendered);
       expect(cleanupMock).toBeCalledTimes(11);
+    });
+  });
+  describe("h-model", () => {
+    useDocumentClear();
+    const spy = useConsoleSpy();
+    it("should emit error with non-writable subscribable", () => {
+      // @ts-expect-error invalid usage
+      unmount(mount(<input h-model={computed(() => "")}></input>, document.body));
+      expect(spy.error).toBeCalled();
+    });
+    it("should emit warning if no `value` property is present on the element", () => {
+      unmount(mount(<span h-model={signal("")}></span>, document.body));
+      expect(spy.warn).toBeCalled();
+    });
+    it("should bind text model", () => {
+      const text = signal("init");
+      const input = element("input");
+      expect(input.value).toBe("");
+      const rendered = mount(
+        <div>
+          <input ref={input} h-model={text}></input>
+        </div>,
+        document.body
+      );
+      expect(input.value).toBe("init");
+      mockInput(input, "new value 1");
+      expect(text()).toBe("new value 1");
+      text.set("new value 2");
+      expect(input.value).toBe("new value 2");
+      unmount(rendered);
+    });
+    it("should treat word after `:` as `as` option", () => {
+      const count = signal(0);
+      const input = element("input");
+      expect(input.valueAsNumber).toBeNaN();
+      const rendered = mount(
+        <div>
+          <input ref={input} type="number" h-model:number={count}></input>
+        </div>,
+        document.body
+      );
+      expect(input.valueAsNumber).toBe(0);
+      unmount(rendered);
     });
   });
 });

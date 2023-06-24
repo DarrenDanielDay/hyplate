@@ -5,10 +5,16 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { $attr, $text, isSubscribable } from "./binding.js";
+import { $attr, $model, $text, isSubscribable, isWritable } from "./binding.js";
 import { appendChild, attr, fragment, element, svg, removeRange, mathml } from "./core.js";
 import { addCleanUp, isFragment, isNode, _delegate, _listen, $$HyplateElementMeta, isElement } from "./internal.js";
-import type { ClassComponentInstance, ComponentClass } from "./types.js";
+import type {
+  ClassComponentInstance,
+  ComponentClass,
+  InputModelOptions,
+  ModelOptions,
+  ModelableElement,
+} from "./types.js";
 import type {
   JSXChildNode,
   FunctionalComponent,
@@ -24,7 +30,7 @@ import type {
   Renderer,
   JSXFactory,
 } from "./types.js";
-import { applyAllStatic, fori, isArray, isFunction, isObject, isString, noop, push, __DEV__, warn } from "./util.js";
+import { applyAllStatic, fori, isArray, isFunction, isObject, isString, noop, push, __DEV__, warn, err } from "./util.js";
 
 export const isComponentClass = (fn: Function): fn is ComponentClass =>
   !!(fn as ComponentClass)?.[$$HyplateElementMeta];
@@ -101,7 +107,11 @@ const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
 const isObjectEventHandler = (v: unknown): v is ObjectEventHandler<any> =>
   isObject(v) && "handleEvent" in v && isFunction(v.handleEvent);
 
+const isModelableElement = (el: Element): el is ModelableElement<unknown> => "value" in el;
+
 let currentElementFactory: (name: string, options: ElementCreationOptions | undefined) => Element = element;
+
+const modelDirectivePattern = /model(:\w+)?/;
 
 // @ts-expect-error unchecked overload
 export const jsx: JSXFactory = (
@@ -151,7 +161,29 @@ export const jsx: JSXFactory = (
       for (const key in attributes) {
         // @ts-expect-error for-in key access
         const value = attributes[key];
-        if (isSubscribable(value)) {
+        if (key.startsWith("h-")) {
+          // builtin directives
+          const directive = key.slice(2);
+          const modelMatch = directive.match(modelDirectivePattern);
+          if (modelMatch) {
+            if (!isWritable(value)) {
+              if (__DEV__) {
+                err(`Value of "h-model" must be "WritableSubscribable".`);
+              }
+            } else if (isModelableElement(el)) {
+              const as = modelMatch[1]?.slice(1);
+              const modelOptions: (InputModelOptions<any> & Partial<ModelOptions>) | undefined = as ? { as } : void 0;
+              push(cleanups, $model(el, value, modelOptions));
+              continue;
+            } else {
+              if (__DEV__) {
+                warn(
+                  `Element <${el.tagName}> does not have "value" property, "h-model" directive may not work correctly.`
+                );
+              }
+            }
+          }
+        } else if (isSubscribable(value)) {
           // @ts-expect-error skip generic type check
           push(cleanups, $attr(el, key, value));
         } else {
