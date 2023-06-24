@@ -71,7 +71,7 @@ describe("defaults.ts", () => {
         @Attribute("not-in-props")
         accessor notInProps!: Signal<string | null>;
         @Attribute("count", Number)
-        accessor count!: Signal<number | null>;
+        count!: Signal<number | null>;
         // @ts-expect-error typescript should emit error here
         @Attribute("countt", Number)
         accessor countt!: Signal<number | null>;
