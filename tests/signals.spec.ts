@@ -244,6 +244,22 @@ describe("signals.ts", () => {
       expect(fn).toBeCalledTimes(3);
       cleanup();
     });
+    it("should execute returned clean-up", () => {
+      const fn = import.meta.jest.fn();
+      const count = signal(0);
+      const unsubscribe = effect(() => {
+        count();
+        return fn;
+      });
+      count.set(1);
+      expect(fn).toBeCalledTimes(1);
+      count.set(2);
+      expect(fn).toBeCalledTimes(2);
+      count.set(3);
+      expect(fn).toBeCalledTimes(3);
+      unsubscribe();
+      expect(fn).toBeCalledTimes(4);
+    });
   });
   describe("enableBuiltinSignals", () => {
     useSignals();

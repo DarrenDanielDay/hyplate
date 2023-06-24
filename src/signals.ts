@@ -18,6 +18,7 @@ import type {
   SignalMembers,
   SignalGetter,
   DispatchFunc,
+  Effect,
 } from "./types.js";
 import { scopes } from "./util.js";
 import { configureBinding } from "./binding.js";
@@ -148,20 +149,29 @@ export const write = <T extends unknown>(signal: WritableSignal<T>, value: T) =>
 /**
  * Run `callback` immediately, subscribe to the signals used in `callback`.
  * Then re-run callback when new value of the signals comes.
- * @param callback callback with side effects
+ * If the `callback` returns a clean-up callback, it will be executed before the re-run and after the unsubscription.
+ * @param callback callback with side effects, returns clean up callback or nothing
  * @returns unsubscribe function
  */
-export const effect = (callback: () => void): CleanUpFunc => {
+export const effect = (callback: Effect): CleanUpFunc => {
   let teardowns: CleanUpFunc[] = [];
+  let userEffectCleanup: void | CleanUpFunc;
   const run = () => {
     applyAll(teardowns);
-    const [newDeps, cleanup] = useDepScope();
-    callback();
-    cleanup();
+    userEffectCleanup?.();
+    const [newDeps, cleanupDepScope] = useDepScope();
+    userEffectCleanup = callback();
+    cleanupDepScope();
     teardowns = [...newDeps].map((dep) => dep.subscribe(run));
   };
   run();
-  return teardowns.length ? () => applyAll(teardowns) : noop;
+  return teardowns.length
+    ? () => {
+        applyAll(teardowns);
+        userEffectCleanup?.();
+      }
+    : // @ts-expect-error cannot detect assign in callback
+      userEffectCleanup ?? noop;
 };
 
 const dispatch = <T extends unknown>(signal: SignalMembers<T>, newVal: T) => {

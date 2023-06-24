@@ -16,6 +16,8 @@ export type AnyFunc = (...args: any[]) => any;
 
 export type CleanUpFunc = () => void;
 
+export type Effect = () => void | CleanUpFunc;
+
 // @ts-ignore unused type parameter for geneic extension
 export interface Subscribable<T> {}
 
