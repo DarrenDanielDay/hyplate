@@ -15,13 +15,13 @@
     "url": "https://github.com/DarrenDanielDay"
   },
   "license": "MIT",
-  "dependencies": {
-    "hyplate": "latest"
-  },
   "devDependencies": {
-    "concurrently": "^7.6.0",
-    "esbuild": "^0.16.4",
-    "serve": "^14.1.2",
-    "typescript": "^4.9.4"
+    "concurrently": "^8.2.0",
+    "esbuild": "^0.18.7",
+    "serve": "^14.2.0",
+    "typescript": "^5.1.3"
+  },
+  "dependencies": {
+    "hyplate": "^0.14.0"
   }
 }

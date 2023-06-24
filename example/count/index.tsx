@@ -1,40 +1,30 @@
-import { appendChild } from "hyplate/core";
-import { mount } from "hyplate/jsx-runtime";
-import { source, query, enableBuiltinStore } from "hyplate/store";
+import { computed, mount, signal, useAutoRun } from "hyplate";
+import type { FC } from "hyplate/types";
 
-//#region
-// Configure the binding source and types
-// This function should be executed once before any binding is created.
-// If you want to use other library for reactivity (such as `rxjs` and `mobx`), use the `configureBinding` API.
-enableBuiltinStore();
-declare module "hyplate/types" {
-  // Use declaration merging to configure the reactive (subscribable) data type.
-  // If you want to use `rxjs`, the code might be:
-  // export interface Subscribable<T> extends Observable<T> {}
-  export interface Subscribable<T> extends Query<T> {}
-}
-//#endregion
-
-const App = ({ msg }: { msg: string }) => {
-  const count = source(0);
-  const doubleCount = query(() => count.val * 2);
+const App: FC<{ msg: string }> = ({ msg }) => {
+  const count = signal(0);
+  const doubleCount = computed(() => count() * 2);
   console.log("This function will only be executed once on `App` attach.");
+  const addCount = () => {
+    count.update((count) => count + 1);
+  };
+  useAutoRun(() => {
+    console.log(`Executed automatically when "count" updated. Current count = ${count()}`);
+  });
   return (
     <div class="app">
       <link rel="stylesheet" href="./index.css"></link>
       <img src="./logo.svg" class="logo"></img>
       <div>Hello, {msg}!</div>
-      <button
-        onClick={() => {
-          count.set(count.val + 1);
-        }}
-      >
-        add count
-      </button>
-      <div>You clicked {count} times.</div>
+      <button onClick={addCount}>add count</button>
+      <div>Count = {count}</div>
       <div>Double of count is {doubleCount}.</div>
+      <div>Two-way binding to input:</div>
+      <div>
+        <input type="number" h-model:number={count}></input>
+      </div>
     </div>
   );
 };
 
-mount(<App msg="hyplate"></App>, appendChild(document.body));
+mount(<App msg="hyplate"></App>, document.body);
