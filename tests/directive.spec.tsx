@@ -305,5 +305,24 @@ describe("directive.ts", () => {
       expect(input.valueAsNumber).toBe(0);
       unmount(rendered);
     });
+    it("should bind select", () => {
+      const select = element("select");
+      const options = Array.from({ length: 3 }, (_, i) => i + 1);
+      const selectValue = signal("1");
+      const rendered = mount(
+        <div>
+          <select ref={select} h-model={selectValue}>
+            {options.map((o) => (
+              <option value={`${o}`}>{o}</option>
+            ))}
+          </select>
+        </div>,
+        document.body
+      );
+      expect(select.value).toBe("1");
+      selectValue.set("2");
+      expect(select.value).toBe("2");
+      unmount(rendered);
+    });
   });
 });

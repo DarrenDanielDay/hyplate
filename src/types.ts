@@ -1,5 +1,5 @@
 /**
- * @license hyplate
+ * @license MIT
  * Copyright (C) 2022  DarrenDanielDay <Darren_Daniel_Day@hotmail.com>
  *
  * This source code is licensed under the MIT license found in the
@@ -189,9 +189,11 @@ export interface InputModelMap {
 }
 
 export type InputModelDirective = {
-  [K in keyof InputModelMap as `h-model${K extends "string" ? "" | `:${K}` : `:${K}`}`]?: WritableSubscribable<
-    InputModelMap[K][1]
-  >;
+  [K in keyof InputModelMap as `h-model:${K}`]?: WritableSubscribable<InputModelMap[K][1]>;
+};
+
+export interface GeneralModelDirective<T> {
+  "h-model"?: WritableSubscribable<T>;
 };
 
 export type InputModelProperties = {
@@ -2620,6 +2622,7 @@ declare global {
         JSXTypeConfig extends { strictInput: boolean } ? InputAttributes : HTMLInputElementAttributes,
         HTMLInputElement
       > &
+        GeneralModelDirective<string> &
         InputModelDirective;
       ins: JSXAttributes<HTMLModElementAttributes, HTMLModElement>;
       kbd: JSXAttributes<GlobalAttributes, HTMLElement>;
@@ -2651,7 +2654,7 @@ declare global {
       samp: JSXAttributes<GlobalAttributes, HTMLElement>;
       script: JSXAttributes<HTMLScriptElementAttributes, HTMLScriptElement>;
       section: JSXAttributes<GlobalAttributes, HTMLElement>;
-      select: JSXAttributes<HTMLSelectElementAttributes, HTMLSelectElement>;
+      select: JSXAttributes<HTMLSelectElementAttributes, HTMLSelectElement> & GeneralModelDirective<string>;
       slot: JSXAttributes<HTMLSlotElementAttributes, HTMLSlotElement>;
       small: JSXAttributes<GlobalAttributes, HTMLElement>;
       source: JSXAttributes<HTMLSourceElementAttributes, HTMLSourceElement>;
