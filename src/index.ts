@@ -8,8 +8,9 @@
 export * from "./core.js";
 export * from "./jsx-runtime.js";
 export * from "./directive.js";
-export { useChildView, useCleanUp, useCleanUpCollector } from "./hooks.js";
+export { useChildView, useCleanUp, useCleanUpCollector, useEffect } from "./hooks.js";
 export * from "./binding.js";
+export * from "./elements.js";
 export * from "./signals.js";
 export * from "./template.js";
 export * from "./defaults.js";
