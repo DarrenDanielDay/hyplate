@@ -2549,7 +2549,7 @@ declare global {
     };
 
     type JSXAttributes<T extends {}, E extends globalThis.Element> = {
-      [K in keyof T]?: BindingPattern<T[K]>;
+      [K in keyof T]?: BindingPattern<T[K] | undefined | null>;
     } & ElementAttributes<E> &
       JSX.IntrinsicAttributes &
       JSXDelegateHandlerAttributes<E> &
