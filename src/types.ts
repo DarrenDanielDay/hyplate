@@ -108,6 +108,38 @@ export type AttributesMap<T> = AttributeEntries extends infer P
     : never
   : never;
 
+export type ElementWithStyle = {
+  style: CSSStyleDeclaration;
+}
+
+export type StyleProperties = Extract<
+  {
+    [K in keyof CSSStyleDeclaration]: CSSStyleDeclaration[K] extends string ? K : never;
+  }[keyof CSSStyleDeclaration],
+  string
+>;
+
+export type Join<S extends string[], D extends string, R extends string = ""> = S extends [
+  infer F extends string,
+  ...infer B extends string[]
+]
+  ? B extends []
+    ? `${R}${F}`
+    : Join<B, D, `${R}${F}${D}`>
+  : R;
+
+export type KebabCase<
+  T extends string,
+  R extends string[] = [],
+  V extends string = ""
+> = T extends `${infer F}${infer B}`
+  ? F extends Alphabet
+    ? KebabCase<B, [...R, V], Lowercase<F>>
+    : KebabCase<B, R, `${V}${F}`>
+  : Join<[...R, V], "-">;
+
+export type CSSProperties = KebabCase<StyleProperties>;
+
 export type EventMap<T extends EventTarget> = T extends HTMLElement
   ? HTMLElementEventMap
   : T extends SVGElement
@@ -194,7 +226,7 @@ export type InputModelDirective = {
 
 export interface GeneralModelDirective<T> {
   "h-model"?: WritableSubscribable<T>;
-};
+}
 
 export type InputModelProperties = {
   [K in keyof InputModelMap]: InputModelMap[K][0];

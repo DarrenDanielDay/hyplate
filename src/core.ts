@@ -10,10 +10,13 @@ import type {
   AttachFunc,
   AttributeInterpolation,
   AttributesMap,
+  StyleProperties,
   DelegateHost,
   EventHost,
   GetRange,
   TextInterpolation,
+  CSSProperties,
+  ElementWithStyle,
 } from "./types.js";
 import { arrayFrom, fori, push } from "./util.js";
 import { comment, doc, _delegate, _listen } from "./internal.js";
@@ -40,6 +43,28 @@ export const attr: {
   value == null || value === false ? element.removeAttribute(name) : element.setAttribute(name, `${value}`);
 
 export const content = (node: Node, content: TextInterpolation) => (node.textContent = `${content}`);
+
+export const className = (el: Element, name: string, on: boolean) => el.classList.toggle(name, on);
+
+export const style: {
+  (el: ElementWithStyle, name: StyleProperties, value: string | null): void;
+  (el: ElementWithStyle, name: CSSProperties, value: string | null): void;
+  (el: ElementWithStyle, name: string, value: string | null): void;
+} = (el: ElementWithStyle, name: string, value: string | null) => {
+  const style = el.style;
+  if (name in style) {
+    // @ts-expect-error unknown property assign
+    style[name] = value;
+  } else {
+    style.setProperty(name, value);
+  }
+};
+
+export const cssVar = (el: ElementWithStyle, name: string, value: string | null) => {
+  const style = el.style,
+    property = `--${name}`;
+  style.setProperty(property, value);
+};
 
 export const $: <S extends string>(selector: S) => ParseSelector<S> = /* #__PURE__ */ doc.querySelector.bind(doc);
 

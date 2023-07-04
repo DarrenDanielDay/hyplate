@@ -16,6 +16,9 @@ import {
   svg,
   content,
   delegate,
+  className,
+  style,
+  cssVar,
 } from "../dist/core";
 import { template } from "../dist/template";
 import { useConsoleSpy, useDocumentClear } from "./test-util";
@@ -71,6 +74,55 @@ describe("core.ts", () => {
       const span = document.createElement("span");
       content(span, "the content");
       expect(span.textContent).toBe("the content");
+    });
+  });
+
+  describe("className", () => {
+    it("should toggle class", () => {
+      const el = element("div");
+      expect(el.classList.contains("foo")).toBeFalsy();
+      className(el, "foo", true);
+      expect(el.classList.contains("foo")).toBeTruthy();
+      className(el, "foo", false);
+      expect(el.classList.contains("foo")).toBeFalsy();
+    });
+  });
+
+  describe("style", () => {
+    it("should toggle style property", () => {
+      const el = element("div");
+      expect(el.style.zIndex).toBe("");
+      style(el, "zIndex", "1");
+      expect(el.style.zIndex).toBe("1");
+      style(el, "zIndex", null);
+      expect(el.style.zIndex).toBe("");
+    });
+    it("should toggle css property", () => {
+      const el = element("div");
+      expect(el.style.zIndex).toBe("");
+      style(el, "z-index", "1");
+      expect(el.style.zIndex).toBe("1");
+      style(el, "z-index", null);
+      expect(el.style.zIndex).toBe("");
+    });
+    it("should toggle css variable", () => {
+      const el = element("div");
+      expect(el.style.getPropertyValue("--my-var")).toBe("");
+      style(el, "--my-var", "#1f1e33");
+      expect(el.style.getPropertyValue("--my-var")).toBe("#1f1e33");
+      style(el, "--my-var", null);
+      expect(el.style.getPropertyValue("--my-var")).toBe("");
+    });
+  });
+
+  describe("cssVar", () => {
+    it("should toggle css variable value", () => {
+      const el = element("div");
+      expect(el.style.getPropertyValue("--my-var")).toBe("");
+      cssVar(el, "my-var", "#1f1e33");
+      expect(el.style.getPropertyValue("--my-var")).toBe("#1f1e33");
+      cssVar(el, "my-var", null);
+      expect(el.style.getPropertyValue("--my-var")).toBe("");
     });
   });
 
