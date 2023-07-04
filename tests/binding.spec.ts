@@ -1,8 +1,11 @@
 import {
   $attr,
+  $class,
   $content,
   $model,
+  $style,
   $text,
+  $var,
   dispatch,
   isSubscribable,
   isWritable,
@@ -75,6 +78,50 @@ describe("binding.ts", () => {
       expect(button.disabled).toBeTruthy();
     });
   });
+
+  describe("$class", () => {
+    useSignals();
+    it("should bind class", () => {
+      const el = element("div");
+      const foo = signal(true);
+      expect(el.classList.contains("foo")).toBeFalsy();
+      $class(el, "foo", foo);
+      expect(el.classList.contains("foo")).toBeTruthy();
+      foo.set(false);
+      expect(el.classList.contains("foo")).toBeFalsy();
+    });
+  });
+
+  describe("$style", () => {
+    useSignals();
+    it("should bind style", () => {
+      const el = element("div");
+      const foo = signal<string | null>(null);
+      expect(el.style.zIndex).toBe("");
+      $style(el, "zIndex", foo);
+      expect(el.style.zIndex).toBe("");
+      foo.set("0");
+      expect(el.style.zIndex).toBe("0");
+      foo.set(null);
+      expect(el.style.zIndex).toBe("");
+    });
+  });
+
+  describe("$var", () => {
+    useSignals();
+    it("should bind css variables", () => {
+      const el = element("div");
+      const foo = signal<string | null>(null);
+      expect(el.style.getPropertyValue("--foo")).toBe("");
+      $var(el, "foo", foo);
+      expect(el.style.getPropertyValue("--foo")).toBe("");
+      foo.set("0");
+      expect(el.style.getPropertyValue("--foo")).toBe("0");
+      foo.set(null);
+      expect(el.style.getPropertyValue("--foo")).toBe("");
+    });
+  });
+
   describe("$model", () => {
     useSignals();
     it("should bind <input>", () => {

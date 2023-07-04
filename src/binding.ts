@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { attr, content, text } from "./core.js";
+import { attr, className, content, cssVar, style, text } from "./core.js";
 import { _listen } from "./internal.js";
 import type {
   AttachFunc,
@@ -26,8 +26,11 @@ import type {
   SubscribableTester,
   SubscribeFunc,
   TextInterpolation,
+  ElementWithStyle,
   WritableSubscribable,
   WritableTester,
+  StyleProperties,
+  CSSProperties,
 } from "./types.js";
 import { applyAllStatic, err, isObject, noop, push, warn, __DEV__, isInstance } from "./util.js";
 
@@ -142,6 +145,19 @@ export const $attr: {
   (el: Element, name: string, subscribable: Subscribable<AttributeInterpolation>): CleanUpFunc;
 } = (el: Element, name: string, subscribable: Subscribable<AttributeInterpolation>) =>
   subscribe(subscribable, (attribute) => attr(el, name, attribute));
+
+export const $class = (el: Element, name: string, subscribable: Subscribable<boolean>) =>
+  subscribe(subscribable, (on) => className(el, name, on));
+
+export const $style: {
+  <K extends StyleProperties>(el: ElementWithStyle, name: K, subscribable: Subscribable<string | null>): void;
+  (el: ElementWithStyle, name: CSSProperties, subscribable: Subscribable<string | null>): void;
+  (el: ElementWithStyle, name: string, subscribable: Subscribable<string | null>): void;
+} = (el: ElementWithStyle, property: string, subscribable: Subscribable<string | null>) =>
+  subscribe(subscribable, (value) => style(el, property, value));
+
+export const $var = (el: ElementWithStyle, name: string, subscribable: Subscribable<string | null>) =>
+  subscribe(subscribable, (value) => cssVar(el, name, value));
 
 const isInput = isInstance(HTMLInputElement);
 
