@@ -1,5 +1,13 @@
 import { appendChild, content, element } from "../dist/core";
-import { If, Show, For, EventDelegateDirective, ModelDirective, ClassBindingDirective, CSSVariableBindingDirective } from "../dist/directive";
+import {
+  If,
+  Show,
+  For,
+  EventDelegateDirective,
+  ModelDirective,
+  ClassBindingDirective,
+  CSSVariableBindingDirective,
+} from "../dist/directive";
 import { useCleanUp } from "../dist/hooks";
 import { jsxRef, mount, registerDirective, unmount } from "../dist/jsx-runtime";
 import { computed, signal } from "../dist/signals";
@@ -292,6 +300,14 @@ describe("directive.ts", () => {
       expect(el.classList.contains("show")).toBeTruthy();
       unmount(rendered);
     });
+    it("should add class", () => {
+      const show = true;
+      const el = element("div");
+      expect(el.classList.contains("show")).toBeFalsy();
+      const rendered = mount(<div ref={el} class:show={show}></div>, document.body);
+      expect(el.classList.contains("show")).toBeTruthy();
+      unmount(rendered);
+    });
   });
   describe("var", () => {
     useDocumentClear();
@@ -302,6 +318,14 @@ describe("directive.ts", () => {
       const rendered = mount(<div ref={el} var:color={colorVariable}></div>, document.body);
       expect(el.style.getPropertyValue("--color")).toBe("");
       colorVariable.set("#1f1e33");
+      expect(el.style.getPropertyValue("--color")).toBe("#1f1e33");
+      unmount(rendered);
+    });
+    it("should add css variable", () => {
+      const colorVariable = "#1f1e33";
+      const el = element("div");
+      expect(el.style.getPropertyValue("--color")).toBe("");
+      const rendered = mount(<div ref={el} var:color={colorVariable}></div>, document.body);
       expect(el.style.getPropertyValue("--color")).toBe("#1f1e33");
       unmount(rendered);
     });

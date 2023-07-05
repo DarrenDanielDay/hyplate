@@ -35,8 +35,8 @@ declare module "./types.js" {
   export interface Subscribable<T> extends Signal<T> {}
   export interface WritableSubscribable<T> extends WritableSignal<T> {}
   export interface ElementDirectives {
-    [pattern: `class:${string}`]: Subscribable<boolean>;
-    [pattern: `var:${string}`]: Subscribable<string | null>;
+    [pattern: `class:${string}`]: BindingPattern<boolean>;
+    [pattern: `var:${string}`]: BindingPattern<string | null>;
   }
   export interface ClassComponentInstance<P extends PropsBase = PropsBase, S extends string = string>
     extends OnConnected,

@@ -23,10 +23,11 @@ import type {
   ModelableElement,
   InputModelOptions,
   ModelOptions,
+  BindingPattern,
 } from "./types.js";
 import { _delegate, withCommentRange } from "./internal.js";
-import { before, moveRange } from "./core.js";
-import { $class, $model, $var, isWritable, subscribe } from "./binding.js";
+import { before, className, cssVar, moveRange } from "./core.js";
+import { $class, $model, $var, isSubscribable, isWritable, subscribe } from "./binding.js";
 import { jsxRef, mount, setRef, unmount } from "./jsx-runtime.js";
 
 const createIfDirective = <Test, T, F>(
@@ -321,17 +322,28 @@ export class EventDelegateDirective implements JSXDirective<FunctionalEventHanld
   apply = _delegate;
 }
 
-export class ClassBindingDirective implements JSXDirective<Subscribable<boolean>> {
+export class ClassBindingDirective implements JSXDirective<BindingPattern<boolean>> {
   prefix = "class";
   requireParams = true;
-  apply = $class;
+  apply(el: Element, params: string | null, input: BindingPattern<boolean>): void | CleanUpFunc {
+    if (isSubscribable(input)) {
+      return $class(el, params!, input);
+    }
+    className(el, params!, input);
+  }
 }
 
-export class CSSVariableBindingDirective implements JSXDirective<Subscribable<string | null>> {
+export class CSSVariableBindingDirective implements JSXDirective<BindingPattern<string | null>> {
   prefix = "var";
   requireParams = true;
-  // @ts-expect-error skipped element type check
-  apply = $var as JSXDirective<Subscribable<string | null>>["apply"];
+  apply(el: Element, params: string | null, input: BindingPattern<string | null>): void | CleanUpFunc {
+    if (isSubscribable(input)) {
+      // @ts-expect-error skipped element.style property check
+      return $var(el, params!, input);
+    }
+    // @ts-expect-error skipped element.style property check
+    cssVar(el, params!, input);
+  }
 }
 
 const isModelableElement = (el: Element): el is ModelableElement<unknown> => "value" in el;
