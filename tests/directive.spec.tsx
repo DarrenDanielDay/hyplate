@@ -1,5 +1,5 @@
 import { appendChild, content, element } from "../dist/core";
-import { If, Show, For, EventDelegateDirective, ModelDirective } from "../dist/directive";
+import { If, Show, For, EventDelegateDirective, ModelDirective, ClassBindingDirective, CSSVariableBindingDirective } from "../dist/directive";
 import { useCleanUp } from "../dist/hooks";
 import { jsxRef, mount, registerDirective, unmount } from "../dist/jsx-runtime";
 import { computed, signal } from "../dist/signals";
@@ -278,6 +278,32 @@ describe("directive.ts", () => {
       cleanup();
       button.click();
       expect(handler).toBeCalledTimes(2);
+    });
+  });
+  describe("class", () => {
+    useDocumentClear();
+    useTestContext(() => registerDirective(new ClassBindingDirective()));
+    it("should bind class", () => {
+      const show = signal(false);
+      const el = element("div");
+      const rendered = mount(<div ref={el} class:show={show}></div>, document.body);
+      expect(el.classList.contains("show")).toBeFalsy();
+      show.set(true);
+      expect(el.classList.contains("show")).toBeTruthy();
+      unmount(rendered);
+    });
+  });
+  describe("var", () => {
+    useDocumentClear();
+    useTestContext(() => registerDirective(new CSSVariableBindingDirective()));
+    it("should bind css variable", () => {
+      const colorVariable = signal<string | null>(null);
+      const el = element("div");
+      const rendered = mount(<div ref={el} var:color={colorVariable}></div>, document.body);
+      expect(el.style.getPropertyValue("--color")).toBe("");
+      colorVariable.set("#1f1e33");
+      expect(el.style.getPropertyValue("--color")).toBe("#1f1e33");
+      unmount(rendered);
     });
   });
   describe("h-model", () => {

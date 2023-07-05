@@ -114,9 +114,11 @@ export interface JSXDirective<T> {
   apply(el: Element, params: string | null, input: T): CleanUpFunc | void;
 }
 
+export interface ElementDirectives {}
+
 export type ElementWithStyle = {
   style: CSSStyleDeclaration;
-}
+};
 
 export type StyleProperties = Extract<
   {
@@ -152,8 +154,6 @@ export type EventMap<T extends EventTarget> = T extends HTMLElement
   ? SVGElementEventMap
   : T extends MathMLElement
   ? MathMLElementEventMap
-  : T extends XMLHttpRequestEventTarget
-  ? XMLHttpRequestEventMap
   : never;
 
 export type EventType<T extends EventTarget, E extends Extract<keyof EventMap<T>, string>> = Extract<
@@ -518,7 +518,7 @@ type EnumeratedValues<E extends string> = E | (string & {});
 
 type ElementAttributes<E extends Element> = {
   ref?: Later<E> | E;
-};
+} & ElementDirectives;
 
 //#region shared attribute enum values
 type BooleanAttributeValue = boolean | `${boolean}` | "";

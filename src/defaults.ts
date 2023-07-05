@@ -6,7 +6,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 // import type {} from "typed-query-selector";
-import { EventDelegateDirective, ModelDirective } from "./directive.js";
+import {
+  CSSVariableBindingDirective,
+  ClassBindingDirective,
+  EventDelegateDirective,
+  ModelDirective,
+} from "./directive.js";
 import { HyplateElement } from "./elements.js";
 import { useEffect } from "./hooks.js";
 import { $$HyplateElementMeta, currentComponentCtx } from "./internal.js";
@@ -23,10 +28,16 @@ import type {
 } from "./types.js";
 enableBuiltinSignals();
 registerDirective(new EventDelegateDirective());
+registerDirective(new ClassBindingDirective());
+registerDirective(new CSSVariableBindingDirective());
 registerDirective(new ModelDirective());
 declare module "./types.js" {
   export interface Subscribable<T> extends Signal<T> {}
   export interface WritableSubscribable<T> extends WritableSignal<T> {}
+  export interface ElementDirectives {
+    [pattern: `class:${string}`]: Subscribable<boolean>;
+    [pattern: `var:${string}`]: Subscribable<string | null>;
+  }
   export interface ClassComponentInstance<P extends PropsBase = PropsBase, S extends string = string>
     extends OnConnected,
       OnDisconnected,

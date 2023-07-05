@@ -62,7 +62,7 @@ class CountComponent
         <input ref={this.textInput} h-model={this.text} class="foo"></input>
         <input ref={this.dateInput} type="date" h-model:date={this.date}></input>
         <slot name={this.slots["insert-here"]}></slot>
-        <button onClick={() => this.count.mutate((c) => c + 1)}>
+        <button class:odd={computed(() => this.count() % 2 !== 0)} onClick={() => this.count.update((c) => c + 1)}>
           {this.props.msg} clicked {this.count}
         </button>
         <button on:click={() => this.testForm()}>test insert form data</button>

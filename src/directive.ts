@@ -26,7 +26,7 @@ import type {
 } from "./types.js";
 import { _delegate, withCommentRange } from "./internal.js";
 import { before, moveRange } from "./core.js";
-import { $model, isWritable, subscribe } from "./binding.js";
+import { $class, $model, $var, isWritable, subscribe } from "./binding.js";
 import { jsxRef, mount, setRef, unmount } from "./jsx-runtime.js";
 
 const createIfDirective = <Test, T, F>(
@@ -320,6 +320,18 @@ export class EventDelegateDirective implements JSXDirective<FunctionalEventHanld
   requireParams = true;
   apply = _delegate;
 }
+
+export class ClassBindingDirective implements JSXDirective<Subscribable<boolean>> {
+  prefix = "class";
+  requireParams = true;
+  apply = $class;
+}
+
+export class CSSVariableBindingDirective implements JSXDirective<Subscribable<string | null>> {
+  prefix = "var";
+  requireParams = true;
+  // @ts-expect-error skipped element type check
+  apply = $var as JSXDirective<Subscribable<string | null>>["apply"];
 }
 
 const isModelableElement = (el: Element): el is ModelableElement<unknown> => "value" in el;
