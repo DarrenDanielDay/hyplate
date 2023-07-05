@@ -6,9 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 // import type {} from "typed-query-selector";
+import { EventDelegateDirective, ModelDirective } from "./directive.js";
 import { HyplateElement } from "./elements.js";
 import { useEffect } from "./hooks.js";
 import { $$HyplateElementMeta, currentComponentCtx } from "./internal.js";
+import { registerDirective } from "./jsx-runtime.js";
 import { enableBuiltinSignals, computed, signal, effect } from "./signals.js";
 import type {
   AttributeDecorator,
@@ -20,6 +22,8 @@ import type {
   Signal,
 } from "./types.js";
 enableBuiltinSignals();
+registerDirective(new EventDelegateDirective());
+registerDirective(new ModelDirective());
 declare module "./types.js" {
   export interface Subscribable<T> extends Signal<T> {}
   export interface WritableSubscribable<T> extends WritableSignal<T> {}

@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { arrayFrom, compare, err, isFunction, noop, warned, __DEV__ } from "./util.js";
+import { arrayFrom, compare, err, isFunction, noop, warned, __DEV__, warn } from "./util.js";
 import type {
   AttachFunc,
   CleanUpFunc,
@@ -17,10 +17,16 @@ import type {
   Rendered,
   Subscribable,
   FalsyContextMountable,
+  JSXDirective,
+  FunctionalEventHanlder,
+  WritableSubscribable,
+  ModelableElement,
+  InputModelOptions,
+  ModelOptions,
 } from "./types.js";
-import { withCommentRange } from "./internal.js";
+import { _delegate, withCommentRange } from "./internal.js";
 import { before, moveRange } from "./core.js";
-import { subscribe } from "./binding.js";
+import { $model, isWritable, subscribe } from "./binding.js";
 import { jsxRef, mount, setRef, unmount } from "./jsx-runtime.js";
 
 const createIfDirective = <Test, T, F>(
@@ -308,3 +314,33 @@ const getSequence = (arr: number[]): number[] => {
   }
   return result;
 };
+
+export class EventDelegateDirective implements JSXDirective<FunctionalEventHanlder<Element, Event>> {
+  prefix = "on";
+  requireParams = true;
+  apply = _delegate;
+}
+}
+
+const isModelableElement = (el: Element): el is ModelableElement<unknown> => "value" in el;
+
+export class ModelDirective implements JSXDirective<WritableSubscribable<any>> {
+  prefix = "h-model";
+  requireParams = false;
+  apply(el: Element, params: string | null, input: WritableSubscribable<any>): void | CleanUpFunc {
+    if (!isWritable(input)) {
+      if (__DEV__) {
+        err(`Value of "h-model" must be "WritableSubscribable".`);
+      }
+    } else if (isModelableElement(el)) {
+      const modelOptions: (InputModelOptions<any> & Partial<ModelOptions>) | undefined = params
+        ? { as: params }
+        : void 0;
+      return $model(el, input, modelOptions);
+    } else {
+      if (__DEV__) {
+        warn(`Element <${el.tagName}> does not have "value" property, "h-model" directive may not work correctly.`);
+      }
+    }
+  }
+}

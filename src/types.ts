@@ -108,6 +108,12 @@ export type AttributesMap<T> = AttributeEntries extends infer P
     : never
   : never;
 
+export interface JSXDirective<T> {
+  prefix: string;
+  requireParams: boolean;
+  apply(el: Element, params: string | null, input: T): CleanUpFunc | void;
+}
+
 export type ElementWithStyle = {
   style: CSSStyleDeclaration;
 }

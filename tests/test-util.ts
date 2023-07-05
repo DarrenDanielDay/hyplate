@@ -30,3 +30,13 @@ export const useConsoleSpy = () => {
     },
   };
 };
+
+export const useTestContext = (context: () => () => void) => {
+  let cleanup: () => void;
+  beforeAll(() => {
+    cleanup = context();
+  });
+  afterAll(() => {
+    cleanup();
+  });
+};

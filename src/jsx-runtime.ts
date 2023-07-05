@@ -5,19 +5,11 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-import { $attr, $model, $text, isSubscribable, isWritable } from "./binding.js";
+import { $attr, $text, isSubscribable } from "./binding.js";
 import { appendChild, attr, fragment, element, svg, removeRange, mathml } from "./core.js";
 import { enterEffectScope, quitEffectScope } from "./hooks.js";
 import { addCleanUp, isFragment, isNode, _delegate, _listen, $$HyplateElementMeta, isElement } from "./internal.js";
-import type {
-  ClassComponentInstance,
-  ComponentClass,
-  Effect,
-  InputModelOptions,
-  ModelOptions,
-  ModelableElement,
-  Mountable,
-} from "./types.js";
+import type { ClassComponentInstance, ComponentClass, Effect, JSXDirective, Mountable } from "./types.js";
 import type {
   JSXChildNode,
   FunctionalComponent,
@@ -33,19 +25,7 @@ import type {
   Renderer,
   JSXFactory,
 } from "./types.js";
-import {
-  applyAllStatic,
-  fori,
-  isArray,
-  isFunction,
-  isObject,
-  isString,
-  noop,
-  push,
-  __DEV__,
-  warn,
-  err,
-} from "./util.js";
+import { applyAllStatic, fori, isArray, isFunction, isObject, isString, noop, push, __DEV__, warn } from "./util.js";
 
 export const isComponentClass = (fn: Function): fn is ComponentClass =>
   !!(fn as ComponentClass)?.[$$HyplateElementMeta];
@@ -142,11 +122,26 @@ const createFunctionalComponentMountable = (fc: FunctionalComponent, props: obje
 const isObjectEventHandler = (v: unknown): v is ObjectEventHandler<any> =>
   isObject(v) && "handleEvent" in v && isFunction(v.handleEvent);
 
-const isModelableElement = (el: Element): el is ModelableElement<unknown> => "value" in el;
-
 let currentElementFactory: (name: string, options: ElementCreationOptions | undefined) => Element = element;
 
-const modelDirectivePattern = /model(:\w+)?/;
+type DirectivesMap = {
+  [prefix: string]: JSXDirective<any>;
+};
+
+const directivesWithoutParams: DirectivesMap = {};
+const directives: DirectivesMap = {};
+
+export const registerDirective = (directive: JSXDirective<any>): CleanUpFunc => {
+  const { prefix } = directive;
+  if (!directive.requireParams) {
+    directivesWithoutParams[prefix] = directive;
+  }
+  directives[prefix] = directive;
+  return () => {
+    delete directivesWithoutParams[prefix];
+    delete directives[prefix];
+  };
+};
 
 // @ts-expect-error unchecked overload
 export const jsx: JSXFactory = (
@@ -196,29 +191,27 @@ export const jsx: JSXFactory = (
       for (const key in attributes) {
         // @ts-expect-error for-in key access
         const value = attributes[key];
-        if (key.startsWith("h-")) {
-          // builtin directives
-          const directive = key.slice(2);
-          const modelMatch = directive.match(modelDirectivePattern);
-          if (modelMatch) {
-            if (!isWritable(value)) {
-              if (__DEV__) {
-                err(`Value of "h-model" must be "WritableSubscribable".`);
-              }
-            } else if (isModelableElement(el)) {
-              const as = modelMatch[1]?.slice(1);
-              const modelOptions: (InputModelOptions<any> & Partial<ModelOptions>) | undefined = as ? { as } : void 0;
-              push(cleanups, $model(el, value, modelOptions));
-              continue;
-            } else {
-              if (__DEV__) {
-                warn(
-                  `Element <${el.tagName}> does not have "value" property, "h-model" directive may not work correctly.`
-                );
-              }
+        let directive: JSXDirective<any> | undefined = directivesWithoutParams[key];
+        let params: string | null = null;
+        if (!directive) {
+          const directiveIndex = key.indexOf(":");
+          if (directiveIndex > 0) {
+            const directiveName = key.slice(0, directiveIndex);
+            directive = directives[directiveName];
+            if (directive) {
+              params = key.slice(directiveIndex + 1);
             }
           }
-        } else if (isSubscribable(value)) {
+        }
+        if (directive) {
+          const cleanup = directive.apply(el, params, value);
+          if (cleanup) {
+            push(cleanups, cleanup);
+          }
+          continue;
+        }
+        // normal attribute binding & event handlers
+        if (isSubscribable(value)) {
           // @ts-expect-error skip generic type check
           push(cleanups, $attr(el, key, value));
         } else {
@@ -231,13 +224,6 @@ export const jsx: JSXFactory = (
                 continue;
               } else if (isObjectEventHandler(value)) {
                 push(cleanups, _listen(el, event, value, value.options));
-                continue;
-              }
-            }
-            if (next === ":") {
-              if (isFunction(value)) {
-                const event = key.slice(3).toLowerCase();
-                push(cleanups, _delegate(el, event, value));
                 continue;
               }
             }

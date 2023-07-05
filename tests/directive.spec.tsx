@@ -1,14 +1,14 @@
 import { appendChild, content, element } from "../dist/core";
-import { If, Show, For } from "../dist/directive";
+import { If, Show, For, EventDelegateDirective, ModelDirective } from "../dist/directive";
 import { useCleanUp } from "../dist/hooks";
-import { jsxRef, mount, unmount } from "../dist/jsx-runtime";
+import { jsxRef, mount, registerDirective, unmount } from "../dist/jsx-runtime";
 import { computed, signal } from "../dist/signals";
 import { pure } from "../dist/template";
-import type { AttachFunc, Mountable, Signal, WritableSignal } from "../dist/types";
+import type { AttachFunc, Mountable, Rendered, Signal, WritableSignal } from "../dist/types";
 import { noop } from "../dist/util";
 import { useSignals } from "./configure-store";
-import { mockChange, mockInput } from "./dom-api-mock";
-import { useConsoleSpy, useDocumentClear } from "./test-util";
+import { mockInput } from "./dom-api-mock";
+import { useConsoleSpy, useDocumentClear, useTestContext } from "./test-util";
 describe("directive.ts", () => {
   useSignals();
   describe("if", () => {
@@ -263,8 +263,26 @@ describe("directive.ts", () => {
       expect(cleanupMock).toBeCalledTimes(11);
     });
   });
+  describe("delegate", () => {
+    useDocumentClear();
+    useTestContext(() => registerDirective(new EventDelegateDirective()));
+    it("should add delegate event handler", () => {
+      const handler = import.meta.jest.fn();
+      const mountable = <button on:click={handler}></button>;
+      const [cleanup, button]: Rendered<HTMLButtonElement> = mount(mountable, document.body);
+      expect(handler).toBeCalledTimes(0);
+      button.click();
+      expect(handler).toBeCalledTimes(1);
+      button.click();
+      expect(handler).toBeCalledTimes(2);
+      cleanup();
+      button.click();
+      expect(handler).toBeCalledTimes(2);
+    });
+  });
   describe("h-model", () => {
     useDocumentClear();
+    useTestContext(() => registerDirective(new ModelDirective()));
     const spy = useConsoleSpy();
     it("should emit error with non-writable subscribable", () => {
       // @ts-expect-error invalid usage
