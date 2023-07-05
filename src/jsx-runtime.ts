@@ -58,13 +58,18 @@ export const unmount = (rendered: Rendered<any>) => {
   removeRange(getRange);
 };
 
-const addChild = (child: JSXChild, attach: AttachFunc) => {
+const addChild = (child: JSXChildNode, attach: AttachFunc): CleanUpFunc => {
   if (isNode(child)) {
     attach(child);
     return noop;
   }
   if (isFunction(child) && !isSubscribable(child)) {
     return mount(child, attach)[0];
+  }
+  if (isArray(child)) {
+    const cleanups: CleanUpFunc[] = [];
+    fori(child, (c) => addCleanUp(cleanups, addChild(c, attach)));
+    return applyAllStatic(cleanups);
   }
   return $text`${child}`(attach);
 };
@@ -89,13 +94,7 @@ const renderChild = (children: JSXChildNode, _attach: AttachFunc) => {
     return _attach(node);
   };
   const cleanups: CleanUpFunc[] = [];
-  if (isArray(children)) {
-    fori(children, (child) => {
-      addCleanUp(cleanups, addChild(child, attach));
-    });
-  } else {
-    addCleanUp(cleanups, addChild(children, attach));
-  }
+  addCleanUp(cleanups, addChild(children, attach));
   return [cleanups, () => (begin && end ? ([begin, end] as const) : void 0)] as const;
 };
 

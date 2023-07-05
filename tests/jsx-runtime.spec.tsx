@@ -309,6 +309,17 @@ describe("jsx-runtime.ts", () => {
       expect(getRange()).toStrictEqual([div, div]);
       cleanup();
     });
+    it("should render flatten children array", () => {
+      const rendered = mount(
+        <>
+          <div>1</div>
+          {[<div>2</div>, <div>3</div>, [<div>4{[<div>5</div>]}</div>]]}
+        </>,
+        attach
+      );
+      expect(container.textContent).toBe("12345");
+      unmount(rendered);
+    });
     it("should get child range", () => {
       const [cleanup, , getRange] = mount(
         <>

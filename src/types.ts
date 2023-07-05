@@ -480,7 +480,7 @@ export type ArrayOr<T> = T | T[];
 
 export type JSXChild = JSX.Element | Node | BindingPattern<TextInterpolation>;
 
-export type JSXChildNode = ArrayOr<JSXChild>;
+export type JSXChildNode = ArrayOr<JSXChild> | JSXChildNode[];
 
 export interface JSXFactory {
   /**
