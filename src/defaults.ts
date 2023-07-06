@@ -11,6 +11,7 @@ import {
   ClassBindingDirective,
   EventDelegateDirective,
   ModelDirective,
+  StyleBindingDirective,
 } from "./directive.js";
 import { HyplateElement } from "./elements.js";
 import { useEffect } from "./hooks.js";
@@ -29,12 +30,13 @@ import type {
 enableBuiltinSignals();
 registerDirective(new EventDelegateDirective());
 registerDirective(new ClassBindingDirective());
+registerDirective(new StyleBindingDirective());
 registerDirective(new CSSVariableBindingDirective());
 registerDirective(new ModelDirective());
 declare module "./types.js" {
   export interface Subscribable<T> extends Signal<T> {}
   export interface WritableSubscribable<T> extends WritableSignal<T> {}
-  export interface ElementDirectives {
+  export interface ElementDirectives extends JSXStyleBindings {
     [pattern: `class:${string}`]: BindingPattern<boolean>;
     [pattern: `var:${string}`]: BindingPattern<string | null>;
   }

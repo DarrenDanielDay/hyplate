@@ -26,8 +26,8 @@ import type {
   BindingPattern,
 } from "./types.js";
 import { _delegate, withCommentRange } from "./internal.js";
-import { before, className, cssVar, moveRange } from "./core.js";
-import { $class, $model, $var, isSubscribable, isWritable, subscribe } from "./binding.js";
+import { before, className, cssVar, moveRange, style } from "./core.js";
+import { $class, $model, $style, $var, isSubscribable, isWritable, subscribe } from "./binding.js";
 import { jsxRef, mount, setRef, unmount } from "./jsx-runtime.js";
 
 const createIfDirective = <Test, T, F>(
@@ -330,6 +330,19 @@ export class ClassBindingDirective implements JSXDirective<BindingPattern<boolea
       return $class(el, params!, input);
     }
     className(el, params!, input);
+  }
+}
+
+export class StyleBindingDirective implements JSXDirective<BindingPattern<string | null>> {
+  prefix = "style";
+  requireParams = true;
+  apply(el: Element, params: string | null, input: BindingPattern<string | null>): void | CleanUpFunc {
+    if (isSubscribable(input)) {
+      // @ts-expect-error skipped element.style property check
+      return $style(el, params!, input);
+    }
+    // @ts-expect-error skipped element.style property check
+    style(el, params!, input);
   }
 }
 

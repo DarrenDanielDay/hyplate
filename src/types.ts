@@ -127,6 +127,10 @@ export type StyleProperties = Extract<
   string
 >;
 
+export type JSXStyleBindings = {
+  [K in StyleProperties as `style:${K | KebabCase<K>}`]?: BindingPattern<string | null>;
+};
+
 export type Join<S extends string[], D extends string, R extends string = ""> = S extends [
   infer F extends string,
   ...infer B extends string[]

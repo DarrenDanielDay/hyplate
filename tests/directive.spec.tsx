@@ -7,6 +7,7 @@ import {
   ModelDirective,
   ClassBindingDirective,
   CSSVariableBindingDirective,
+  StyleBindingDirective,
 } from "../dist/directive";
 import { useCleanUp } from "../dist/hooks";
 import { jsxRef, mount, registerDirective, unmount } from "../dist/jsx-runtime";
@@ -306,6 +307,27 @@ describe("directive.ts", () => {
       expect(el.classList.contains("show")).toBeFalsy();
       const rendered = mount(<div ref={el} class:show={show}></div>, document.body);
       expect(el.classList.contains("show")).toBeTruthy();
+      unmount(rendered);
+    });
+  });
+  describe("style", () => {
+    const color = "rgb(31, 30, 51)";
+    useDocumentClear();
+    useTestContext(() => registerDirective(new StyleBindingDirective()));
+    it("should bind style property", () => {
+      const colorVariable = signal<string | null>(null);
+      const el = element("div");
+      const rendered = mount(<div ref={el} style:color={colorVariable}></div>, document.body);
+      expect(el.style.color).toBe("");
+      colorVariable.set(color);
+      expect(el.style.color).toBe(color);
+      unmount(rendered);
+    });
+    it("should add css variable", () => {
+      const el = element("div");
+      expect(el.style.color).toBe("");
+      const rendered = mount(<div ref={el} style:color={color}></div>, document.body);
+      expect(el.style.color).toBe(color);
       unmount(rendered);
     });
   });
