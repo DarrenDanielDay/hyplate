@@ -25,7 +25,7 @@ export const once = <T extends unknown>(evaluate: () => T) => {
   };
 };
 
-export const scopes = <T extends {}>() => {
+export const scopes = <T extends unknown>() => {
   const stack: T[] = [];
   const resolve = () => stack.at(-1);
   const enter = (val: T) => push(stack, val);

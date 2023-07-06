@@ -68,7 +68,7 @@ export const enableBuiltinSignals = () => {
   configureBinding(watch, isSignal, write as DispatchFunc, isWritableSignal);
 };
 
-const [enterScope, quitScope, currentScope] = /* #__PURE__ */ scopes<Set<SignalMembers<any>>>();
+const [enterScope, quitScope, currentScope] = /* #__PURE__ */ scopes<Set<SignalMembers<any>> | null>();
 
 const useDepScope = (): [Set<Signal<unknown>>, CleanUpFunc] => {
   const deps = new Set<Signal<unknown>>();
@@ -175,11 +175,13 @@ export const effect = (callback: Effect): CleanUpFunc => {
 };
 
 const dispatch = <T extends unknown>(signal: SignalMembers<T>, newVal: T) => {
+  enterScope(null);
   signal.target.dispatchEvent(
     new CE(SIGNAL_DATA_EVENT, {
       detail: newVal,
     })
   );
+  quitScope();
 };
 
 const isCustomEvent = isInstance(CE);

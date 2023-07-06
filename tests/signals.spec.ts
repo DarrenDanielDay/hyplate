@@ -260,6 +260,34 @@ describe("signals.ts", () => {
       unsubscribe();
       expect(fn).toBeCalledTimes(4);
     });
+    it("should not depend on signals evaluated in subscribers", () => {
+      const A = signal(1);
+      const B = signal(0);
+      const C = signal(0);
+      const fn = import.meta.jest.fn();
+      const subscriber = import.meta.jest.fn((c: number) => {});
+      watch(B, (b) => {
+        // When new value of B dispatched, signal C maybe evaluated in subscriber of B.
+        subscriber(b + C());
+      });
+      expect(subscriber).toBeCalledTimes(1);
+      expect(subscriber).toBeCalledWith(0);
+      effect(() => {
+        fn();
+        // Suppose an effect depends on A, and dispatches new value of signal B.
+        B.set(A() * 10);
+      });
+      expect(fn).toBeCalledTimes(1);
+      expect(subscriber).toBeCalledTimes(2);
+      expect(subscriber).toBeCalledWith(10);
+      // The effect scope should not depend on C, so `fn` should be executed only once.
+      C.set(100);
+      expect(fn).toBeCalledTimes(1);
+      A.set(2);
+      expect(fn).toBeCalledTimes(2);
+      expect(subscriber).toBeCalledTimes(3);
+      expect(subscriber).toBeCalledWith(120);
+    });
   });
   describe("enableBuiltinSignals", () => {
     useSignals();
