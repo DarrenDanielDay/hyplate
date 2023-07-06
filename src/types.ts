@@ -108,11 +108,7 @@ export type AttributesMap<T> = AttributeEntries extends infer P
     : never
   : never;
 
-export interface JSXDirective<T> {
-  prefix: string;
-  requireParams: boolean;
-  apply(el: Element, params: string | null, input: T): CleanUpFunc | void;
-}
+
 
 export interface ElementDirectives {}
 
@@ -481,6 +477,12 @@ export interface ForProps<T extends unknown> {
 
 //#region JSX types
 export type ArrayOr<T> = T | T[];
+
+export interface JSXDirective<T> {
+  prefix: string;
+  requireParams: boolean;
+  apply(el: Element, params: string | null, input: T): CleanUpFunc | void;
+}
 
 export type JSXChild = JSX.Element | Node | BindingPattern<TextInterpolation>;
 
