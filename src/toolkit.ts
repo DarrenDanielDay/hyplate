@@ -16,9 +16,9 @@ import type {
   BindingPattern,
   Comparator,
   Events,
-  EventType,
   FunctionalEventHanlder,
   Handler,
+  KnownEventMap,
   Subscribable,
   TextInterpolation,
 } from "./types.js";
@@ -55,13 +55,13 @@ class BindingHostImpl<T extends Element> implements BindingHost<T> {
     this.#collect($content(this.#el, subscribable));
     return this;
   }
-  delegate<E extends Events<T>>(name: E, handler: FunctionalEventHanlder<T, EventType<T, E>>): BindingHost<T> {
+  delegate<E extends Events>(name: E, handler: FunctionalEventHanlder<T, KnownEventMap[E]>): BindingHost<T> {
     this.#collect(_delegate(this.#el, name, handler));
     return this;
   }
-  event<E extends Events<T>>(
+  event<E extends Events>(
     name: E,
-    handler: Handler<T, EventType<T, E>>,
+    handler: Handler<T, KnownEventMap[E]>,
     options?: boolean | EventListenerOptions
   ): BindingHost<T> {
     this.#collect(_listen(this.#el, name, handler, options));

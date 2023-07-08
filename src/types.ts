@@ -148,14 +148,6 @@ export type CSSProperties = KebabCase<StyleProperties>;
 
 export interface KnownEventMap extends HTMLElementEventMap, SVGElementEventMap, MathMLElementEventMap {}
 
-// @ts-ignore unused for legacy type
-export type EventMap<T extends EventTarget> = KnownEventMap;
-
-export type EventType<T extends EventTarget, E extends Extract<keyof EventMap<T>, string>> = Extract<
-  EventMap<T>[E],
-  Event
->;
-
 export type FunctionalEventHanlder<T extends EventTarget, E extends Event> = (this: T, e: E) => void;
 
 export interface ObjectEventHandler<E extends Event> {
@@ -165,7 +157,7 @@ export interface ObjectEventHandler<E extends Event> {
 
 export type Handler<T extends EventTarget, E extends Event> = FunctionalEventHanlder<T, E> | ObjectEventHandler<E>;
 
-export type Events<T extends EventTarget> = Extract<keyof EventMap<T>, string>;
+export type Events = keyof KnownEventMap;
 
 export type Alphabet<S = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", U = never> = S extends `${infer C}${infer R}`
   ? Alphabet<R, U | C>
@@ -203,15 +195,15 @@ declare global {
   }
 }
 
-export type EventHost<T extends EventTarget> = <E extends Events<T>>(
+export type EventHost<T extends EventTarget> = <E extends Events>(
   name: E,
-  handler: Handler<T, EventType<T, E>>,
+  handler: Handler<T, KnownEventMap[E]>,
   options?: EventHandlerOptions
 ) => CleanUpFunc;
 
-export type DelegateHost<T extends Element> = <E extends Events<T>>(
+export type DelegateHost<T extends Element> = <E extends Events>(
   event: E,
-  handler: FunctionalEventHanlder<T, EventType<T, E>>
+  handler: FunctionalEventHanlder<T, KnownEventMap[E]>
 ) => CleanUpFunc;
 
 export interface InputDirectives {}
@@ -456,10 +448,10 @@ export type Rendered<E> = [cleanup: CleanUpFunc, exposed: E, getRange: GetRange]
 export type BindingHost<T extends Element> = {
   attr<P extends keyof AttributesMap<T>>(name: P, subscribable: Subscribable<AttributesMap<T>[P]>): BindingHost<T>;
   content(subscribable: Subscribable<TextInterpolation>): BindingHost<T>;
-  delegate<E extends Events<T>>(name: E, handler: FunctionalEventHanlder<T, EventType<T, E>>): BindingHost<T>;
-  event<E extends Events<T>>(
+  delegate<E extends Events>(name: E, handler: FunctionalEventHanlder<T, KnownEventMap[E]>): BindingHost<T>;
+  event<E extends Events>(
     name: E,
-    handler: Handler<T, EventType<T, E>>,
+    handler: Handler<T, KnownEventMap[E]>,
     options?: boolean | EventListenerOptions
   ): BindingHost<T>;
   text(fragments: TemplateStringsArray, ...bindings: BindingPattern<TextInterpolation>[]): BindingHost<T>;
@@ -2585,7 +2577,7 @@ declare global {
       [attribute: AttributePattern]: BindingPattern<AttributeInterpolation>;
     }
     type JSXEventHandlerAttributes<E extends globalThis.Element> = {
-      [K in keyof KnownEventMap as `on${Capitalize<K>}`]?: Handler<E, EventType<E, K>>;
+      [K in keyof KnownEventMap as `on${Capitalize<K>}`]?: Handler<E, KnownEventMap[K]>;
     };
 
     type JSXAttributes<T extends {}, E extends globalThis.Element> = {
