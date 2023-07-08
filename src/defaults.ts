@@ -24,6 +24,7 @@ import type {
   ClassComponentInstance,
   Effect,
   FieldInitializer,
+  GlobalAttributes,
   PropsOf,
   Signal,
 } from "./types.js";
@@ -85,6 +86,14 @@ declare module "./types.js" {
       Subscribable<R | null>
     >;
   };
+}
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      [tag: string]: JSXAttributes<GlobalAttributes, any>;
+    }
+  }
 }
 
 const ComponentPrototype = HyplateElement.prototype as ClassComponentInstance;
