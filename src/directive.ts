@@ -183,7 +183,7 @@ export const For = <T extends unknown>({
           const attach = before(anchor);
           for (; i <= e2; i++) {
             const node = newNodes[i]!;
-            node[1] = children(node[0])(attach);
+            node[1] = mount(children(node[0]), attach);
           }
         }
       } else if (i > e2) {
@@ -242,7 +242,7 @@ export const For = <T extends unknown>({
           const anchor = newNodes[nextIndex + 1]?.[1]![2]()?.[0] ?? end;
           const attach = before(anchor);
           if (newIndexToOldIndexMap[i] === 0) {
-            nextChild[1] = children(nextChild[0])(attach);
+            nextChild[1] = mount(children(nextChild[0]), attach);
           } else if (moved) {
             if (j < 0 || i !== increasingNewIndexSequence[j]!) {
               const range = nextChild[1]![2]();
