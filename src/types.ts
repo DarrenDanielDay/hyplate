@@ -1293,7 +1293,7 @@ export interface HTMLTDElementAttributes extends GlobalAttributes {
   rowspan: NumericAttributeValue;
 }
 
-export interface HTMLTextAreaElementAttributes extends Omit<GlobalAttributes, "spellcheck"> {
+export interface HTMLTextAreaElementAttributes extends GlobalAttributes {
   autocomplete: AutoCompleteSwitch;
   autofocus: BooleanAttributeValue;
   cols: NumericAttributeValue;
@@ -1306,7 +1306,6 @@ export interface HTMLTextAreaElementAttributes extends Omit<GlobalAttributes, "s
   readonly: BooleanAttributeValue;
   required: BooleanAttributeValue;
   rows: NumericAttributeValue;
-  spellcheck: BooleanAttributeValue | "default";
   wrap: EnumeratedValues<"hard" | "soft">;
 }
 
