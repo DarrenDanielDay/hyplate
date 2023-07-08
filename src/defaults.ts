@@ -36,10 +36,17 @@ registerDirective(new ModelDirective());
 declare module "./types.js" {
   export interface Subscribable<T> extends Signal<T> {}
   export interface WritableSubscribable<T> extends WritableSignal<T> {}
-  export interface ElementDirectives extends JSXStyleBindings {
+
+  type JSXDelegateHandlerAttributes<E extends globalThis.Element> = {
+    [K in keyof KnownEventMap as `on:${K}`]?: FunctionalEventHanlder<E, KnownEventMap[K]>;
+  };
+  export interface ElementDirectives<E> extends JSXDelegateHandlerAttributes<E>, JSXStyleBindings {
     [pattern: `class:${string}`]: BindingPattern<boolean>;
     [pattern: `var:${string}`]: BindingPattern<string | null>;
   }
+  export interface InputDirectives extends InputModelDirective, GeneralModelDirective<string> {}
+  export interface SelectDirectives extends GeneralModelDirective<string> {}
+
   export interface ClassComponentInstance<P extends PropsBase = PropsBase, S extends string = string>
     extends OnConnected,
       OnDisconnected,

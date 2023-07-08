@@ -108,9 +108,7 @@ export type AttributesMap<T> = AttributeEntries extends infer P
     : never
   : never;
 
-
-
-export interface ElementDirectives {}
+export interface ElementDirectives<E extends Element> {}
 
 export type ElementWithStyle = {
   style: CSSStyleDeclaration;
@@ -148,13 +146,10 @@ export type KebabCase<
 
 export type CSSProperties = KebabCase<StyleProperties>;
 
-export type EventMap<T extends EventTarget> = T extends HTMLElement
-  ? HTMLElementEventMap
-  : T extends SVGElement
-  ? SVGElementEventMap
-  : T extends MathMLElement
-  ? MathMLElementEventMap
-  : never;
+export interface KnownEventMap extends HTMLElementEventMap, SVGElementEventMap, MathMLElementEventMap {}
+
+// @ts-ignore unused for legacy type
+export type EventMap<T extends EventTarget> = KnownEventMap;
 
 export type EventType<T extends EventTarget, E extends Extract<keyof EventMap<T>, string>> = Extract<
   EventMap<T>[E],
@@ -218,6 +213,10 @@ export type DelegateHost<T extends Element> = <E extends Events<T>>(
   event: E,
   handler: FunctionalEventHanlder<T, EventType<T, E>>
 ) => CleanUpFunc;
+
+export interface InputDirectives {}
+
+export interface SelectDirectives {}
 
 export interface InputModelMap {
   string: ["value", string];
@@ -524,7 +523,7 @@ type EnumeratedValues<E extends string> = E | (string & {});
 
 type ElementAttributes<E extends Element> = {
   ref?: Later<E> | E;
-} & ElementDirectives;
+} & ElementDirectives<E>;
 
 //#region shared attribute enum values
 type BooleanAttributeValue = boolean | `${boolean}` | "";
@@ -2586,17 +2585,13 @@ declare global {
       [attribute: AttributePattern]: BindingPattern<AttributeInterpolation>;
     }
     type JSXEventHandlerAttributes<E extends globalThis.Element> = {
-      [K in Extract<keyof EventMap<E>, string> as `on${Capitalize<K>}`]?: Handler<E, EventType<E, K>>;
-    };
-    type JSXDelegateHandlerAttributes<E extends globalThis.Element> = {
-      [K in Extract<keyof EventMap<E>, string> as `on:${K}`]?: FunctionalEventHanlder<E, EventType<E, K>>;
+      [K in keyof KnownEventMap as `on${Capitalize<K>}`]?: Handler<E, EventType<E, K>>;
     };
 
     type JSXAttributes<T extends {}, E extends globalThis.Element> = {
       [K in keyof T]?: BindingPattern<T[K] | undefined | null>;
     } & ElementAttributes<E> &
       JSX.IntrinsicAttributes &
-      JSXDelegateHandlerAttributes<E> &
       JSXEventHandlerAttributes<E> & {
         /**
          * Custom event handlers.
@@ -2666,8 +2661,7 @@ declare global {
         JSXTypeConfig extends { strictInput: boolean } ? InputAttributes : HTMLInputElementAttributes,
         HTMLInputElement
       > &
-        GeneralModelDirective<string> &
-        InputModelDirective;
+        InputDirectives;
       ins: JSXAttributes<HTMLModElementAttributes, HTMLModElement>;
       kbd: JSXAttributes<GlobalAttributes, HTMLElement>;
       label: JSXAttributes<HTMLLabelElementAttributes, HTMLLabelElement>;
@@ -2698,7 +2692,7 @@ declare global {
       samp: JSXAttributes<GlobalAttributes, HTMLElement>;
       script: JSXAttributes<HTMLScriptElementAttributes, HTMLScriptElement>;
       section: JSXAttributes<GlobalAttributes, HTMLElement>;
-      select: JSXAttributes<HTMLSelectElementAttributes, HTMLSelectElement> & GeneralModelDirective<string>;
+      select: JSXAttributes<HTMLSelectElementAttributes, HTMLSelectElement> & SelectDirectives;
       slot: JSXAttributes<HTMLSlotElementAttributes, HTMLSlotElement>;
       small: JSXAttributes<GlobalAttributes, HTMLElement>;
       source: JSXAttributes<HTMLSourceElementAttributes, HTMLSourceElement>;
