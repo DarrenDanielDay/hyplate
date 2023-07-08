@@ -208,6 +208,8 @@ export type DelegateHost<T extends Element> = <E extends Events>(
 
 export interface InputDirectives {}
 
+export interface TextareaDirectives {}
+
 export interface SelectDirectives {}
 
 export interface InputModelMap {
@@ -2697,7 +2699,7 @@ declare global {
       tbody: JSXAttributes<GlobalAttributes, HTMLTableSectionElement>;
       td: JSXAttributes<HTMLTDElementAttributes, HTMLTableCellElement>;
       template: JSXAttributes<GlobalAttributes, HTMLTemplateElement>;
-      textarea: JSXAttributes<HTMLTextAreaElementAttributes, HTMLTextAreaElement>;
+      textarea: JSXAttributes<HTMLTextAreaElementAttributes, HTMLTextAreaElement> & TextareaDirectives;
       tfoot: JSXAttributes<GlobalAttributes, HTMLTableSectionElement>;
       th: JSXAttributes<HTMLTHElementAttributes, HTMLTableCellElement>;
       thead: JSXAttributes<GlobalAttributes, HTMLTableSectionElement>;

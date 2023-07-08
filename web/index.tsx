@@ -331,6 +331,7 @@ const SignalDemo = () => {
   return (
     <div>
       <input h-model={text}></input>
+      <textarea h-model={text}></textarea>
       <p>reflected text: {text}</p>
       <button onClick={changeToRandom}>change to random</button>
     </div>

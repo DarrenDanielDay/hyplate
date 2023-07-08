@@ -46,6 +46,7 @@ declare module "./types.js" {
     [pattern: `var:${string}`]: BindingPattern<string | null>;
   }
   export interface InputDirectives extends InputModelDirective, GeneralModelDirective<string> {}
+export interface TextareaDirectives extends GeneralModelDirective<string> {}
   export interface SelectDirectives extends GeneralModelDirective<string> {}
 
   export interface ClassComponentInstance<P extends PropsBase = PropsBase, S extends string = string>
