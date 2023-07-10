@@ -17,6 +17,7 @@ import type {
   TextInterpolation,
   CSSProperties,
   ElementWithStyle,
+  Handler,
 } from "./types.js";
 import { arrayFrom, fori, push } from "./util.js";
 import { comment, doc, _delegate, _listen } from "./internal.js";
@@ -72,7 +73,8 @@ export const $$ = <S extends string>(selector: S): ParseSelector<S>[] => arrayFr
 
 export const listen =
   <T extends EventTarget>(target: T): EventHost<T> =>
-  (name, handler, options) =>
+  // @ts-expect-error skipped generic check
+  (name: string, handler: Handler<any, any>, options: EventHandlerOptions) =>
     _listen(target, name, handler, options);
 
 export const delegate =

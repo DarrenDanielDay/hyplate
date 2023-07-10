@@ -195,11 +195,11 @@ declare global {
   }
 }
 
-export type EventHost<T extends EventTarget> = <E extends Events>(
-  name: E,
-  handler: Handler<T, KnownEventMap[E]>,
-  options?: EventHandlerOptions
-) => CleanUpFunc;
+export type EventHost<T extends EventTarget> = {
+  <E extends Events>(name: E, handler: Handler<T, KnownEventMap[E]>, options?: EventHandlerOptions): CleanUpFunc;
+  (name: string, handler: Handler<T, Event>, options?: EventHandlerOptions): CleanUpFunc;
+  <D>(name: string, handler: Handler<T, CustomEvent<D>>, options?: EventHandlerOptions): CleanUpFunc;
+};
 
 export type DelegateHost<T extends Element> = <E extends Events>(
   event: E,
