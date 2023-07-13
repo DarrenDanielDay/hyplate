@@ -219,10 +219,18 @@ export const $model: {
       };
   const { as, on } = resolvedOptions;
   const property = usingInput ? propMap[as!] ?? defaultModelProperty : defaultModelProperty;
-  const unsubscribeChange = subscribe(writable, (latest) => {
-    // @ts-expect-error dynamic property setter
-    el[property] = latest;
-  });
+  const isRadio = usingInput && el.type === "radio";
+  const unsubscribeChange = subscribe(
+    writable,
+    isRadio
+      ? (latest) => {
+          el.checked = latest === el.value;
+        }
+      : (latest) => {
+          // @ts-expect-error dynamic property setter
+          el[property] = latest;
+        }
+  );
   const unsubscribeEvent = _listen(el, on, new ModelSubscription(writable, usingInput && property));
   return () => {
     unsubscribeEvent();

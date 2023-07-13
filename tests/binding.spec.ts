@@ -14,6 +14,7 @@ import {
 } from "../dist/binding";
 import { appendChild, attr, element } from "../dist/core";
 import { signal } from "../dist/signals";
+import { applyAll } from "../dist/util";
 import { useSignals } from "./configure-store";
 import { mockChange, mockInput } from "./dom-api-mock";
 import { useConsoleSpy } from "./test-util";
@@ -162,6 +163,37 @@ describe("binding.ts", () => {
       expect(observer).toBeCalledTimes(2);
       unsubscribe1();
       unsubscribe2();
+    });
+    it("should bind <input type='radio'>", () => {
+      const inputs = Array.from({ length: 3 }, (_, i) => {
+        const input = element("input");
+        attr(input, "type", "radio");
+        attr(input, "value", `a${i}`);
+
+        return input;
+      });
+      const checked = signal("a0");
+
+      const observer = import.meta.jest.fn();
+      const unsubscribe1 = subscribe(checked, observer);
+      expect(observer).toBeCalledTimes(1);
+
+      expect(inputs[0].checked).toBeFalsy();
+      const unsubscribe2 = inputs.map((input) => $model(input, checked));
+      // should bind and set the radio state.
+      expect(inputs.map((input) => input.checked)).toStrictEqual([true, false, false]);
+      // mock user action: check "a1"
+      inputs[1].checked = true;
+      inputs[1].dispatchEvent(new Event("input"));
+      // model value should be reflected
+      expect(checked()).toBe("a1");
+      expect(observer).toBeCalledTimes(2);
+      // set model value to "a2"
+      checked.set("a2");
+      expect(inputs.map((input) => input.checked)).toStrictEqual([false, false, true]);
+      expect(observer).toBeCalledTimes(3);
+      unsubscribe1();
+      applyAll(unsubscribe2);
     });
     it("should bind <input type='date'>", () => {
       const input = element("input");
