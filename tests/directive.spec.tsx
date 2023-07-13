@@ -32,7 +32,6 @@ describe("directive.ts", () => {
     afterEach(() => {
       container.remove();
     });
-    const spy = useConsoleSpy();
     it("should create view when data of `that` is true", () => {
       const condition = signal(true);
       const mountable = <If condition={condition} then={() => <span>then</span>}></If>;
@@ -88,13 +87,6 @@ describe("directive.ts", () => {
       expect(button1).toBeInstanceOf(HTMLButtonElement);
       cleanup();
     });
-    it("should emit warning when no children provided", () => {
-      // @ts-expect-error invalid usage
-      const [cleanup, , getRange] = (<If></If>)(attach);
-      expect(getRange()).toBeUndefined();
-      expect(spy.warn).toBeCalledTimes(1);
-      cleanup();
-    });
     it("should expose reference of currently rendered", () => {
       type T = {
         foo: number;
@@ -126,12 +118,12 @@ describe("directive.ts", () => {
     afterEach(() => {
       container.remove();
     });
-    const spy = useConsoleSpy();
-    it("should emit warning when no children given", () => {
-      // @ts-expect-error invalid usage
-      const [cleanup, , getRange] = (<Show></Show>)(attach);
-      expect(getRange()).toBeUndefined();
-      expect(spy.warn).toBeCalledTimes(1);
+    it("should render with children function", () => {
+      const count = signal(1);
+      const [cleanup] = mount(<Show when={count}>{(c) => <span>{c}</span>}</Show>, attach);
+      expect(container.firstElementChild!.outerHTML).toBe("<span>1</span>");
+      count.set(2);
+      expect(container.firstElementChild!.outerHTML).toBe("<span>2</span>");
       cleanup();
     });
   });

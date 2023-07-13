@@ -81,11 +81,7 @@ export const nil: Mountable<void> = () => nilRendered;
  * The `If` directive for conditional rendering.
  */
 export const If = <Test, T, F = void>(props: Props<IfProps<Test, T, F>, undefined, T | F>) => {
-  const then = props.then;
-  if (!then) {
-    return warned("Invalid usage of 'If'. Must provide `then`.", nil);
-  }
-  return createIfDirective(props.condition, props.ref, then, props.else);
+  return createIfDirective(props.condition, props.ref, props.then, props.else);
 };
 
 If.customRef = true;
@@ -101,9 +97,6 @@ export const Show = <Test, T, F = void>({
   children,
   fallback,
 }: Props<ShowProps<Test, F>, TruthyContextMountable<Test, T>, T | F>) => {
-  if (!children) {
-    return warned("Invalid usage of 'Show'. Must provide children.", nil);
-  }
   return createIfDirective(when, ref, children, fallback);
 };
 
