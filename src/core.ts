@@ -22,6 +22,7 @@ import type {
 import { arrayFrom, fori, push } from "./util.js";
 import { comment, doc, _delegate, _listen } from "./internal.js";
 export { comment } from "./internal.js";
+export { noop } from "./util.js";
 
 export const element = /* #__PURE__ */ doc.createElement.bind(doc);
 
