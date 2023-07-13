@@ -24,6 +24,10 @@ import type {
   InputModelOptions,
   ModelOptions,
   BindingPattern,
+  ShowProps,
+  IfProps,
+  FutureProps,
+  FutureBuilder,
 } from "./types.js";
 import { _delegate, withCommentRange } from "./internal.js";
 import { before, className, cssVar, moveRange, style } from "./core.js";
@@ -76,17 +80,7 @@ export const nil: Mountable<void> = () => nilRendered;
 /**
  * The `If` directive for conditional rendering.
  */
-export const If = <Test, T, F = void>(
-  props: Props<
-    {
-      condition: Subscribable<Test>;
-      then: TruthyContextMountable<Test, T>;
-      else?: FalsyContextMountable<F>;
-    },
-    undefined,
-    T | F
-  >
-) => {
+export const If = <Test, T, F = void>(props: Props<IfProps<Test, T, F>, undefined, T | F>) => {
   const then = props.then;
   if (!then) {
     return warned("Invalid usage of 'If'. Must provide `then`.", nil);
@@ -106,11 +100,7 @@ export const Show = <Test, T, F = void>({
   ref,
   children,
   fallback,
-}: Props<
-  { when: Subscribable<Test>; fallback?: FalsyContextMountable<F> },
-  TruthyContextMountable<Test, T>,
-  T | F
->) => {
+}: Props<ShowProps<Test, F>, TruthyContextMountable<Test, T>, T | F>) => {
   if (!children) {
     return warned("Invalid usage of 'Show'. Must provide children.", nil);
   }
@@ -118,6 +108,50 @@ export const Show = <Test, T, F = void>({
 };
 
 Show.customRef = true;
+
+export const Future = <R, T, F = void, E = void>({
+  promise,
+  ref: _ref,
+  children,
+  fallback,
+  error,
+}: Props<FutureProps<R, F, E>, FutureBuilder<R, T>, T | F>): Mountable<Later<T | F | E | null>> => {
+  return (attach) => {
+    const ref = _ref ?? jsxRef<T | F | E>();
+    const [begin, end, clearRange] = withCommentRange("future directive");
+    attach(begin);
+    attach(end);
+    const attachContent: AttachFunc = before(end);
+    let cleanUpLastAttached: CleanUpFunc | null = null;
+    let current: T | F | E | null = null;
+    const handled = promise.then((result) => {
+      if (fallback) {
+        clearRange();
+      }
+      [cleanUpLastAttached, current] = mount(children(result), attachContent);
+      setRef(ref, current);
+    });
+    if (fallback) {
+      [cleanUpLastAttached, current] = mount(fallback, attachContent);
+      setRef(ref, current);
+    }
+    if (error) {
+      handled.catch((reason) => {
+        [cleanUpLastAttached, current] = mount(error(reason), attachContent);
+        setRef(ref, current);
+      });
+    }
+    return [
+      () => {
+        cleanUpLastAttached?.();
+      },
+      ref,
+      () => [begin, end],
+    ];
+  };
+};
+
+Future.customRef = true;
 
 /**
  * @internal

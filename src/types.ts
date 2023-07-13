@@ -327,10 +327,6 @@ export type Mountable<E> = (attach: AttachFunc) => Rendered<E>;
 
 export type Renderer = (element: JSX.Element, onto: Node | AttachFunc) => Rendered<any>;
 
-export type TruthyContextMountable<Truthy, T> = (truthy: NonNullable<Truthy>) => Mountable<T>;
-
-export type FalsyContextMountable<T> = () => Mountable<T>;
-
 export type WithChildren<C> = { children: C };
 
 export type WithRef<E> = { ref: Later<E> };
@@ -460,6 +456,30 @@ export type BindingHost<T extends Element> = {
 };
 
 //#region directives
+
+export type TruthyContextMountable<Truthy, T> = (truthy: NonNullable<Truthy>) => Mountable<T>;
+
+export type FalsyContextMountable<T> = () => Mountable<T>;
+
+export interface IfProps<Test, T, F = void> {
+  condition: Subscribable<Test>;
+  then: TruthyContextMountable<Test, T>;
+  else?: FalsyContextMountable<F>;
+}
+
+export interface ShowProps<Test, F = void> {
+  when: Subscribable<Test>;
+  fallback?: FalsyContextMountable<F>;
+}
+
+export interface FutureProps<R, F = void, E = void> {
+  promise: Promise<R>;
+  fallback?: Mountable<F>;
+  error?: (reason?: any) => Mountable<E>;
+}
+
+export type FutureBuilder<R, T> = (result: R) => Mountable<T>;
+
 export interface ForProps<T extends unknown> {
   /**
    * The iterable query.
@@ -2567,6 +2587,7 @@ type AttributeEntries =
 declare global {
   namespace JSX {
     type Element = Mountable<any>;
+    type ElementType = string | ((props: any) => Element) | (new (props?: any) => ClassComponentInstance);
     interface JSXTypeConfig {}
     interface ElementChildrenAttribute {
       children: {};

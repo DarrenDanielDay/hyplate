@@ -8,6 +8,7 @@ import {
   ClassBindingDirective,
   CSSVariableBindingDirective,
   StyleBindingDirective,
+  Future,
 } from "../dist/directive";
 import { useCleanUp } from "../dist/hooks";
 import { jsxRef, mount, registerDirective, unmount } from "../dist/jsx-runtime";
@@ -133,6 +134,45 @@ describe("directive.ts", () => {
       expect(spy.warn).toBeCalledTimes(1);
       cleanup();
     });
+  });
+
+  describe("future", () => {
+    useDocumentClear();
+    it("should render with promise", (done) => {
+      const p = (async () => {
+        return 111;
+      })();
+      const rendered = mount(
+        <Future promise={p} fallback={<div>loading...</div>}>
+          {(no) => <div>{no}</div>}
+        </Future>,
+        document.body
+      );
+      expect(document.body.firstElementChild!.outerHTML).toBe("<div>loading...</div>");
+      setTimeout(() => {
+        expect(document.body.firstElementChild!.outerHTML).toBe("<div>111</div>");
+        unmount(rendered);
+        done();
+      });
+    }, 100);
+
+    it("should handle error", (done) => {
+      const p = (async () => {
+        throw new Error("Error occurred.");
+      })();
+      const rendered = mount(
+        <Future promise={p} error={(e) => <div>{e instanceof Error ? e.message : ""}</div>}>
+          {() => <div></div>}
+        </Future>,
+        document.body
+      );
+      expect(document.body.firstElementChild).toBeNull();
+      setTimeout(() => {
+        expect(document.body.firstElementChild!.outerHTML).toBe("<div>Error occurred.</div>");
+        unmount(rendered);
+        done();
+      });
+    }, 100);
   });
 
   describe("for", () => {
