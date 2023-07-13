@@ -1,9 +1,9 @@
 import { isSubscribable, resetBinding } from "../dist/binding";
 import { attr } from "../dist/core";
-import { Attribute, useAutoRun } from "../dist/defaults";
+import { Attribute, AutoRender, useAutoRun } from "../dist/defaults";
 import { nil } from "../dist/directive";
 import { HyplateElement, Component } from "../dist/elements";
-import { jsx, mount, unmount } from "../dist/jsx-runtime";
+import { mount, unmount } from "../dist/jsx-runtime";
 import { effect, isSignal, signal } from "../dist/signals";
 import type { AttachFunc, FC, Mountable, Rendered, Signal } from "../dist/types";
 import { useDocumentClear } from "./test-util";
@@ -123,14 +123,34 @@ describe("defaults.ts", () => {
       });
       const Component: FC = () => {
         useAutoRun(mockEffectCallback);
-        return jsx("div");
+        return <div></div>;
       };
       expect(mockEffectCallback).toBeCalledTimes(0);
-      const rendered = mount(jsx(Component), document.body);
+      const rendered = mount(<Component />, document.body);
       expect(mockCleanUp).toBeCalledTimes(0);
       expect(mockEffectCallback).toBeCalledTimes(1);
       unmount(rendered);
       expect(mockCleanUp).toBeCalledTimes(1);
+    });
+  });
+  describe("AutoRender", () => {
+    useDocumentClear();
+    it("should auto render when deps update", () => {
+      const count = signal(0);
+      const rendered = mount(
+        <AutoRender>
+          {() => {
+            return <div>{count()}</div>;
+          }}
+        </AutoRender>,
+        document.body
+      );
+      expect(document.body.firstElementChild!.outerHTML).toBe("<div>0</div>");
+      count.set(1);
+      expect(document.body.firstElementChild!.outerHTML).toBe("<div>1</div>");
+      count.set(2);
+      expect(document.body.firstElementChild!.outerHTML).toBe("<div>2</div>");
+      unmount(rendered);
     });
   });
 });

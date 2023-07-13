@@ -11,18 +11,20 @@ import {
   ClassBindingDirective,
   EventDelegateDirective,
   ModelDirective,
+  Show,
   StyleBindingDirective,
 } from "./directive.js";
 import { HyplateElement } from "./elements.js";
 import { useEffect } from "./hooks.js";
 import { $$HyplateElementMeta, currentComponentCtx } from "./internal.js";
-import { registerDirective } from "./jsx-runtime.js";
+import { jsx, registerDirective } from "./jsx-runtime.js";
 import { enableBuiltinSignals, computed, signal, effect } from "./signals.js";
 import type {
   AttributeDecorator,
   AttributeKeys,
   ClassComponentInstance,
   Effect,
+  FC,
   FieldInitializer,
   GlobalAttributes,
   PropsOf,
@@ -116,6 +118,12 @@ ComponentPrototype.autorun = function (callback) {
 };
 
 export const useAutoRun = (callback: Effect) => useEffect(() => effect(callback));
+
+const identity = (node: {}): JSX.Element => node as JSX.Element;
+
+export const AutoRender: FC<{}, () => JSX.Element> = ({ children }) => {
+  return jsx(Show, { when: computed(children), children: identity });
+};
 
 export const Attribute: {
   <T, K extends AttributeKeys<T>>(name: K, transform: (value: string) => PropsOf<T>[K]): AttributeDecorator<
