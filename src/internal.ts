@@ -14,7 +14,7 @@ import type {
   NativeSlotContent,
   Reflection,
 } from "./types.js";
-import { err, fori, isInstance, noop, push, __DEV__, scopes } from "./util.js";
+import { err, fori, isInstance, noop, push, __DEV__ } from "./util.js";
 
 export const doc = document;
 
@@ -95,10 +95,10 @@ export const isElement = /* #__PURE__ */ isInstance(Element);
 
 export const isValidSlotContent = (node: unknown): node is NativeSlotContent => isText(node) || isElement(node);
 
-export const [enterComponentCtx, quitComponentCtx, currentComponentCtx] = /* #__PURE__ */ scopes<ComponentMeta>();
-
 export const reflection: Reflection<string> = /* #__PURE__ */ new Proxy({}, { get: (_, k) => k });
 
 export const $$HyplateSignal: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-signal");
 
 export const $$HyplateElementMeta: unique symbol = /* #__PURE__ */ Symbol.for("hyplate-element-meta");
+
+export const lazyInitMetadata = (metadata: DecoratorMetadata): ComponentMeta => (metadata[$$HyplateElementMeta] ??= {});

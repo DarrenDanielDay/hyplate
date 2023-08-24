@@ -7,7 +7,7 @@
  */
 import { isSubscribable, $attr } from "./binding.js";
 import { attr } from "./core.js";
-import { reflection, addCleanUp, $$HyplateElementMeta, enterComponentCtx, quitComponentCtx } from "./internal.js";
+import { reflection, addCleanUp, $$HyplateElementMeta, lazyInitMetadata } from "./internal.js";
 import { mount, setRef } from "./jsx-runtime.js";
 import { slotName, assignSlotMap, insertSlotMap } from "./slot.js";
 import type {
@@ -17,7 +17,6 @@ import type {
   ClassComponentRawProps,
   CleanUpFunc,
   ComponentClass,
-  ComponentMeta,
   ComponentOptions,
   Later,
   Mountable,
@@ -36,13 +35,11 @@ export const define = /* #__PURE__ */ ce.define.bind(ce);
 const observedAttributeProperty = "observedAttributes";
 
 export const Component = (options: ComponentOptions) => {
-  const meta: ComponentMeta = {};
-  enterComponentCtx(meta);
   return (_ctor: abstract new (...args: any[]) => HTMLElement, context: ClassDecoratorContext) => {
     context.addInitializer(function () {
+      const meta = lazyInitMetadata(context.metadata)
       // @ts-expect-error convert type of `this`
       const cls: ComponentClass = this;
-      cls[$$HyplateElementMeta] = meta;
       const { tag, [observedAttributeProperty]: observedAttributes, ...statics } = options;
       cls.tag = tag;
       if (!Object.hasOwn(cls, observedAttributeProperty)) {
@@ -60,7 +57,6 @@ export const Component = (options: ComponentOptions) => {
       }
       patch(cls, statics);
       define(tag, cls);
-      quitComponentCtx();
     });
   };
 };

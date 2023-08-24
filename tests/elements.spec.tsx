@@ -1,4 +1,4 @@
-import { resetBinding } from "../dist/binding";
+import "../dist/polyfill";
 import { element } from "../dist/core";
 import { nil } from "../dist/directive";
 import { HyplateElement, CustomElement } from "../dist/elements";

@@ -348,11 +348,15 @@ export type ClassComponentRawProps<P extends PropsBase, S extends string, T> = O
   children?: SlotMap<S>;
   ref?: Later<T>;
 };
+export type HyplateElementMetadata = {
+  [$$HyplateElementMeta]?: ComponentMeta;
+}
+
 export interface ComponentClass extends ClassComponentStatic {
   /**
    * @internal
    */
-  [$$HyplateElementMeta]: ComponentMeta;
+  [Symbol.metadata]: HyplateElementMetadata | null;
   new <P extends PropsBase = PropsBase, S extends string = string>(
     props?: ClassComponentProps<P, S>
   ): ClassComponentInstance<P, S>;

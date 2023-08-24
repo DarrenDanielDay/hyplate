@@ -6,6 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 // import type {} from "typed-query-selector";
+import "./polyfill.js";
 import {
   CSSVariableBindingDirective,
   ClassBindingDirective,
@@ -16,7 +17,7 @@ import {
 } from "./directive.js";
 import { HyplateElement } from "./elements.js";
 import { useEffect } from "./hooks.js";
-import { $$HyplateElementMeta, currentComponentCtx } from "./internal.js";
+import { $$HyplateElementMeta, lazyInitMetadata } from "./internal.js";
 import { jsx, registerDirective } from "./jsx-runtime.js";
 import { enableBuiltinSignals, computed, signal, effect } from "./signals.js";
 import type {
@@ -48,7 +49,7 @@ declare module "./types.js" {
     [pattern: `var:${string}`]: BindingPattern<string | null>;
   }
   export interface InputDirectives extends InputModelDirective, GeneralModelDirective<string> {}
-export interface TextareaDirectives extends GeneralModelDirective<string> {}
+  export interface TextareaDirectives extends GeneralModelDirective<string> {}
   export interface SelectDirectives extends GeneralModelDirective<string> {}
 
   export interface ClassComponentInstance<P extends PropsBase = PropsBase, S extends string = string>
@@ -139,7 +140,7 @@ export const Attribute: {
     context: ClassAccessorDecoratorContext<any, any> | ClassFieldDecoratorContext
   ): ClassAccessorDecoratorResult<ClassComponentInstance<any, any>, Signal<any>> &
     FieldInitializer<any, Signal<any>> => {
-    const currentMeta = currentComponentCtx()!;
+    const currentMeta = lazyInitMetadata(context.metadata);
     const attributes = (currentMeta.attributes ??= new Set());
     attributes.add(name);
     function init(this: ClassComponentInstance<any, any>, _value: any) {

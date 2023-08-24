@@ -28,7 +28,7 @@ import type {
 import { applyAllStatic, fori, isArray, isFunction, isObject, isString, noop, push, __DEV__, warn } from "./util.js";
 
 export const isComponentClass = (fn: Function): fn is ComponentClass =>
-  !!(fn as ComponentClass)?.[$$HyplateElementMeta];
+  !!((fn as ComponentClass)?.[Symbol.metadata]?.[$$HyplateElementMeta]);
 
 export const mount: Renderer = (element, onto): Rendered<any> => {
   const attach = isNode(onto) ? appendChild(onto) : onto;
