@@ -71,7 +71,9 @@
     "defaults.d.ts",
     "defaults.js",
     "signals.d.ts",
-    "signals.js"
+    "signals.js",
+    "polyfill.d.ts",
+    "polyfill.js"
   ],
   "exports": {
     ".": {
