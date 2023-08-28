@@ -37,7 +37,7 @@ const observedAttributeProperty = "observedAttributes";
 export const Component = (options: ComponentOptions) => {
   return (_ctor: abstract new (...args: any[]) => HTMLElement, context: ClassDecoratorContext) => {
     context.addInitializer(function () {
-      const meta = lazyInitMetadata(context.metadata)
+      const meta = lazyInitMetadata(context.metadata);
       // @ts-expect-error convert type of `this`
       const cls: ComponentClass = this;
       const { tag, [observedAttributeProperty]: observedAttributes, ...statics } = options;

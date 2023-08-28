@@ -36,7 +36,7 @@ export const trailingSpaceCount = (text: string) => {
     }
   }
   return text.length;
-}
+};
 
 const VM_PROP_PATTERN = "([^:{}]+)(:([^:{}]+))?";
 const BRACED_VM_PROP_PATTERN = `{{${VM_PROP_PATTERN}}}|{${VM_PROP_PATTERN}}`;

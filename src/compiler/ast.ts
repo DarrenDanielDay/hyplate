@@ -134,7 +134,6 @@ export interface EventBindingNode extends BaseNode<NodeType.EventBinding> {
   identifier: PlainTextNode;
 }
 
-
 export interface ParsedTemplateFile {
   source: string;
   rootNodes: ElementChildNode[];

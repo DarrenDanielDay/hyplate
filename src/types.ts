@@ -350,7 +350,7 @@ export type ClassComponentRawProps<P extends PropsBase, S extends string, T> = O
 };
 export type HyplateElementMetadata = {
   [$$HyplateElementMeta]?: ComponentMeta;
-}
+};
 
 export interface ComponentClass extends ClassComponentStatic {
   /**

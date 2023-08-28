@@ -38,4 +38,3 @@ export const mockChange = (input: ModelableElement<string>, value?: string) => {
   }
   input.dispatchEvent(new Event("change"));
 };
-
