@@ -4,7 +4,11 @@
   "description": "A superfast JavaScript library for building web user interfaces.",
   "main": "dist/index.js",
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "./polyfill.js",
+    "./dist/polyfill.browser.esm.min.js",
+    "./dist/polyfill.js"
+  ],
   "scripts": {
     "build": "npm run build:typescript && npm run build:browser && npm run build:proxy && npm run build:test && npm run build:test-examples",
     "build:browser": "npx rollup --config rollup.config.js",
