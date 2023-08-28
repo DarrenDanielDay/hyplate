@@ -2,6 +2,22 @@ import { NodeType, type ElementChildNode } from "../../dist/compiler/ast";
 import { configureParser as configure, parse } from "../../dist/compiler/parser";
 describe("parser.ts", () => {
   describe("Parser", () => {
+    describe("functionality", () => {
+      it("should parse void element", async () => {
+        const { rootNodes } = await parse(`\
+<input>
+`);
+        expect(rootNodes).toStrictEqual<ElementChildNode[]>([
+          {
+            type: 1,
+            attributes: [],
+            children: undefined,
+            tag: "input",
+            loc: { begin: { line: 1, column: 0 }, end: { line: 1, column: 7 } },
+          },
+        ]);
+      });
+    });
     describe("corner cases", () => {
       it("should treat unrecognized pattern as HTML", async () => {
         const { rootNodes } = await parse(`\

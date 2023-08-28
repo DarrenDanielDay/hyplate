@@ -81,5 +81,29 @@ describe("lexer.ts", () => {
         },
       ]);
     });
+    it("should skip braces with invalid first identifiers", () => {
+      const text = `{ 0 }`;
+      const locator = new Locator(text);
+      const parsedNodes = parseVMPropsInText(text, locator, 0);
+      expect(parsedNodes).toStrictEqual<PlainTextNode[]>([
+        {
+          type: 0,
+          content: `{ 0 }`,
+          loc: { begin: { line: 1, column: 0 }, end: { line: 1, column: 5 } },
+        },
+      ]);
+    });
+    it("should skip braces with invalid second identifiers", () => {
+      const text = `{ a: 0 }`;
+      const locator = new Locator(text);
+      const parsedNodes = parseVMPropsInText(text, locator, 0);
+      expect(parsedNodes).toStrictEqual<PlainTextNode[]>([
+        {
+          type: 0,
+          content: `{ a: 0 }`,
+          loc: { begin: { line: 1, column: 0 }, end: { line: 1, column: 8 } },
+        },
+      ]);
+    });
   });
 });

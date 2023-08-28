@@ -65,10 +65,3 @@ export class Locator {
     };
   }
 }
-
-export const createLocator = (source: string) => {
-  const lines = countLineChars(source);
-  return (index: number) => {
-    return locate(lines, index);
-  };
-};
