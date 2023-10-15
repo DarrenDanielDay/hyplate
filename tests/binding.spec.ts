@@ -148,14 +148,14 @@ describe("binding.ts", () => {
     it("should bind <input type='number'>", () => {
       const input = element("input");
       attr(input, "type", "number");
-      const count = signal(0);
+      const count = signal(NaN);
 
       const observer = import.meta.jest.fn();
       const unsubscribe1 = subscribe(count, observer);
       expect(observer).toBeCalledTimes(1);
       expect(input.valueAsNumber).toBeNaN();
       const unsubscribe2 = $model(input, count, { as: "number" });
-      expect(input.valueAsNumber).toBe(0);
+      expect(input.valueAsNumber).toBeNaN();
 
       mockInput(input, "123");
       expect(count()).toBe(123);
