@@ -2347,7 +2347,7 @@ export interface SVGSVGElementAttributes
   viewBox: string;
   xmlns: string;
   width: string;
-  heigth: string;
+  height: string;
   preserveAspectRatio: string;
   "xmlns:xlink": string;
   x: string;
