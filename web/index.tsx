@@ -321,6 +321,7 @@ unsubscribe3();
 
 const SignalDemo = () => {
   const text = signal("init value");
+  const float = signal(0.0);
   useAutoRun(() => {
     console.log("latest text: ", text());
   });
@@ -331,6 +332,7 @@ const SignalDemo = () => {
   return (
     <div>
       <input h-model={text}></input>
+      <input type="number" h-model:number={float}></input>
       <textarea h-model={text}></textarea>
       <p>reflected text: {text}</p>
       <button onClick={changeToRandom}>change to random</button>

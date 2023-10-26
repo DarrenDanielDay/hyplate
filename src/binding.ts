@@ -227,14 +227,21 @@ export const $model: {
           el.checked = latest === el.value;
         }
       : (latest) => {
-          // Safari cannot set `valueAsNumber` with `NaN`.
-          // @ts-expect-error skip value type check
-          if (usingInput && as === "number" && isNaN(latest)) {
-            el.value = "";
-          } else {
-            // @ts-expect-error dynamic property setter
-            el[property] = latest;
+        if (usingInput) {
+          if (as === "number") { 
+              // Safari cannot set `valueAsNumber` with `NaN`.
+              // @ts-expect-error skip value type check
+              if ( isNaN(latest)) {
+                el.value = "";
+                return;
+              }
+              if (latest === el[property]) {
+                return;
+              }
+            }
           }
+          // @ts-expect-error dynamic property setter
+          el[property] = latest;
         }
   );
   const unsubscribeEvent = _listen(el, on, new ModelSubscription(writable, usingInput && property));

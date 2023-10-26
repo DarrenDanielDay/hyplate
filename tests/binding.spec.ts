@@ -161,6 +161,10 @@ describe("binding.ts", () => {
       expect(count()).toBe(123);
       expect(input.valueAsNumber).toBe(123);
       expect(observer).toBeCalledTimes(2);
+      mockInput(input, "123.1");
+      expect(count()).toBe(123.1);
+      expect(input.valueAsNumber).toBe(123.1);
+      expect(observer).toBeCalledTimes(3);
       unsubscribe1();
       unsubscribe2();
     });
